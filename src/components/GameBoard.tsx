@@ -182,12 +182,23 @@ export const GameBoard: React.FC = () => {
     );
 
     if (isComplete) {
-      showSuccessMessage(getRandomSuccessMessage());
-      setScore(prev => prev + 1);
+      // Clear any pending failure message
+      if (failureTimeout) {
+        clearTimeout(failureTimeout);
+        setFailureTimeout(null);
+      }
+      setFailureMessage(null);
+      failureOpacity.setValue(0);
+
+      // Wait 0.75 seconds before showing success message
       setTimeout(() => {
-        puzzleManager.nextPuzzle();
-        resetGrid();
-      }, 2000);
+        showSuccessMessage(getRandomSuccessMessage());
+        setScore(prev => prev + 1);
+        setTimeout(() => {
+          puzzleManager.nextPuzzle();
+          resetGrid();
+        }, 2000);
+      }, 750);
     } else if (hasUserModifications) {
       const timeout = setTimeout(showFailureMessage, 2000);
       setFailureTimeout(timeout);
@@ -451,11 +462,11 @@ const styles = StyleSheet.create({
   },
   failureMessage: {
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 10,
   },
   failureText: {
     color: '#ff6b6b',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
   },
 }); 
