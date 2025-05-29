@@ -17,7 +17,28 @@ export const GameBoard: React.FC = () => {
   const [messageOpacity] = useState(new Animated.Value(0));
   const [failureOpacity] = useState(new Animated.Value(0));
   const [shapeScale] = useState(new Animated.Value(1));
+  const [boardOpacity] = useState(new Animated.Value(1));
   const [failureTimeout, setFailureTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [currentPuzzleId, setCurrentPuzzleId] = useState(puzzleManager.getCurrentPuzzle().id);
+  const [currentGridSize, setCurrentGridSize] = useState(puzzleManager.getCurrentPuzzle().gridSize);
+
+  const calculateCellSize = (gridSize: number) => {
+    const maxWidth = Math.min(width, 700);
+    const padding = 20; // 10px padding on each side
+    const availableWidth = maxWidth - padding;
+    
+    // Adjust cell size based on grid size
+    let size;
+    if (gridSize <= 6) {
+      size = Math.floor(availableWidth / gridSize);
+    } else if (gridSize <= 8) {
+      size = Math.floor(availableWidth / gridSize);
+    } else {
+      size = Math.floor(availableWidth / gridSize);
+    }
+    
+    return size;
+  };
 
   const resetGrid = () => {
     // Clear any pending failure message
@@ -28,23 +49,79 @@ export const GameBoard: React.FC = () => {
     setFailureMessage(null);
     failureOpacity.setValue(0);
 
-    // Animate out
-    Animated.timing(shapeScale, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      // Update grid
-      const puzzle = puzzleManager.getCurrentPuzzle();
-      setGrid(puzzle.grid);
-      
-      // Animate in
-      Animated.timing(shapeScale, {
-        toValue: 1,
+    const newPuzzle = puzzleManager.getCurrentPuzzle();
+    if (!newPuzzle || !newPuzzle.grid) {
+      console.error('Invalid puzzle data:', newPuzzle);
+      return;
+    }
+
+    const isDifferentSize = newPuzzle.gridSize !== currentGridSize;
+
+    if (isDifferentSize) {
+      // Fade out the entire board
+      Animated.timing(boardOpacity, {
+        toValue: 0,
         duration: 300,
         useNativeDriver: true,
-      }).start();
-    });
+      }).start(() => {
+        try {
+          // Calculate new cell size before updating the grid
+          const newCellSize = calculateCellSize(newPuzzle.gridSize);
+          setCellSize(newCellSize);
+          
+          // Update grid and size
+          setGrid([...newPuzzle.grid]);
+          setCurrentGridSize(newPuzzle.gridSize);
+          setCurrentPuzzleId(newPuzzle.id);
+          
+          // Reset shape scale to 0
+          shapeScale.setValue(0);
+          
+          // Fade in the new board
+          Animated.timing(boardOpacity, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }).start(() => {
+            // After grid is visible, grow in the shapes
+            Animated.timing(shapeScale, {
+              toValue: 1,
+              duration: 300,
+              useNativeDriver: true,
+            }).start();
+          });
+        } catch (error) {
+          console.error('Error during grid transition:', error);
+          // Fallback to safe state
+          setGrid([]);
+          setCurrentGridSize(0);
+          setCurrentPuzzleId('');
+        }
+      });
+    } else {
+      // Just animate the shapes for same-size grids
+      Animated.timing(shapeScale, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        try {
+          setGrid([...newPuzzle.grid]);
+          setCurrentPuzzleId(newPuzzle.id);
+          
+          Animated.timing(shapeScale, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }).start();
+        } catch (error) {
+          console.error('Error during shape animation:', error);
+          // Fallback to safe state
+          setGrid([]);
+          setCurrentPuzzleId('');
+        }
+      });
+    }
   };
 
   const showSuccessMessage = (messageData: { message: string; color: string }) => {
@@ -128,15 +205,18 @@ export const GameBoard: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const puzzle = puzzleManager.getCurrentPuzzle();
+    if (puzzle.id !== currentPuzzleId) {
+      resetGrid();
+    }
+  }, [currentPuzzleId]);
+
+  useEffect(() => {
     resetGrid();
     
-    // Calculate cell size based on screen width, with max-width of 700
+    // Calculate initial cell size
     const puzzle = puzzleManager.getCurrentPuzzle();
-    const maxWidth = Math.min(width, 700);
-    const padding = 20; // 10px padding on each side
-    const availableWidth = maxWidth - padding;
-    const size = Math.floor(availableWidth / puzzle.gridSize);
-    setCellSize(size);
+    setCellSize(calculateCellSize(puzzle.gridSize));
   }, [width]);
 
   const handleCellPress = (row: number, col: number) => {
@@ -163,7 +243,11 @@ export const GameBoard: React.FC = () => {
 
   const renderCell = (value: CellValue, row: number, col: number) => {
     const puzzle = puzzleManager.getCurrentPuzzle();
-    const isInitial = puzzle.grid[row][col] !== null;
+    if (!puzzle || !puzzle.grid) {
+      return null;
+    }
+
+    const isInitial = puzzle.grid[row]?.[col] !== null;
     const shapeSet = shapeSets.find(set => set.id === puzzle.shapeSetId);
     
     return (
@@ -174,7 +258,8 @@ export const GameBoard: React.FC = () => {
           styles.cell,
           {
             width: cellSize,
-            height: cellSize
+            height: cellSize,
+            borderWidth: puzzle.gridSize <= 6 ? 1 : 0.5
           }
         ]}
         onPress={() => handleCellPress(row, col)}
@@ -217,7 +302,7 @@ export const GameBoard: React.FC = () => {
           </View>
         </View>
 
-        <View style={styles.grid}>
+        <Animated.View style={[styles.grid, { opacity: boardOpacity }]}>
           {grid.map((row, rowIndex) => (
             <View key={rowIndex} style={styles.row}>
               {row.map((cell, colIndex) => renderCell(cell, rowIndex, colIndex))}
@@ -236,7 +321,7 @@ export const GameBoard: React.FC = () => {
               <Text style={styles.successText}>{successMessage.message}</Text>
             </Animated.View>
           )}
-        </View>
+        </Animated.View>
 
         {failureMessage && (
           <Animated.View style={[styles.failureMessage, { opacity: failureOpacity }]}>
@@ -258,7 +343,7 @@ export const GameBoard: React.FC = () => {
             <Text style={styles.buttonText}>Restart</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.button}>
-            <MaterialIcons name="lightbulb" size={24} color="#e0e0e0" />
+            <MaterialIcons name="lightbulb-outline" size={24} color="#e0e0e0" />
             <Text style={styles.buttonText}>Hint</Text>
           </TouchableOpacity>
         </View>
@@ -292,7 +377,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     color: '#e0e0e0',
-    fontSize: 16,
+    fontSize: 14,
     marginBottom: 6,
   },
   statValueContainer: {
@@ -303,7 +388,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     color: '#ffffff',
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   grid: {
@@ -336,7 +421,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   button: {
-    backgroundColor: '#424242',
+    backgroundColor: '#333',
     padding: 10,
     borderRadius: 5,
     flex: 1,

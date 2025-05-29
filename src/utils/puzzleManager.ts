@@ -32,6 +32,10 @@ class PuzzleManager {
     }
     return false;
   }
+
+  resetToFirstPuzzle(): void {
+    this.currentPuzzleIndex = 0;
+  }
 }
 
 export const puzzleManager = new PuzzleManager(); 
