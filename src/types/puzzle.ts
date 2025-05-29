@@ -7,4 +7,5 @@ export interface Puzzle {
   difficulty: number;
   gridSize: number;
   level: number;
+  shapeSetId: string;
 } 
