@@ -13,15 +13,11 @@ const successMessages = [
 
 const successColors = [
   "#4CAF50", // Green
-  "#2196F3", // Blue
-  "#9C27B0", // Purple
   "#FF9800", // Orange
   "#E91E63", // Pink
   "#00BCD4", // Cyan
-  "#8BC34A", // Light Green
   "#FF5722", // Deep Orange
-  "#3F51B5", // Indigo
-  "#009688", // Teal
+  "#3F51B5" // Indigo
 ];
 
 export const getRandomSuccessMessage = () => {
