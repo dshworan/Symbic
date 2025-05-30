@@ -185,7 +185,7 @@ const TestInterstitialAdScreen = ({ onBackPress }) => {
         
         <View style={styles.content}>
           <Text style={styles.title}>Interstitial Ad Test</Text>
-          <Text style={styles.appId}>App ID: ca-app-pub-7569267138426237~6830607970</Text>
+          <Text style={styles.appId}>App ID: ca-app-pub-7569267138426237~5058149272</Text>
           
           {isWeb ? (
             <View style={styles.webNotice}>

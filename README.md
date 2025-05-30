@@ -45,14 +45,28 @@ node_modules   ...delete
 package-lock.json  ...delete
 npm install
 
-APP ID
+# SYMBIC APP ID
+ca-app-pub-7569267138426237~5058149272
+
+Ad Unit ID - Interstitial Development
+ca-app-pub-3940256099942544/1033173712
+Ad Unit ID - Interstitial Production Android
+ca-app-pub-7569267138426237/2000725188
+
+Ad Unit ID - Reward Ad Development
+ca-app-pub-3940256099942544/5224354917
+Ad Unit ID - Production Android
+ca-app-pub-7569267138426237/6876055022
+
+
+# TRIOS APP ID
 ca-app-pub-7569267138426237~6830607970
 
 Ad Unit ID - Interstitial Development
 ca-app-pub-3940256099942544/1033173712
-Ad Unit ID - Production Android
+Ad Unit ID - Interstitial Production Android
 ca-app-pub-7569267138426237/9860111905
-Ad Unit ID - Production iOS
+Ad Unit ID - Interstitial Production iOS
 ca-app-pub-7569267138426237/4411468910
 
 Ad Unit ID - Reward Ad Development

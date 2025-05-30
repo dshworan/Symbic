@@ -40,9 +40,9 @@ const LiveRewardAdScreen = ({ onBackPress }) => {
   const REWARD_AD_ID = 'ca-app-pub-7569267138426237/3683292773';
   
   // Ad Unit ID - Production Android
-  //ca-app-pub-7569267138426237/3683292773
+  //ca-app-pub-7569267138426237/6876055022
   // Ad Unit ID - Production iOS
-  //ca-app-pub-3940256099942544/1712485313
+  //00000000000000000000000000000
 
   // Initialize AdMob
   useEffect(() => {

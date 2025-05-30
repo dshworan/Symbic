@@ -31,13 +31,13 @@ const LiveInterstitialAdScreen = ({ onBackPress }) => {
   const [isLoadingInterstitial, setIsLoadingInterstitial] = useState(false);
   
   // Production Ad Unit IDs
-  const PROD_ANDROID_INTERSTITIAL_AD_ID = 'ca-app-pub-7569267138426237/9860111905';
-  const PROD_IOS_INTERSTITIAL_AD_ID = '  ca-app-pub-7569267138426237/4411468910';
+  const PROD_ANDROID_INTERSTITIAL_AD_ID = 'ca-app-pub-7569267138426237/2000725188';
+  const PROD_IOS_INTERSTITIAL_AD_ID = '00000000000000000000000000';
   
-  //Ad Unit ID - Production Android
-  //ca-app-pub-7569267138426237/9860111905
-  // Ad Unit ID - Production iOS
-  //ca-app-pub-7569267138426237/4411468910
+  //Ad Unit ID - Symbic Production Android
+  //ca-app-pub-7569267138426237/2000725188
+  // Ad Unit ID - Symbic Production iOS
+  //00000000000000000000000000000
 
   // Get the appropriate ad ID based on platform
   const INTERSTITIAL_AD_ID = Platform.OS === 'android' ? PROD_ANDROID_INTERSTITIAL_AD_ID : PROD_IOS_INTERSTITIAL_AD_ID;
