@@ -5,7 +5,9 @@ adb logcat *:S ReactNative:V ReactNativeJS:V    ... USB connect and see live con
 
 npx expo start --web     ...to run in localhost (browser) 
 
-npx expo start    ...to run on the phone app ... Fast refresh/live reload/Metro bundler logs/Console logs in the terminal/pressing a, r, m, d, etc. to reload/debug
+npx expo start
+npx expo start --clear
+    ...to run on the phone app ... Fast refresh/live reload/Metro bundler logs/Console logs in the terminal/pressing a, r, m, d, etc. to reload/debug
 
 
 

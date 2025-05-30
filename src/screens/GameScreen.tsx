@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { GameBoard } from '../components/GameBoard';
+import GameBoard from '../components/GameBoard';
 import { puzzleManager } from '../utils/puzzleManager';
 
 export const GameScreen: React.FC = () => {

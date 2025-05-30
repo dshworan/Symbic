@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, useWindowDimensions, Animated, StatusBar } from 'react-native';
-import { SvgXml } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { MaterialIcons } from '@expo/vector-icons';
 import { CellValue } from '../types/puzzle';
 import { puzzleManager } from '../utils/puzzleManager';
 import { shapeSets } from '../data/shapes/shapeSets';
 import { getRandomSuccessMessage } from '../data/messages';
 
-export const GameBoard: React.FC = () => {
+const GameBoard: React.FC = () => {
   const { width } = useWindowDimensions();
   const [cellSize, setCellSize] = useState(0);
   const [grid, setGrid] = useState<CellValue[][]>([]);
@@ -18,7 +18,7 @@ export const GameBoard: React.FC = () => {
   const [failureOpacity] = useState(new Animated.Value(0));
   const [shapeScale] = useState(new Animated.Value(1));
   const [boardOpacity] = useState(new Animated.Value(1));
-  const [failureTimeout, setFailureTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [failureTimeout, setFailureTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [currentPuzzleId, setCurrentPuzzleId] = useState(puzzleManager.getCurrentPuzzle().id);
   const [currentGridSize, setCurrentGridSize] = useState(puzzleManager.getCurrentPuzzle().gridSize);
 
@@ -190,7 +190,7 @@ export const GameBoard: React.FC = () => {
       setFailureMessage(null);
       failureOpacity.setValue(0);
 
-      // Wait 0.75 seconds before showing success message
+      // Wait 1 second before showing success message
       setTimeout(() => {
         showSuccessMessage(getRandomSuccessMessage());
         setScore(prev => prev + 1);
@@ -198,7 +198,7 @@ export const GameBoard: React.FC = () => {
           puzzleManager.nextPuzzle();
           resetGrid();
         }, 2000);
-      }, 750);
+      }, 1000);
     } else if (hasUserModifications) {
       const timeout = setTimeout(showFailureMessage, 2000);
       setFailureTimeout(timeout);
@@ -208,6 +208,14 @@ export const GameBoard: React.FC = () => {
   useEffect(() => {
     // Hide status bar
     StatusBar.setHidden(true);
+    
+    // Initialize the grid and cell size
+    const puzzle = puzzleManager.getCurrentPuzzle();
+    const initialCellSize = calculateCellSize(puzzle.gridSize);
+    setCellSize(initialCellSize);
+    setGrid([...puzzle.grid]);
+    setCurrentGridSize(puzzle.gridSize);
+    setCurrentPuzzleId(puzzle.id);
     
     // Cleanup when component unmounts
     return () => {
@@ -223,9 +231,7 @@ export const GameBoard: React.FC = () => {
   }, [currentPuzzleId]);
 
   useEffect(() => {
-    resetGrid();
-    
-    // Calculate initial cell size
+    // Only recalculate cell size when width changes
     const puzzle = puzzleManager.getCurrentPuzzle();
     setCellSize(calculateCellSize(puzzle.gridSize));
   }, [width]);
@@ -277,12 +283,24 @@ export const GameBoard: React.FC = () => {
       >
         {value !== null && shapeSet && (
           <Animated.View style={{ transform: [{ scale: shapeScale }] }}>
-            <SvgXml 
-              xml={value === 0 ? shapeSet.shapes.shape1 : shapeSet.shapes.shape2}
+            <Svg 
               width={cellSize * 0.8}
               height={cellSize * 0.8}
-              color={value === 0 ? shapeSet.colors.shape1 : shapeSet.colors.shape2}
-            />
+              viewBox="0 0 100 100"
+              fill="none"
+            >
+              {value === 0 ? (
+                <Path 
+                  d="M91.5 50C91.5 72.9198 72.9198 91.5 50 91.5C27.0802 91.5 8.5 72.9198 8.5 50C8.5 27.0802 27.0802 8.5 50 8.5C72.9198 8.5 91.5 27.0802 91.5 50Z" 
+                  fill={shapeSet.colors.shape1}
+                />
+              ) : (
+                <Path 
+                  d="M50 5L95 50L50 95L5 50L50 5Z" 
+                  fill={shapeSet.colors.shape2}
+                />
+              )}
+            </Svg>
           </Animated.View>
         )}
       </TouchableOpacity>
@@ -362,6 +380,8 @@ export const GameBoard: React.FC = () => {
     </View>
   );
 };
+
+export default GameBoard;
 
 const styles = StyleSheet.create({
   container: {

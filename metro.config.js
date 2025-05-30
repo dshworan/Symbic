@@ -14,6 +14,17 @@ config.resolver.extraNodeModules = {
   ...config.resolver.extraNodeModules,
 };
 
+config.transformer = {
+  ...config.transformer,
+  babelTransformerPath: require.resolve('react-native-svg-transformer'),
+};
+
+config.resolver = {
+  ...config.resolver,
+  assetExts: config.resolver.assetExts.filter((ext) => ext !== 'svg'),
+  sourceExts: [...config.resolver.sourceExts, 'svg'],
+};
+
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   // For web platform, mock native-only modules
   if (platform === 'web') {
