@@ -22,7 +22,8 @@ export class LastCellRule extends MoveValidator {
             col,
             value,
             rule: 'lastcell',
-            message: `This is the last empty cell in the row. It must be ${value} to maintain the correct count.`
+            message: `This is the last empty cell in the row. It must be a ${value}`,
+            hintCellSets: puzzle[row].map((_, colIndex) => ({ row, col: colIndex }))
           };
         }
       }
@@ -41,7 +42,8 @@ export class LastCellRule extends MoveValidator {
             col,
             value,
             rule: 'lastcell',
-            message: `This is the last empty cell in the column. It must be ${value} to maintain the correct count.`
+            message: `This is the last empty cell in the column. It must be ${value} to maintain the correct count.`,
+            hintCellSets: puzzle.map((_, rowIndex) => ({ row: rowIndex, col }))
           };
         }
       }

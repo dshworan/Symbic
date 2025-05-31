@@ -36,7 +36,8 @@ export class EqualNumberRule extends MoveValidator {
             col: empty[0],
             value: 1,
             rule: 'equalnumber',
-            message: `This row already has the maximum number of 0s, so this cell must be a 1.`
+            message: `This row already has the maximum number of 0s, so this cell must be a 1.`,
+            hintCellSets: Array.from({ length: size }, (_, i) => ({ row, col: i }))
           };
         } else if (ones === size/2) {
           // Fill first empty cell with 0
@@ -45,7 +46,8 @@ export class EqualNumberRule extends MoveValidator {
             col: empty[0],
             value: 0,
             rule: 'equalnumber',
-            message: `This row already has the maximum number of 1s, so this cell must be a 0.`
+            message: `This row already has the maximum number of 1s, so this cell must be a 0.`,
+            hintCellSets: Array.from({ length: size }, (_, i) => ({ row, col: i }))
           };
         }
       }
@@ -77,7 +79,8 @@ export class EqualNumberRule extends MoveValidator {
             col: col,
             value: 1,
             rule: 'equalnumber',
-            message: `This column already has the maximum number of 0s, so this cell must be a 1.`
+            message: `This column already has the maximum number of 0s, so this cell must be a 1.`,
+            hintCellSets: Array.from({ length: size }, (_, i) => ({ row: i, col }))
           };
         } else if (ones === size/2) {
           // Fill first empty cell with 0
@@ -86,7 +89,8 @@ export class EqualNumberRule extends MoveValidator {
             col: col,
             value: 0,
             rule: 'equalnumber',
-            message: `This column already has the maximum number of 1s, so this cell must be a 0.`
+            message: `This column already has the maximum number of 1s, so this cell must be a 0.`,
+            hintCellSets: Array.from({ length: size }, (_, i) => ({ row: i, col }))
           };
         }
       }

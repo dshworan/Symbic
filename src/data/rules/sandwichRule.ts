@@ -21,12 +21,17 @@ export class SandwichRule extends MoveValidator {
         // Check if we have a pattern [X, ?, X] where X is 0 or 1 and ? is empty
         if (puzzle[row][col] === puzzle[row][col + 2]) {
           const value = puzzle[row][col];
+          const neededDigit = 1 - value;
           return {
             row: row,
             col: col + 1,
-            value: 1 - value,
+            value: neededDigit,
             rule: 'sandwich',
-            message: `When a cell is sandwiched between two ${value}s, it must be a ${1 - value}.`
+            message: `We can't have three ${value} in a row, so this must be a ${neededDigit}`,
+            hintCellSets: [
+              { row: row, col: col },
+              { row: row, col: col + 2 }
+            ]
           };
         }
       }
@@ -43,12 +48,17 @@ export class SandwichRule extends MoveValidator {
         // Check if we have a pattern [X, ?, X] where X is 0 or 1 and ? is empty
         if (puzzle[row][col] === puzzle[row + 2][col]) {
           const value = puzzle[row][col];
+          const neededDigit = 1 - value;
           return {
             row: row + 1,
             col: col,
-            value: 1 - value,
+            value: neededDigit,
             rule: 'sandwich',
-            message: `When a cell is sandwiched between two ${value}s, it must be a ${1 - value}.`
+            message: `We can't have three ${value} in a row, so this must be a ${neededDigit}`,
+            hintCellSets: [
+              { row: row, col: col },
+              { row: row + 2, col: col }
+            ]
           };
         }
       }

@@ -25,7 +25,8 @@ export class Clustered5EmptyCellsRule extends MoveValidator {
         col: colStep.row,
         value: colStep.value,
         rule: colStep.rule,
-        message: colStep.message.replace('row', 'column')
+        message: colStep.message.replace('row', 'column'),
+        hintCellSets: colStep.hintCellSets.map(cell => ({ row: cell.col, col: cell.row }))
       };
     }
     
@@ -97,12 +98,21 @@ export class Clustered5EmptyCellsRule extends MoveValidator {
         // Find the isolated empty cell
         const isolatedCell = clusters[0].length === 1 ? clusters[0][0] : clusters[1][0];
         
+        // Get the cluster of 4
+        const clusterOf4 = clusters[0].length === 4 ? clusters[0] : clusters[1];
+        
         return {
           row: row,
           col: isolatedCell,
           value: targetDigit,
           rule: 'clustered5emptycells',
-          message: `Found 5 empty cells in row ${row+1} with 4 clustered together. Placing ${targetDigit} in the isolated cell.`
+          message: `Found 5 empty cells in row ${row+1} with 4 clustered together. Placing ${targetDigit} in the isolated cell.`,
+          hintCellSets: [
+            // The isolated cell (target)
+            { row, col: isolatedCell },
+            // The cluster of 4 empty cells
+            ...clusterOf4.map(col => ({ row, col }))
+          ]
         };
       }
     }

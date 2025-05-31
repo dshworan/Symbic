@@ -1,7 +1,7 @@
-import { BaseRule } from './baseRule';
+import { MoveValidator } from './moveValidator';
 import { HintStep } from './types';
 
-export class QuadAntiTripleRule extends BaseRule {
+export class QuadAntiTripleRule extends MoveValidator {
   constructor() {
     super(
       'quadantitriplet',
@@ -25,7 +25,8 @@ export class QuadAntiTripleRule extends BaseRule {
         col: colStep.row,
         value: colStep.value,
         rule: colStep.rule,
-        message: colStep.message.replace('row', 'column').replace('Column', 'Row')
+        message: colStep.message.replace('row', 'column').replace('Column', 'Row'),
+        hintCellSets: colStep.hintCellSets.map(cell => ({ row: cell.col, col: cell.row }))
       };
     }
     
@@ -100,7 +101,13 @@ export class QuadAntiTripleRule extends BaseRule {
           col: a,  // First cell in the cluster
           value: targetDigit,
           rule: 'quadantitriplet',
-          message: `Found 4 adjacent empty cells in row ${row+1} where we need ${needCount} ${targetDigit}s. Placing ${targetDigit} at column ${a+1} to prevent triplets.`
+          message: `Found 4 adjacent empty cells in row ${row+1} where we need ${needCount} ${targetDigit}s. Placing ${targetDigit} at column ${a+1} to prevent triplets.`,
+          hintCellSets: [
+            { row, col: a },
+            { row, col: b },
+            { row, col: c },
+            { row, col: d }
+          ]
         };
       }
     }

@@ -21,6 +21,7 @@ interface Hint {
   col: number;
   value: number;
   message: string;
+  hintCellSets?: Array<{row: number; col: number}>;
 }
 
 const GameBoard: React.FC = () => {
@@ -253,7 +254,7 @@ const GameBoard: React.FC = () => {
     const shapeSet = shapeSets.find(set => set.id === puzzleManager.getCurrentPuzzle().shapeSetId);
     setSuccessMessage({
       message: messageData.message,
-      backgroundColor: shapeSet?.colors.shape1 || '#2d2d2d',
+      backgroundColor: shapeSet?.colors.shape1 || '#252525',
       borderColor: shapeSet?.colors.shape2 || '#404040'
     });
     Animated.sequence([
@@ -390,17 +391,19 @@ const GameBoard: React.FC = () => {
     for (const rule of rules) {
       const step = rule.findStep(grid, currentGridSize);
       if (step) {
+        console.log('Found hint step:', step); // Add debug logging
         setHint({
           row: step.row,
           col: step.col,
           value: step.value,
-          message: step.message
+          message: step.message,
+          hintCellSets: step.hintCellSets
         });
         
         // Fade in the hint message
         Animated.timing(hintOpacity, {
           toValue: 1,
-          duration: 300,
+          duration: 150,
           useNativeDriver: true,
         }).start();
         
@@ -577,6 +580,20 @@ const GameBoard: React.FC = () => {
     const isInitial = puzzle.grid[row]?.[col] !== null;
     const shapeSet = shapeSets.find(set => set.id === puzzle.shapeSetId);
     const isHintCell = hint && hint.row === row && hint.col === col;
+    const isHintSetCell = hint?.hintCellSets?.some(cell => cell.row === row && cell.col === col);
+    
+    if (isHintSetCell || isHintCell) {
+      console.log('GameBoard - Cell state:', { 
+        row, 
+        col, 
+        isInitial, 
+        isHintCell, 
+        isHintSetCell,
+        hint,
+        hintCellSets: hint?.hintCellSets,
+        currentValue: puzzle.grid[row][col]
+      });
+    }
     
     return (
       <TouchableOpacity
@@ -587,8 +604,8 @@ const GameBoard: React.FC = () => {
           {
             width: cellSize,
             height: cellSize,
-            backgroundColor: isInitial ? '#363636' : '#2d2d2d',
-            borderColor: isHintCell ? '#ffd700' : '#404040',
+            backgroundColor: (isHintSetCell || isHintCell) ? '#1a1a1a' : (isInitial ? '#363636' : '#252525'),
+            borderColor: isHintCell ? '#ffd700' : isHintSetCell ? '#6c6c6c' : '#404040',
             borderWidth: isHintCell ? 2 : (puzzle.gridSize <= 6 ? 1 : 0.5),
           }
         ]}
@@ -766,7 +783,7 @@ const styles = StyleSheet.create({
     borderColor: '#404040',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#2d2d2d',
+    backgroundColor: '#252525',
     aspectRatio: 1,
   },
   controlsContainer: {

@@ -24,28 +24,36 @@ export class PairsRule extends MoveValidator {
           
           // Check if there's room after the pair and it's empty
           if (col + 2 < size && puzzle[row][col + 2] === null) {
-            const possibleValue = 1 - value;
-            if (this._isValidMove(puzzle, row, col + 2, possibleValue, size)) {
+            const neededDigit = 1 - value;
+            if (this._isValidMove(puzzle, row, col + 2, neededDigit, size)) {
               return {
                 row: row,
                 col: col + 2,
-                value: possibleValue,
+                value: neededDigit,
                 rule: 'pairs',
-                message: `I see a pair. To avoid three in a row, the adjacent cell must be different.`
+                message: `We can't have three ${value} in a row, so this must be a ${neededDigit}`,
+                hintCellSets: [
+                  { row: row, col: col },
+                  { row: row, col: col + 1 }
+                ]
               };
             }
           }
           
           // Check if there's room before the pair and it's empty
           if (col > 0 && puzzle[row][col - 1] === null) {
-            const possibleValue = 1 - value;
-            if (this._isValidMove(puzzle, row, col - 1, possibleValue, size)) {
+            const neededDigit = 1 - value;
+            if (this._isValidMove(puzzle, row, col - 1, neededDigit, size)) {
               return {
                 row: row,
                 col: col - 1,
-                value: possibleValue,
+                value: neededDigit,
                 rule: 'pairs',
-                message: `I see a pair. To avoid three in a row, the adjacent cell must be different.`
+                message: `We can't have three ${value} in a row, so this must be a ${neededDigit}`,
+                hintCellSets: [
+                  { row: row, col: col },
+                  { row: row, col: col + 1 }
+                ]
               };
             }
           }
@@ -67,28 +75,36 @@ export class PairsRule extends MoveValidator {
           
           // Check if there's room after the pair and it's empty
           if (row + 2 < size && puzzle[row + 2][col] === null) {
-            const possibleValue = 1 - value;
-            if (this._isValidMove(puzzle, row + 2, col, possibleValue, size)) {
+            const neededDigit = 1 - value;
+            if (this._isValidMove(puzzle, row + 2, col, neededDigit, size)) {
               return {
                 row: row + 2,
                 col: col,
-                value: possibleValue,
+                value: neededDigit,
                 rule: 'pairs',
-                message: `I see a pair. To avoid three in a row, the adjacent cell must be different.`
+                message: `We can't have three ${value} in a row, so this must be a ${neededDigit}`,
+                hintCellSets: [
+                  { row: row, col: col },
+                  { row: row + 1, col: col }
+                ]
               };
             }
           }
           
           // Check if there's room before the pair and it's empty
           if (row > 0 && puzzle[row - 1][col] === null) {
-            const possibleValue = 1 - value;
-            if (this._isValidMove(puzzle, row - 1, col, possibleValue, size)) {
+            const neededDigit = 1 - value;
+            if (this._isValidMove(puzzle, row - 1, col, neededDigit, size)) {
               return {
                 row: row - 1,
                 col: col,
-                value: possibleValue,
+                value: neededDigit,
                 rule: 'pairs',
-                message: `I see a pair. To avoid three in a row, the adjacent cell must be different.`
+                message: `We can't have three ${value} in a row, so this must be a ${neededDigit}`,
+                hintCellSets: [
+                  { row: row, col: col },
+                  { row: row + 1, col: col }
+                ]
               };
             }
           }

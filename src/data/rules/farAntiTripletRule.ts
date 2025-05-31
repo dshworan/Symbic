@@ -1,7 +1,7 @@
-import { BaseRule } from './baseRule';
+import { MoveValidator } from './moveValidator';
 import { HintStep } from './types';
 
-export class FarAntiTripletRule extends BaseRule {
+export class FarAntiTripletRule extends MoveValidator {
   constructor() {
     super(
       'farantitriplet',
@@ -25,7 +25,8 @@ export class FarAntiTripletRule extends BaseRule {
         col: colStep.row,
         value: colStep.value,
         rule: colStep.rule,
-        message: colStep.message.replace('row', 'column').replace('Column', 'Row')
+        message: colStep.message.replace('row', 'column').replace('Column', 'Row'),
+        hintCellSets: colStep.hintCellSets.map(cell => ({ row: cell.col, col: cell.row }))
       };
     }
     
@@ -89,7 +90,17 @@ export class FarAntiTripletRule extends BaseRule {
                 col: farNull!,
                 value: targetDigit,
                 rule: 'farantitriplet',
-                message: `In row ${row+1}, placing ${targetDigit} at column ${farNull!+1} to avoid potential triplet with adjacent nulls at columns ${a+1} and ${b+1}.`
+                message: `In row ${row+1}, placing ${targetDigit} at column ${farNull!+1} to avoid potential triplet with adjacent nulls at columns ${a+1} and ${b+1}.`,
+                hintCellSets: [
+                  // The far null cell (target)
+                  { row, col: farNull! },
+                  // The adjacent null cells
+                  { row, col: a },
+                  { row, col: b },
+                  // The target digit cell that's adjacent to the nulls
+                  ...(leftNeighbor === targetDigit ? [{ row, col: left - 1 }] : []),
+                  ...(rightNeighbor === targetDigit ? [{ row, col: right + 1 }] : [])
+                ]
               };
             }
           }

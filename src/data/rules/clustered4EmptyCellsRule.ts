@@ -25,7 +25,8 @@ export class Clustered4EmptyCellsRule extends MoveValidator {
         col: colStep.row,
         value: colStep.value,
         rule: colStep.rule,
-        message: colStep.message.replace('row', 'column')
+        message: colStep.message.replace('row', 'column'),
+        hintCellSets: colStep.hintCellSets?.map(cell => ({ row: cell.col, col: cell.row }))
       };
     }
     
@@ -97,12 +98,39 @@ export class Clustered4EmptyCellsRule extends MoveValidator {
         // Find the isolated empty cell
         const isolatedCell = clusters[0].length === 1 ? clusters[0][0] : clusters[1][0];
         
+        // Find the cluster of 3
+        const clusterOf3 = clusters[0].length === 3 ? clusters[0] : clusters[1];
+        
+        // Find the adjacent non-empty cell
+        let adjacentCell: number;
+        if (clusterOf3[0] > 0 && puzzle[row][clusterOf3[0] - 1] !== null) {
+          adjacentCell = clusterOf3[0] - 1;
+        } else if (clusterOf3[2] < size - 1 && puzzle[row][clusterOf3[2] + 1] !== null) {
+          adjacentCell = clusterOf3[2] + 1;
+        } else {
+          continue; // No adjacent non-empty cell found
+        }
+        
+        // Include both empty cells and the adjacent non-empty cell
+        const hintCells = [
+          ...emptyCells.map(col => ({ row, col })),
+          { row, col: adjacentCell }
+        ];
+        
+        console.log('Clustered4EmptyCellsRule - hintCells:', {
+          emptyCells,
+          adjacentCell,
+          hintCells,
+          targetCell: { row, col: isolatedCell }
+        });
+        
         return {
           row: row,
           col: isolatedCell,
           value: targetDigit,
           rule: 'clustered4emptycells',
-          message: `Found 4 empty cells in row ${row+1} with 3 clustered together. Placing ${targetDigit} in the isolated cell.`
+          message: `We cannot have 3 in a row of ${puzzle[row][adjacentCell]}. So this must be a ${targetDigit}`,
+          hintCellSets: hintCells
         };
       }
     }

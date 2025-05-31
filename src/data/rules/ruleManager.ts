@@ -4,11 +4,12 @@ import { PairsRule } from './pairsRule';
 import { SandwichRule } from './sandwichRule';
 import { EqualNumberRule } from './equalNumberRule';
 import { SpreadAntiTripletRule } from './spreadAntiTripletRule';
-import { QuadAntiTripletRule } from './quadAntiTripletRule';
+import { QuadAntiTripleRule } from './quadAntiTripleRule';
 import { Clustered4EmptyCellsRule } from './clustered4EmptyCellsRule';
 import { Clustered5EmptyCellsRule } from './clustered5EmptyCellsRule';
 import { DuplicateRow2Rule } from './duplicateRow2Rule';
 import { DuplicateRow3Rule } from './duplicateRow3Rule';
+import { FarAntiTripletRule } from './farAntiTripletRule';
 
 export class RuleManager {
   private rules: MoveValidator[];
@@ -20,11 +21,12 @@ export class RuleManager {
       new SandwichRule(),
       new EqualNumberRule(),
       new SpreadAntiTripletRule(),
-      new QuadAntiTripletRule(),
+      new QuadAntiTripleRule(),
       new Clustered4EmptyCellsRule(),
       new Clustered5EmptyCellsRule(),
       new DuplicateRow2Rule(),
-      new DuplicateRow3Rule()
+      new DuplicateRow3Rule(),
+      new FarAntiTripletRule()
     ];
   }
 

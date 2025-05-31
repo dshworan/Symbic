@@ -4,6 +4,7 @@ export interface HintStep {
   value: number;
   rule: string;
   message: string;
+  hintCellSets?: Array<{row: number; col: number}>;
 }
 
 export interface Rule {

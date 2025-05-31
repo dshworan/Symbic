@@ -20,13 +20,14 @@ export class SpreadAntiTripletRule extends MoveValidator {
     result = this._checkRows(transposed, size);
     if (result !== null) {
       // swap row/col in result because we transposed the puzzle
-      const { row, col, value, rule } = result;
+      const { row, col, value, rule, hintCellSets } = result;
       return { 
         row: col, 
         col: row, 
         value, 
         rule,
-        message: result.message.replace('row', 'column')
+        message: result.message.replace('row', 'column'),
+        hintCellSets: hintCellSets.map(cell => ({ row: cell.col, col: cell.row }))
       };
     }
     
@@ -95,6 +96,7 @@ export class SpreadAntiTripletRule extends MoveValidator {
         value: number;
         pattern: string;
         message: string;
+        hintCellSets: Array<{ row: number; col: number }>;
       }> = [];
       
       // Now check for the pattern where two empty cells are adjacent to the needed digit
@@ -113,7 +115,12 @@ export class SpreadAntiTripletRule extends MoveValidator {
               col: thirdEmptyCell!,
               value: neededDigit,
               rule: 'spreadantitriplet',
-              message: `Found empty cells on both sides of a ${neededDigit} in row ${row+1}. Placing ${neededDigit} in the third empty cell.`
+              message: `Found empty cells on both sides of a ${neededDigit} in row ${row+1}. Placing ${neededDigit} in the third empty cell.`,
+              hintCellSets: [
+                { row, col: i-1 },
+                { row, col: i },
+                { row, col: i+1 }
+              ]
             };
           }
           
@@ -127,7 +134,12 @@ export class SpreadAntiTripletRule extends MoveValidator {
               col: thirdEmptyCell!,
               value: neededDigit,
               pattern: '--X',
-              message: `Found two empty cells next to a ${neededDigit} in row ${row+1}. Placing ${neededDigit} in the third empty cell.`
+              message: `We can't have three ${neededDigit} in row, so this must be a ${neededDigit}`,
+              hintCellSets: [
+                { row, col: i-2 },
+                { row, col: i-1 },
+                { row, col: i }
+              ]
             });
           }
           
@@ -142,7 +154,12 @@ export class SpreadAntiTripletRule extends MoveValidator {
               col: thirdEmptyCell!,
               value: neededDigit,
               pattern: 'X--',
-              message: `Found two empty cells next to a ${neededDigit} in row ${row+1}. Placing ${neededDigit} in the third empty cell.`
+              message: `We can't have three ${neededDigit} in row, so this must be a ${neededDigit}`,
+              hintCellSets: [
+                { row, col: i },
+                { row, col: i+1 },
+                { row, col: i+2 }
+              ]
             });
           }
         }
@@ -156,7 +173,8 @@ export class SpreadAntiTripletRule extends MoveValidator {
           col: result.col,
           value: result.value,
           rule: 'spreadantitriplet',
-          message: result.message
+          message: result.message,
+          hintCellSets: result.hintCellSets
         };
       }
     }

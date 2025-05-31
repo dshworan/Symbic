@@ -105,7 +105,13 @@ export class DuplicateRow3Rule extends MoveValidator {
               col: oddOneOutCol,
               value: oppositeValue,
               rule: 'duplicaterow3',
-              message: `To avoid duplicating row ${row2 + 1}, the odd one out position must be the opposite value.`
+              message: `To avoid duplicating row ${row2 + 1}, the odd one out position must be the opposite value.`,
+              hintCellSets: [
+                // Highlight the row being filled
+                ...Array.from({ length: size }, (_, i) => ({ row: row1, col: i })),
+                // Highlight the row being compared to
+                ...Array.from({ length: size }, (_, i) => ({ row: row2, col: i }))
+              ]
             };
           }
           
@@ -118,7 +124,13 @@ export class DuplicateRow3Rule extends MoveValidator {
             col: firstEmptyCol,
             value: value,
             rule: 'duplicaterow3',
-            message: `No two rows can be identical. This cell must be different from row ${row2 + 1}.`
+            message: `No two rows can be identical. This cell must be different from row ${row2 + 1}.`,
+            hintCellSets: [
+              // Highlight the row being filled
+              ...Array.from({ length: size }, (_, i) => ({ row: row1, col: i })),
+              // Highlight the row being compared to
+              ...Array.from({ length: size }, (_, i) => ({ row: row2, col: i }))
+            ]
           };
         }
       }
@@ -205,7 +217,13 @@ export class DuplicateRow3Rule extends MoveValidator {
                   col: col1,
                   value: value,
                   rule: 'duplicaterow3',
-                  message: `To avoid duplicating column ${col2 + 1}, this cell must be different from the single occurrence of ${targetValue}.`
+                  message: `To avoid duplicating column ${col2 + 1}, this cell must be different from the single occurrence of ${targetValue}.`,
+                  hintCellSets: [
+                    // Highlight the column being filled
+                    ...Array.from({ length: size }, (_, i) => ({ row: i, col: col1 })),
+                    // Highlight the column being compared to
+                    ...Array.from({ length: size }, (_, i) => ({ row: i, col: col2 }))
+                  ]
                 };
               }
             }
