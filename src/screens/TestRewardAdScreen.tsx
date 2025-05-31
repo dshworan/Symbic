@@ -1,34 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Platform, Alert } from 'react-native';
+import { MobileAds, RewardedAd, RewardedAdEventType, AdEventType } from 'react-native-google-mobile-ads';
 
-// Check if we're on web platform
 const isWeb = Platform.OS === 'web';
-
-// Import the appropriate module based on platform
-let MobileAds: any;
-let RewardedAd: any;
-let AdEventType: any;
-let RewardedAdEventType: any;
-
-if (isWeb) {
-  // Use mock implementation for web
-  const MockAdMob = require('../utils/mock-admob');
-  MobileAds = MockAdMob.default;
-  RewardedAd = MockAdMob.RewardedAd;
-  AdEventType = MockAdMob.AdEventType;
-  RewardedAdEventType = MockAdMob.RewardedAdEventType;
-} else {
-  // Use real implementation for native
-  try {
-    const NativeAds = require('react-native-google-mobile-ads');
-    MobileAds = NativeAds;
-    RewardedAd = NativeAds.RewardedAd;
-    AdEventType = NativeAds.AdEventType;
-    RewardedAdEventType = NativeAds.RewardedAdEventType;
-  } catch (error) {
-    console.error('Failed to import AdMob:', error);
-  }
-}
 
 interface TestRewardAdScreenProps {
   onBackPress: () => void;
@@ -41,28 +15,22 @@ interface Reward {
 
 const TestRewardAdScreen: React.FC<TestRewardAdScreenProps> = ({ onBackPress }) => {
   const [isLoadingRewarded, setIsLoadingRewarded] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
   const [rewardEarned, setRewardEarned] = useState(false);
   const MAX_RETRIES = 3;
-  // SYMBIC APP ID
-  //   ca-app-pub-7569267138426237~5058149272
-  // Ad Unit ID - Reward Ad Development
-  //   ca-app-pub-3940256099942544/5224354917
-  // Ad Unit ID - Reward Ad Production Android
-  //   ca-app-pub-7569267138426237/6876055022
-
+  const retryCountRef = useRef(0);
 
   // Test Ad Unit ID
   const TEST_REWARD_AD_ID = 'ca-app-pub-3940256099942544/5224354917';
-  
+
+  const rewardedAdRef = useRef<ReturnType<typeof RewardedAd.createForAdRequest> | null>(null);
+
   // Initialize AdMob
   useEffect(() => {
-    // Skip on web
-    if (isWeb || !MobileAds) return;
+    if (isWeb) return;
 
     const initializeAdMob = async () => {
       try {
-        await MobileAds.default().initialize();
+        await MobileAds().initialize();
         console.log('✅ AdMob initialized in rewarded test screen');
       } catch (error) {
         console.error('AdMob initialization error:', error);
@@ -71,156 +39,132 @@ const TestRewardAdScreen: React.FC<TestRewardAdScreenProps> = ({ onBackPress }) 
 
     initializeAdMob();
   }, []);
-  
-  // Helper function to create a fresh rewarded ad instance
-  const createRewardedAd = () => {
-    if (isWeb || !RewardedAd) return null;
-    
+
+  // Create RewardedAd instance once
+  useEffect(() => {
+    if (isWeb) return;
+
     try {
-      const ad = RewardedAd.createForAdRequest(TEST_REWARD_AD_ID);
-      return ad;
+      rewardedAdRef.current = RewardedAd.createForAdRequest(TEST_REWARD_AD_ID);
+      console.log('✅ RewardedAd instance created');
     } catch (error) {
-      console.error('Failed to create rewarded ad:', error);
-      return null;
+      console.error('Failed to create RewardedAd:', error);
     }
-  };
+
+    return () => {
+      rewardedAdRef.current = null;
+    };
+  }, []);
 
   const showRewardedAd = async () => {
     if (isWeb) {
+      Alert.alert('Web Platform', 'AdMob is not supported on web. Please run this on a mobile device.', [
+        { text: 'OK', style: 'cancel' },
+      ]);
+      return;
+    }
+
+    const ad = rewardedAdRef.current;
+
+    if (!ad) {
       Alert.alert(
-        'Web Platform',
-        'AdMob is not supported on web. Please run this on a mobile device.',
+        'Ad Not Available',
+        'The ad module is not available. Please check if the AdMob package is installed correctly.',
         [{ text: 'OK', style: 'cancel' }]
       );
       return;
     }
-    
+
     setIsLoadingRewarded(true);
-    setRetryCount(0);
-    
-    try {
-      console.log(`Creating fresh rewarded ad instance with ID: ${TEST_REWARD_AD_ID}`);
-      
-      // Create a fresh ad instance each time
-      const ad = createRewardedAd();
-      if (!ad) {
-        setIsLoadingRewarded(false);
-        console.log('Rewarded ad not available. Grrr...');
+    retryCountRef.current = 0;
+
+    const handleLoaded = () => {
+      console.log('Rewarded ad loaded, showing now');
+      ad.show();
+    };
+
+    const handleEarnedReward = (reward: Reward) => {
+      console.log('User earned reward:', reward);
+      setRewardEarned(true);
+      Alert.alert('Reward Earned!', `You earned ${reward.amount} ${reward.type}!`, [{ text: 'Claim', style: 'default' }]);
+    };
+
+    const handleClosed = () => {
+      console.log('Rewarded ad closed');
+      setIsLoadingRewarded(false);
+    };
+
+    const handleError = (error: any) => {
+      console.error('Rewarded ad error:', error?.code || error);
+      const currentRetry = retryCountRef.current + 1;
+      retryCountRef.current = currentRetry;
+
+      if (currentRetry < MAX_RETRIES) {
+        console.log(`Retrying rewarded ad load (attempt ${currentRetry + 1}/${MAX_RETRIES})...`);
+        const retryDelay = 300 * (currentRetry + 1);
+        setTimeout(() => {
+          console.log(`Retrying ad load after ${retryDelay}ms delay`);
+          ad.load();
+        }, retryDelay);
+      } else {
         Alert.alert(
-          'Ad Not Available',
-          'The ad module is not available. Please check if the AdMob package is installed correctly.',
+          'Ad Error',
+          `Failed to load rewarded ad after ${MAX_RETRIES} attempts. Error code: ${error?.code || 'unknown'}`,
           [{ text: 'OK', style: 'cancel' }]
         );
-        return;
-      }
-      
-      // Add all event listeners first, then load
-      ad.addAdEventListener(RewardedAdEventType.LOADED, () => {
-        console.log('Rewarded ad loaded, showing now');
-        setRetryCount(0); // Reset retry count on success
-        ad.show();
-      });
-      
-      ad.addAdEventListener(RewardedAdEventType.EARNED_REWARD, (reward: Reward) => {
-        console.log('User earned reward:', reward);
-        setRewardEarned(true);
-        Alert.alert(
-          'Reward Earned!', 
-          `You earned ${reward.amount} ${reward.type}!`,
-          [{ text: 'Claim', style: 'default' }]
-        );
-      });
-      
-      ad.addAdEventListener(AdEventType.CLOSED, () => {
-        console.log('Rewarded ad closed');
         setIsLoadingRewarded(false);
-        setRetryCount(0); // Reset retry count after successful completion
-      });
-      
-      ad.addAdEventListener(AdEventType.ERROR, (error: any) => {
-        console.error('Rewarded ad error:', error?.code || error);
-        
-        const currentRetryCount = retryCount + 1;
-        setRetryCount(currentRetryCount);
-        
-        if (currentRetryCount < MAX_RETRIES) {
-          console.log(`Retrying rewarded ad load (attempt ${currentRetryCount + 1}/${MAX_RETRIES})...`);
-          // Shorter delay with each retry
-          const retryDelay = 300 * (currentRetryCount + 1);
-          setTimeout(() => {
-            console.log(`Retrying ad load after ${retryDelay}ms delay`);
-            ad.load();
-          }, retryDelay);
-        } else {
-          Alert.alert(
-            'Ad Error', 
-            `Failed to load rewarded ad after ${MAX_RETRIES} attempts. Error code: ${error?.code || 'unknown'}`,
-            [{ text: 'OK', style: 'cancel' }]
-          );
-          setIsLoadingRewarded(false);
-        }
-      });
-      
-      // Load the ad after all listeners are set up, with a delay to let SDK settle
-      console.log('Waiting 50ms before loading rewarded ad...');
-      setTimeout(() => {
-        console.log('Now loading rewarded ad after delay');
-        ad.load();
-      }, 50); // 50ms buffer
-      
-    } catch (error) {
-      console.error('Error setting up rewarded ad:', error);
-      Alert.alert(
-        'Ad Error', 
-        'Failed to set up rewarded ad. Please try again later.',
-        [{ text: 'OK', style: 'cancel' }]
-      );
-      setIsLoadingRewarded(false);
-    }
+      }
+    };
+
+    // Add listeners
+    const unsubscribeLoaded = ad.addAdEventListener(RewardedAdEventType.LOADED, handleLoaded);
+    const unsubscribeReward = ad.addAdEventListener(RewardedAdEventType.EARNED_REWARD, handleEarnedReward);
+    const unsubscribeClosed = ad.addAdEventListener(AdEventType.CLOSED, handleClosed);
+    const unsubscribeError = ad.addAdEventListener(AdEventType.ERROR, handleError);
+
+    // Load ad
+    console.log('Loading rewarded ad...');
+    ad.load();
+
+    // Clean up listeners after ad interaction
+    return () => {
+      unsubscribeLoaded();
+      unsubscribeReward();
+      unsubscribeClosed();
+      unsubscribeError();
+    };
   };
 
   return (
     <View style={styles.overlay}>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
-            <Text style={styles.backButtonText}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Test Reward Ad</Text>
-        </View>
-        
+
         <View style={styles.content}>
           <Text style={styles.title}>Rewarded Ad Test</Text>
-          <Text style={styles.appId}>SYMBICApp ID: ca-app-pub-7569267138426237~5058149272</Text>
-          
+          <Text style={styles.appId}>SYMBIC App ID: ca-app-pub-3940256099942544~3347511713 (test)</Text>
+
           {isWeb ? (
             <View style={styles.webNotice}>
-              <Text style={styles.webNoticeText}>
-                AdMob is not supported on web platforms.
-              </Text>
-              <Text style={styles.webNoticeText}>
-                Please run this app on a mobile device or emulator.
-              </Text>
+              <Text style={styles.webNoticeText}>AdMob is not supported on web platforms.</Text>
+              <Text style={styles.webNoticeText}>Please run this app on a mobile device or emulator.</Text>
             </View>
           ) : (
             <View style={styles.adSection}>
               <Text style={styles.adId}>Test ID: {TEST_REWARD_AD_ID}</Text>
-              
+
               {rewardEarned && (
                 <View style={styles.rewardBox}>
                   <Text style={styles.rewardText}>Reward Earned! 🎁</Text>
                   <Text style={styles.rewardSubtext}>You would receive in-game currency or items here.</Text>
                 </View>
               )}
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={[styles.adButton, isLoadingRewarded && styles.adButtonDisabled]}
                 onPress={showRewardedAd}
                 disabled={isLoadingRewarded}
               >
-                <Text style={styles.adButtonText}>
-                  {isLoadingRewarded ? "Loading..." : "Show Test Reward Ad"}
-                </Text>
+                <Text style={styles.adButtonText}>{isLoadingRewarded ? 'Loading...' : 'Show Test Reward Ad'}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -241,10 +185,9 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     maxWidth: 500,
-    maxHeight: '90%',
+    height: '90%',
     backgroundColor: '#1E1E1E',
     borderRadius: 12,
-    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,

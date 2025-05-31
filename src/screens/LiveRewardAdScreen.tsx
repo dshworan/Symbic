@@ -175,13 +175,7 @@ const LiveRewardAdScreen: React.FC<LiveRewardAdScreenProps> = ({ onBackPress }) 
   return (
     <View style={styles.overlay}>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
-            <Text style={styles.backButtonText}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Live Reward Ad</Text>
-        </View>
-        
+       
         <View style={styles.content}>
           <Text style={styles.title}>Rewarded Ad Live</Text>
           <Text style={styles.appId}>App ID: ca-app-pub-7569267138426237~6830607970</Text>
@@ -234,10 +228,9 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     maxWidth: 500,
-    maxHeight: '90%',
+    height: '90%',
     backgroundColor: '#1E1E1E',
     borderRadius: 12,
-    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -323,7 +316,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   adButton: {
-    backgroundColor: '#3498db',
+    backgroundColor: '#aa0000',
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 8,

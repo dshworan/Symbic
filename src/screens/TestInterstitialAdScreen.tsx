@@ -178,13 +178,7 @@ const TestInterstitialAdScreen = () => {
   return (
     <View style={styles.overlay}>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Text style={styles.backButtonText}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Test Interstitial Ad</Text>
-        </View>
-        
+       
         <View style={styles.content}>
           <Text style={styles.title}>Interstitial Ad Test</Text>
           <Text style={styles.appId}>App ID: ca-app-pub-7569267138426237~5058149272</Text>
