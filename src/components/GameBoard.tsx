@@ -1,18 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, useWindowDimensions, Animated, StatusBar } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { CellValue } from '../types/puzzle';
 import { puzzleManager } from '../utils/puzzleManager';
 import { shapeSets } from '../data/shapes/shapeSets';
 import { getRandomSuccessMessage } from '../data/messages';
+
+interface Move {
+  row: number;
+  col: number;
+  previousValue: CellValue;
+  newValue: CellValue;
+}
 
 const GameBoard: React.FC = () => {
   const { width } = useWindowDimensions();
   const [cellSize, setCellSize] = useState(0);
   const [grid, setGrid] = useState<CellValue[][]>([]);
   const [score, setScore] = useState(0);
-  const [successMessage, setSuccessMessage] = useState<{ message: string; color: string } | null>(null);
+  const [successMessage, setSuccessMessage] = useState<{ message: string; backgroundColor: string; borderColor: string } | null>(null);
   const [failureMessage, setFailureMessage] = useState<string | null>(null);
   const [messageOpacity] = useState(new Animated.Value(0));
   const [failureOpacity] = useState(new Animated.Value(0));
@@ -21,6 +28,10 @@ const GameBoard: React.FC = () => {
   const [failureTimeout, setFailureTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [currentPuzzleId, setCurrentPuzzleId] = useState(puzzleManager.getCurrentPuzzle().id);
   const [currentGridSize, setCurrentGridSize] = useState(puzzleManager.getCurrentPuzzle().gridSize);
+  const [moveHistory, setMoveHistory] = useState<Move[]>([]);
+  const [redoStack, setRedoStack] = useState<Move[]>([]);
+  const [showSettings, setShowSettings] = useState(false);
+  const [isSolved, setIsSolved] = useState(false);
 
   const calculateCellSize = (gridSize: number) => {
     const maxWidth = Math.min(width, 700);
@@ -41,6 +52,13 @@ const GameBoard: React.FC = () => {
   };
 
   const resetGrid = () => {
+    // Reset solved state
+    setIsSolved(false);
+
+    // Clear move history and redo stack
+    setMoveHistory([]);
+    setRedoStack([]);
+
     // Clear any pending failure message
     if (failureTimeout) {
       clearTimeout(failureTimeout);
@@ -125,7 +143,12 @@ const GameBoard: React.FC = () => {
   };
 
   const showSuccessMessage = (messageData: { message: string; color: string }) => {
-    setSuccessMessage(messageData);
+    const shapeSet = shapeSets.find(set => set.id === puzzleManager.getCurrentPuzzle().shapeSetId);
+    setSuccessMessage({
+      message: messageData.message,
+      backgroundColor: shapeSet?.colors.shape1 || '#2d2d2d',
+      borderColor: shapeSet?.colors.shape2 || '#404040'
+    });
     Animated.sequence([
       Animated.timing(messageOpacity, {
         toValue: 1,
@@ -148,13 +171,13 @@ const GameBoard: React.FC = () => {
     Animated.sequence([
       Animated.timing(failureOpacity, {
         toValue: 1,
-        duration: 500,
+        duration: 200,
         useNativeDriver: true,
       }),
-      Animated.delay(2000),
+      Animated.delay(1000),
       Animated.timing(failureOpacity, {
         toValue: 0,
-        duration: 500,
+        duration: 200,
         useNativeDriver: true,
       }),
     ]).start(() => {
@@ -182,6 +205,9 @@ const GameBoard: React.FC = () => {
     );
 
     if (isComplete) {
+      // Set solved state to true
+      setIsSolved(true);
+
       // Clear any pending failure message
       if (failureTimeout) {
         clearTimeout(failureTimeout);
@@ -190,16 +216,17 @@ const GameBoard: React.FC = () => {
       setFailureMessage(null);
       failureOpacity.setValue(0);
 
-      // Wait 1 second before showing success message
+      // Wait 0.5 seconds before showing success message
       setTimeout(() => {
         showSuccessMessage(getRandomSuccessMessage());
         setScore(prev => prev + 1);
         setTimeout(() => {
           puzzleManager.nextPuzzle();
           resetGrid();
-        }, 2000);
-      }, 1000);
-    } else if (hasUserModifications) {
+        }, 1500);
+      }, 500);
+    } else if (isFilled) {
+      // Only show failure message if all cells are filled and solution is incorrect
       const timeout = setTimeout(showFailureMessage, 2000);
       setFailureTimeout(timeout);
     }
@@ -237,23 +264,97 @@ const GameBoard: React.FC = () => {
   }, [width]);
 
   const handleCellPress = (row: number, col: number) => {
+    // Don't allow cell presses if the board is solved
+    if (isSolved) return;
+
     const puzzle = puzzleManager.getCurrentPuzzle();
     if (puzzle.grid[row][col] !== null) return; // Don't modify initial values
 
     setGrid(prevGrid => {
       const newGrid = prevGrid.map(row => [...row]); // Create a deep copy
       const currentValue = newGrid[row][col];
+      let newValue: CellValue;
       
       // Cycle through: 0 -> 1 -> null
       if (currentValue === null) {
-        newGrid[row][col] = 0;
+        newValue = 0;
       } else if (currentValue === 0) {
-        newGrid[row][col] = 1;
+        newValue = 1;
       } else {
-        newGrid[row][col] = null;
+        newValue = null;
       }
-      
+
+      // If we're clearing the cell (newValue is null), remove the last move for this cell
+      if (newValue === null) {
+        setMoveHistory(prev => {
+          const lastMoveIndex = prev.findIndex(move => move.row === row && move.col === col);
+          if (lastMoveIndex !== -1) {
+            return prev.slice(0, lastMoveIndex);
+          }
+          return prev;
+        });
+      } else {
+        // If we're setting a value, check if we already have a move for this cell
+        setMoveHistory(prev => {
+          const existingMoveIndex = prev.findIndex(move => move.row === row && move.col === col);
+          const newMove: Move = {
+            row,
+            col,
+            previousValue: currentValue,
+            newValue
+          };
+
+          if (existingMoveIndex !== -1) {
+            // Replace the existing move
+            const newHistory = [...prev];
+            newHistory[existingMoveIndex] = newMove;
+            return newHistory;
+          } else {
+            // Add a new move
+            return [...prev, newMove];
+          }
+        });
+      }
+
+      setRedoStack([]); // Clear redo stack when new move is made
+      newGrid[row][col] = newValue;
       checkCompletion(newGrid);
+      return newGrid;
+    });
+  };
+
+  const handleUndo = () => {
+    if (moveHistory.length === 0) return;
+
+    setGrid(prevGrid => {
+      const newGrid = prevGrid.map(row => [...row]);
+      const lastMove = moveHistory[moveHistory.length - 1];
+      
+      // Apply the undo by setting the cell back to null
+      newGrid[lastMove.row][lastMove.col] = null;
+      
+      // Update history
+      setMoveHistory(prev => prev.slice(0, -1));
+      setRedoStack(prev => [...prev, lastMove]);
+      
+      return newGrid;
+    });
+  };
+
+  const handleRedo = () => {
+    if (redoStack.length === 0) return;
+
+    setGrid(prevGrid => {
+      const newGrid = prevGrid.map(row => [...row]);
+      const moveToRedo = redoStack[redoStack.length - 1];
+      
+      // Apply the redo by setting the cell to its recorded value
+      newGrid[moveToRedo.row][moveToRedo.col] = moveToRedo.newValue;
+      
+      // Update stacks
+      setRedoStack(prev => prev.slice(0, -1));
+      setMoveHistory(prev => [...prev, moveToRedo]);
+      
       return newGrid;
     });
   };
@@ -276,7 +377,8 @@ const GameBoard: React.FC = () => {
           {
             width: cellSize,
             height: cellSize,
-            borderWidth: puzzle.gridSize <= 6 ? 1 : 0.5
+            borderWidth: puzzle.gridSize <= 6 ? 1 : 0.5,
+            backgroundColor: isInitial ? '#363636' : '#2d2d2d'
           }
         ]}
         onPress={() => handleCellPress(row, col)}
@@ -343,7 +445,8 @@ const GameBoard: React.FC = () => {
                 styles.successMessage, 
                 { 
                   opacity: messageOpacity,
-                  backgroundColor: successMessage.color 
+                  backgroundColor: successMessage.backgroundColor,
+                  borderColor: successMessage.borderColor
                 }
               ]}
             >
@@ -359,11 +462,19 @@ const GameBoard: React.FC = () => {
         )}
 
         <View style={styles.controlsContainer}>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity 
+            style={styles.button}
+            onPress={handleUndo}
+            disabled={!moveHistory.length}
+          >
             <MaterialIcons name="undo" size={24} color="#e0e0e0" />
             <Text style={styles.buttonText}>Undo</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity 
+            style={styles.button}
+            onPress={handleRedo}
+            disabled={!redoStack.length}
+          >
             <MaterialIcons name="redo" size={24} color="#e0e0e0" />
             <Text style={styles.buttonText}>Redo</Text>
           </TouchableOpacity>
@@ -468,15 +579,15 @@ const styles = StyleSheet.create({
     top: '50%',
     left: '50%',
     transform: [{ translateX: -100 }, { translateY: -50 }],
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     padding: 20,
     borderRadius: 10,
     width: 200,
     alignItems: 'center',
     zIndex: 1000,
+    borderWidth: 3,
   },
   successText: {
-    color: '#ffffff',
+    color: '#1a1a1a',
     fontSize: 24,
     fontWeight: 'bold',
   },
