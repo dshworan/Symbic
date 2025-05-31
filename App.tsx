@@ -1,12 +1,57 @@
 import React from 'react';
-import { SafeAreaView, StatusBar } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { AudioProvider } from './src/context/AudioContext';
 import { GameScreen } from './src/screens/GameScreen';
+import TestInterstitialAdScreen from './src/screens/TestInterstitialAdScreen';
+import TestRewardAdScreen from './src/screens/TestRewardAdScreen';
+import LiveInterstitialAdScreen from './src/screens/LiveInterstitialAdScreen';
+import LiveRewardAdScreen from './src/screens/LiveRewardAdScreen';
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
-      <StatusBar barStyle="light-content" />
-      <GameScreen />
-    </SafeAreaView>
+    <NavigationContainer>
+      <AudioProvider>
+        <Stack.Navigator
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: '#1a1a1a',
+            },
+            headerTintColor: '#e0e0e0',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+          }}
+        >
+          <Stack.Screen 
+            name="Game" 
+            component={GameScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="TestInterstitialAd" 
+            component={TestInterstitialAdScreen}
+            options={{ title: 'Test Interstitial Ad' }}
+          />
+          <Stack.Screen 
+            name="TestRewardAd" 
+            component={TestRewardAdScreen}
+            options={{ title: 'Test Reward Ad' }}
+          />
+          <Stack.Screen 
+            name="LiveInterstitialAd" 
+            component={LiveInterstitialAdScreen}
+            options={{ title: 'Live Interstitial Ad' }}
+          />
+          <Stack.Screen 
+            name="LiveRewardAd" 
+            component={LiveRewardAdScreen}
+            options={{ title: 'Live Reward Ad' }}
+          />
+        </Stack.Navigator>
+      </AudioProvider>
+    </NavigationContainer>
   );
 } 

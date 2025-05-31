@@ -1,7 +1,19 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, Switch } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, Switch, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Svg, Path, Circle } from 'react-native-svg';
 import AboutModal from './AboutModal';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type RootStackParamList = {
+  TestInterstitialAd: undefined;
+  TestRewardAd: undefined;
+  LiveInterstitialAd: undefined;
+  LiveRewardAd: undefined;
+};
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 interface SettingsModalProps {
   isVisible: boolean;
@@ -9,10 +21,16 @@ interface SettingsModalProps {
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose }) => {
+  const navigation = useNavigation<NavigationProp>();
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [hapticEnabled, setHapticEnabled] = useState(true);
-  const [darkMode, setDarkMode] = useState(true);
   const [showAbout, setShowAbout] = useState(false);
+
+  const handleSoundToggle = () => setSoundEnabled(!soundEnabled);
+
+  const openAdScreen = (screenName: keyof RootStackParamList) => {
+    onClose();
+    navigation.navigate(screenName);
+  };
 
   return (
     <>
@@ -31,7 +49,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose }) => 
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.scrollView}>
+            <ScrollView 
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollViewContent}
+              showsVerticalScrollIndicator={true}
+            >
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Game Settings</Text>
                 
@@ -42,35 +64,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose }) => 
                   </View>
                   <Switch
                     value={soundEnabled}
-                    onValueChange={setSoundEnabled}
+                    onValueChange={handleSoundToggle}
                     trackColor={{ false: '#404040', true: '#2196F3' }}
-                    thumbColor={soundEnabled ? '#2196F3' : '#f4f3f4'}
-                  />
-                </View>
-
-                <View style={styles.settingItem}>
-                  <View style={styles.settingInfo}>
-                    <Text style={styles.settingLabel}>Haptic Feedback</Text>
-                    <Text style={styles.settingDescription}>Enable or disable vibration feedback</Text>
-                  </View>
-                  <Switch
-                    value={hapticEnabled}
-                    onValueChange={setHapticEnabled}
-                    trackColor={{ false: '#404040', true: '#2196F3' }}
-                    thumbColor={hapticEnabled ? '#2196F3' : '#f4f3f4'}
-                  />
-                </View>
-
-                <View style={styles.settingItem}>
-                  <View style={styles.settingInfo}>
-                    <Text style={styles.settingLabel}>Dark Mode</Text>
-                    <Text style={styles.settingDescription}>Toggle dark/light theme</Text>
-                  </View>
-                  <Switch
-                    value={darkMode}
-                    onValueChange={setDarkMode}
-                    trackColor={{ false: '#404040', true: '#2196F3' }}
-                    thumbColor={darkMode ? '#2196F3' : '#f4f3f4'}
+                    thumbColor={soundEnabled ? '#2ecc71' : '#999999'}
+                    ios_backgroundColor="#404040"
+                    style={{ transform: [{ scaleX: 1.0 }, { scaleY: 1.0 }] }}
                   />
                 </View>
               </View>
@@ -78,9 +76,26 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose }) => 
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Game Controls</Text>
                 
+                <TouchableOpacity style={[styles.button, styles.helpButton]}>
+                  <View style={styles.buttonContent}>
+                    <View style={styles.buttonIcon}>
+                      <Svg width="24" height="24" viewBox="0 0 24 24">
+                        <Circle cx="12" cy="12" r="10" stroke="#FFFFFF" strokeWidth="2" fill="none" />
+                        <Path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                        <Circle cx="12" cy="17" r="0.5" stroke="#FFFFFF" strokeWidth="2" fill="#FFFFFF" />
+                      </Svg>
+                    </View>
+                    <Text style={styles.buttonText}>Help</Text>
+                  </View>
+                </TouchableOpacity>
+
                 <TouchableOpacity style={[styles.button, styles.tutorialButton]}>
                   <View style={styles.buttonContent}>
-                    <Ionicons name="help-circle-outline" size={24} color="#ffffff" style={styles.buttonIcon} />
+                    <View style={styles.buttonIcon}>
+                      <Svg width="24" height="24" viewBox="0 0 24 24">
+                        <Path d="M5 3 19 12 5 21 5 3z" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                      </Svg>
+                    </View>
                     <Text style={styles.buttonText}>Tutorial</Text>
                   </View>
                 </TouchableOpacity>
@@ -90,17 +105,58 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose }) => 
                   onPress={() => setShowAbout(true)}
                 >
                   <View style={styles.buttonContent}>
-                    <Ionicons name="information-circle-outline" size={24} color="#ffffff" style={styles.buttonIcon} />
+                    <View style={styles.buttonIcon}>
+                      <Svg width="24" height="24" viewBox="0 0 24 24">
+                        <Path d="M18 20a6 6 0 0 0-12 0" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                        <Circle cx="12" cy="10" r="4" stroke="#FFFFFF" strokeWidth="2" fill="none" />
+                        <Circle cx="12" cy="12" r="10" stroke="#FFFFFF" strokeWidth="2" fill="none" />
+                      </Svg>
+                    </View>
                     <Text style={styles.buttonText}>About</Text>
                   </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={[styles.button, styles.resetButton]}>
                   <View style={styles.buttonContent}>
-                    <Ionicons name="warning-outline" size={24} color="#ffffff" style={styles.buttonIcon} />
+                    <View style={styles.buttonIcon}>
+                      <Svg width="24" height="24" viewBox="0 0 24 24">
+                        <Path d="M3 2v6h6" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                        <Path d="M3 13a9 9 0 1 0 3-7.7L3 8" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                      </Svg>
+                    </View>
                     <Text style={styles.buttonText}>Reset Progress</Text>
                   </View>
                 </TouchableOpacity>
+              </View>
+
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Admin</Text>
+                <View style={styles.adminButtons}>
+                  <TouchableOpacity 
+                    style={styles.adminButton} 
+                    onPress={() => openAdScreen('TestInterstitialAd')}
+                  >
+                    <Text style={styles.adminButtonText}>Test Interstitial</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.adminButton} 
+                    onPress={() => openAdScreen('TestRewardAd')}
+                  >
+                    <Text style={styles.adminButtonText}>Test Reward</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.adminButton} 
+                    onPress={() => openAdScreen('LiveInterstitialAd')}
+                  >
+                    <Text style={styles.adminButtonText}>Live Interstitial</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.adminButton} 
+                    onPress={() => openAdScreen('LiveRewardAd')}
+                  >
+                    <Text style={styles.adminButtonText}>Live Reward</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </ScrollView>
           </View>
@@ -120,14 +176,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: '#121212',
   },
   modalView: {
     width: '90%',
     maxWidth: 400,
-    backgroundColor: '#1a1a1a',
-    borderRadius: 20,
-    padding: 20,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 12,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -136,16 +192,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
-    maxHeight: '80%',
+    height: '90%'
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 10,
+    padding: 15,
+    backgroundColor: '#292929',
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: '#333333',
   },
   headerText: {
     fontSize: 24,
@@ -157,15 +213,36 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    width: '100%',
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+    padding: 15,
   },
   section: {
     marginBottom: 20,
+    backgroundColor: '#292929',
+    borderRadius: 8,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#e0e0e0',
     marginBottom: 15,
+    textAlign: 'center',
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#404040',
+    width: '100%',
   },
   settingItem: {
     flexDirection: 'row',
@@ -173,7 +250,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: '#404040',
   },
   settingInfo: {
     flex: 1,
@@ -189,8 +266,8 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   button: {
-    padding: 15,
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 5,
     marginVertical: 8,
   },
   buttonContent: {
@@ -215,6 +292,23 @@ const styles = StyleSheet.create({
   },
   aboutButton: {
     backgroundColor: '#2ecc71',
+  },
+  adminButtons: {
+    gap: 10,
+  },
+  adminButton: {
+    backgroundColor: '#404040',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  adminButtonText: {
+    color: '#e0e0e0',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  helpButton: {
+    backgroundColor: '#9b59b6',
   },
 });
 

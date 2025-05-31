@@ -1,7 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Audio } from 'expo-av';
 
-const AudioContext = createContext();
+interface AudioContextType {
+  playSound: (soundName: string) => Promise<void>;
+  soundEnabled: boolean;
+  toggleSound: (value?: boolean) => void;
+  isLoaded: boolean;
+}
+
+const AudioContext = createContext<AudioContextType | null>(null);
 
 export const useAudio = () => {
   const context = useContext(AudioContext);
@@ -11,8 +18,8 @@ export const useAudio = () => {
   return context;
 };
 
-export const AudioProvider = ({ children }) => {
-  const [sounds, setSounds] = useState({});
+export const AudioProvider = ({ children }: { children: React.ReactNode }) => {
+  const [sounds, setSounds] = useState<Record<string, Audio.Sound>>({});
   const [isLoaded, setIsLoaded] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
@@ -30,18 +37,12 @@ export const AudioProvider = ({ children }) => {
 
         // Load all sounds
         const soundFiles = {
-          incorrect: require('../assets/sounds/incorrect.mp3'),
-          correct: require('../assets/sounds/correct.mp3'),
-          shuffle: require('../assets/sounds/shuffle-tiles.mp3'),
-          hintWon: require('../assets/sounds/hint-won.mp3'),
-          showHint: require('../assets/sounds/show-hint.mp3'),
-          levelUp: require('../assets/sounds/level-up.mp3'),
-          sort: require('../assets/sounds/sort.mp3'),
-          switchToggle: require('../assets/sounds/switch-toggle.mp3'),
-          tutorialComplete: require('../assets/sounds/tutorial-complete.mp3'),
+          restart: require('../assets/sounds/restart.mp3'),
+          levelChange: require('../assets/sounds/level-change.mp3'),
+          undoRedo: require('../assets/sounds/undo-redo.mp3'),
         };
 
-        const loadedSounds = {};
+        const loadedSounds: Record<string, Audio.Sound> = {};
         for (const [key, file] of Object.entries(soundFiles)) {
           const { sound } = await Audio.Sound.createAsync(file, { shouldPlay: false });
           loadedSounds[key] = sound;
@@ -79,7 +80,7 @@ export const AudioProvider = ({ children }) => {
     };
   }, []);
 
-  const playSound = async (soundName) => {
+  const playSound = async (soundName: string) => {
     try {
       if (!soundEnabled || !isLoaded || !sounds[soundName]) {
         return;
@@ -104,7 +105,7 @@ export const AudioProvider = ({ children }) => {
     }
   };
 
-  const toggleSound = (value) => {
+  const toggleSound = (value?: boolean) => {
     if (typeof value === 'boolean') {
       setSoundEnabled(value);
     } else {

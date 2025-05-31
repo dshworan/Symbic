@@ -6,6 +6,7 @@ import { CellValue } from '../types/puzzle';
 import { puzzleManager } from '../utils/puzzleManager';
 import { shapeSets } from '../data/shapes/shapeSets';
 import { getRandomSuccessMessage } from '../data/messages';
+import { useAudio } from '../context/AudioContext';
 
 interface Move {
   row: number;
@@ -16,6 +17,7 @@ interface Move {
 
 const GameBoard: React.FC = () => {
   const { width } = useWindowDimensions();
+  const { playSound } = useAudio();
   const [cellSize, setCellSize] = useState(0);
   const [grid, setGrid] = useState<CellValue[][]>([]);
   const [score, setScore] = useState(0);
@@ -52,6 +54,100 @@ const GameBoard: React.FC = () => {
   };
 
   const resetGrid = () => {
+    // Play restart sound
+    playSound('restart');
+
+    // Reset solved state
+    setIsSolved(false);
+
+    // Clear move history and redo stack
+    setMoveHistory([]);
+    setRedoStack([]);
+
+    // Clear any pending failure message
+    if (failureTimeout) {
+      clearTimeout(failureTimeout);
+      setFailureTimeout(null);
+    }
+    setFailureMessage(null);
+    failureOpacity.setValue(0);
+
+    const newPuzzle = puzzleManager.getCurrentPuzzle();
+    if (!newPuzzle || !newPuzzle.grid) {
+      console.error('Invalid puzzle data:', newPuzzle);
+      return;
+    }
+
+    const isDifferentSize = newPuzzle.gridSize !== currentGridSize;
+
+    if (isDifferentSize) {
+      // Fade out the entire board
+      Animated.timing(boardOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        try {
+          // Calculate new cell size before updating the grid
+          const newCellSize = calculateCellSize(newPuzzle.gridSize);
+          setCellSize(newCellSize);
+          
+          // Update grid and size
+          setGrid([...newPuzzle.grid]);
+          setCurrentGridSize(newPuzzle.gridSize);
+          setCurrentPuzzleId(newPuzzle.id);
+          
+          // Reset shape scale to 0
+          shapeScale.setValue(0);
+          
+          // Fade in the new board
+          Animated.timing(boardOpacity, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }).start(() => {
+            // After grid is visible, grow in the shapes
+            Animated.timing(shapeScale, {
+              toValue: 1,
+              duration: 300,
+              useNativeDriver: true,
+            }).start();
+          });
+        } catch (error) {
+          console.error('Error during grid transition:', error);
+          // Fallback to safe state
+          setGrid([]);
+          setCurrentGridSize(0);
+          setCurrentPuzzleId('');
+        }
+      });
+    } else {
+      // Just animate the shapes for same-size grids
+      Animated.timing(shapeScale, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        try {
+          setGrid([...newPuzzle.grid]);
+          setCurrentPuzzleId(newPuzzle.id);
+          
+          Animated.timing(shapeScale, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }).start();
+        } catch (error) {
+          console.error('Error during shape animation:', error);
+          // Fallback to safe state
+          setGrid([]);
+          setCurrentPuzzleId('');
+        }
+      });
+    }
+  };
+
+  const loadNewPuzzle = () => {
     // Reset solved state
     setIsSolved(false);
 
@@ -218,11 +314,13 @@ const GameBoard: React.FC = () => {
 
       // Wait 0.5 seconds before showing success message
       setTimeout(() => {
+        // Play level change sound when showing success message
+        playSound('levelChange');
         showSuccessMessage(getRandomSuccessMessage());
         setScore(prev => prev + 1);
         setTimeout(() => {
           puzzleManager.nextPuzzle();
-          resetGrid();
+          loadNewPuzzle();
         }, 1500);
       }, 500);
     } else if (isFilled) {
@@ -326,6 +424,9 @@ const GameBoard: React.FC = () => {
   const handleUndo = () => {
     if (moveHistory.length === 0) return;
 
+    // Play undo sound
+    playSound('undoRedo');
+
     setGrid(prevGrid => {
       const newGrid = prevGrid.map(row => [...row]);
       const lastMove = moveHistory[moveHistory.length - 1];
@@ -343,6 +444,9 @@ const GameBoard: React.FC = () => {
 
   const handleRedo = () => {
     if (redoStack.length === 0) return;
+
+    // Play redo sound
+    playSound('undoRedo');
 
     setGrid(prevGrid => {
       const newGrid = prevGrid.map(row => [...row]);
