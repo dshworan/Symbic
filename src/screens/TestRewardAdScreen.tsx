@@ -44,7 +44,14 @@ const TestRewardAdScreen: React.FC<TestRewardAdScreenProps> = ({ onBackPress }) 
   const [retryCount, setRetryCount] = useState(0);
   const [rewardEarned, setRewardEarned] = useState(false);
   const MAX_RETRIES = 3;
-  
+  // SYMBIC APP ID
+  //   ca-app-pub-7569267138426237~5058149272
+  // Ad Unit ID - Reward Ad Development
+  //   ca-app-pub-3940256099942544/5224354917
+  // Ad Unit ID - Reward Ad Production Android
+  //   ca-app-pub-7569267138426237/6876055022
+
+
   // Test Ad Unit ID
   const TEST_REWARD_AD_ID = 'ca-app-pub-3940256099942544/5224354917';
   
@@ -184,7 +191,7 @@ const TestRewardAdScreen: React.FC<TestRewardAdScreenProps> = ({ onBackPress }) 
         
         <View style={styles.content}>
           <Text style={styles.title}>Rewarded Ad Test</Text>
-          <Text style={styles.appId}>App ID: ca-app-pub-3940256099942544~3347511713</Text>
+          <Text style={styles.appId}>SYMBICApp ID: ca-app-pub-7569267138426237~5058149272</Text>
           
           {isWeb ? (
             <View style={styles.webNotice}>

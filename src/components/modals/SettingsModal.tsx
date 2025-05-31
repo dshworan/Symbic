@@ -5,6 +5,7 @@ import { Svg, Path, Circle } from 'react-native-svg';
 import AboutModal from './AboutModal';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useAudio } from '../../context/AudioContext';
 
 type RootStackParamList = {
   TestInterstitialAd: undefined;
@@ -22,10 +23,12 @@ interface SettingsModalProps {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose }) => {
   const navigation = useNavigation<NavigationProp>();
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const { soundEnabled, toggleSound } = useAudio();
   const [showAbout, setShowAbout] = useState(false);
 
-  const handleSoundToggle = () => setSoundEnabled(!soundEnabled);
+  const handleSoundToggle = async () => {
+    await toggleSound();
+  };
 
   const openAdScreen = (screenName: keyof RootStackParamList) => {
     onClose();
@@ -60,15 +63,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose }) => 
                 <View style={styles.settingItem}>
                   <View style={styles.settingInfo}>
                     <Text style={styles.settingLabel}>Sound Effects</Text>
-                    <Text style={styles.settingDescription}>Enable or disable game sounds</Text>
+                    <Text style={styles.settingDescription}>Enable / disable game sounds</Text>
                   </View>
                   <Switch
                     value={soundEnabled}
                     onValueChange={handleSoundToggle}
                     trackColor={{ false: '#404040', true: '#2196F3' }}
-                    thumbColor={soundEnabled ? '#2ecc71' : '#999999'}
-                    ios_backgroundColor="#404040"
-                    style={{ transform: [{ scaleX: 1.0 }, { scaleY: 1.0 }] }}
+                    thumbColor={soundEnabled ? '#2ecc71' : '#f4f3f4'}
                   />
                 </View>
               </View>

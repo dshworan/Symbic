@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Audio } from 'expo-av';
+import { storage } from '../utils/storage';
 
 interface AudioContextType {
   playSound: (soundName: string) => Promise<void>;
   soundEnabled: boolean;
-  toggleSound: (value?: boolean) => void;
+  toggleSound: (value?: boolean) => Promise<void>;
   isLoaded: boolean;
 }
 
@@ -28,6 +29,12 @@ export const AudioProvider = ({ children }: { children: React.ReactNode }) => {
 
     const loadSounds = async () => {
       try {
+        // Load sound setting from storage
+        const savedSoundEnabled = await storage.getSoundEnabled();
+        if (mounted) {
+          setSoundEnabled(savedSoundEnabled);
+        }
+
         // Initialize audio
         await Audio.setAudioModeAsync({
           playsInSilentModeIOS: true,
@@ -105,12 +112,10 @@ export const AudioProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const toggleSound = (value?: boolean) => {
-    if (typeof value === 'boolean') {
-      setSoundEnabled(value);
-    } else {
-      setSoundEnabled(!soundEnabled);
-    }
+  const toggleSound = async (value?: boolean) => {
+    const newValue = typeof value === 'boolean' ? value : !soundEnabled;
+    setSoundEnabled(newValue);
+    await storage.setSoundEnabled(newValue);
   };
 
   return (
