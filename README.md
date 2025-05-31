@@ -9,7 +9,7 @@ npx expo start
 npx expo start --clear
     ...to run on the phone app ... Fast refresh/live reload/Metro bundler logs/Console logs in the terminal/pressing a, r, m, d, etc. to reload/debug
 
-`FREE local build of apk`
+`FREE local build of apk via USB` - delete old version
 npx expo prebuild        ... creates android folder
 npx expo run:android     ... USE to run full android app ... `BUT delete android folder!`  (? must be installed: npx expo install expo-dev-client)
 

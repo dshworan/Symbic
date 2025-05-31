@@ -7,12 +7,20 @@ import { puzzleManager } from '../utils/puzzleManager';
 import { shapeSets } from '../data/shapes/shapeSets';
 import { getRandomSuccessMessage } from '../data/messages';
 import { useAudio } from '../context/AudioContext';
+import { RuleManager } from '../data/rules/ruleManager';
 
 interface Move {
   row: number;
   col: number;
   previousValue: CellValue;
   newValue: CellValue;
+}
+
+interface Hint {
+  row: number;
+  col: number;
+  value: number;
+  message: string;
 }
 
 const GameBoard: React.FC = () => {
@@ -34,6 +42,9 @@ const GameBoard: React.FC = () => {
   const [redoStack, setRedoStack] = useState<Move[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const [isSolved, setIsSolved] = useState(false);
+  const [hint, setHint] = useState<Hint | null>(null);
+  const [hintOpacity] = useState(new Animated.Value(0));
+  const ruleManager = new RuleManager();
 
   const calculateCellSize = (gridSize: number) => {
     const maxWidth = Math.min(width, 700);
@@ -330,6 +341,89 @@ const GameBoard: React.FC = () => {
     }
   };
 
+  const handleHint = () => {
+    // Don't show hints if the board is solved
+    if (isSolved) return;
+
+    // Play hint sound
+    playSound('hint');
+
+    // If there's already a hint showing, apply it and clear
+    if (hint && hint.row !== -1) {
+      setGrid(prevGrid => {
+        const newGrid = prevGrid.map(row => [...row]);
+        newGrid[hint.row][hint.col] = hint.value as CellValue;
+        
+        // Add to move history
+        setMoveHistory(prev => [...prev, {
+          row: hint.row,
+          col: hint.col,
+          previousValue: null,
+          newValue: hint.value as CellValue
+        }]);
+        
+        // Clear redo stack
+        setRedoStack([]);
+        
+        // Check for completion
+        checkCompletion(newGrid);
+        
+        return newGrid;
+      });
+
+      // Clear the hint
+      Animated.timing(hintOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setHint(null);
+      });
+      
+      return;
+    }
+
+    // Get all rules
+    const rules = ruleManager.getRules();
+    
+    // Try each rule in order
+    for (const rule of rules) {
+      const step = rule.findStep(grid, currentGridSize);
+      if (step) {
+        setHint({
+          row: step.row,
+          col: step.col,
+          value: step.value,
+          message: step.message
+        });
+        
+        // Fade in the hint message
+        Animated.timing(hintOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+        
+        return;
+      }
+    }
+    
+    // If no hint was found
+    setHint({
+      row: -1,
+      col: -1,
+      value: -1,
+      message: "No hints available at this stage."
+    });
+    
+    // Fade in the no-hint message
+    Animated.timing(hintOpacity, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
   useEffect(() => {
     // Hide status bar
     StatusBar.setHidden(true);
@@ -362,6 +456,17 @@ const GameBoard: React.FC = () => {
   }, [width]);
 
   const handleCellPress = (row: number, col: number) => {
+    // Clear hint when user makes a move
+    if (hint) {
+      Animated.timing(hintOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setHint(null);
+      });
+    }
+
     // Don't allow cell presses if the board is solved
     if (isSolved) return;
 
@@ -471,6 +576,7 @@ const GameBoard: React.FC = () => {
 
     const isInitial = puzzle.grid[row]?.[col] !== null;
     const shapeSet = shapeSets.find(set => set.id === puzzle.shapeSetId);
+    const isHintCell = hint && hint.row === row && hint.col === col;
     
     return (
       <TouchableOpacity
@@ -481,8 +587,9 @@ const GameBoard: React.FC = () => {
           {
             width: cellSize,
             height: cellSize,
-            borderWidth: puzzle.gridSize <= 6 ? 1 : 0.5,
-            backgroundColor: isInitial ? '#363636' : '#2d2d2d'
+            backgroundColor: isInitial ? '#363636' : '#2d2d2d',
+            borderColor: isHintCell ? '#ffd700' : '#404040',
+            borderWidth: isHintCell ? 2 : (puzzle.gridSize <= 6 ? 1 : 0.5),
           }
         ]}
         onPress={() => handleCellPress(row, col)}
@@ -565,6 +672,12 @@ const GameBoard: React.FC = () => {
           </Animated.View>
         )}
 
+        {hint && (
+          <Animated.View style={[styles.hintMessage, { opacity: hintOpacity }]}>
+            <Text style={styles.hintText}>{hint.message}</Text>
+          </Animated.View>
+        )}
+
         <View style={styles.controlsContainer}>
           <TouchableOpacity 
             style={styles.button}
@@ -586,7 +699,7 @@ const GameBoard: React.FC = () => {
             <MaterialIcons name="refresh" size={24} color="#e0e0e0" />
             <Text style={styles.buttonText}>Restart</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} onPress={handleHint}>
             <MaterialIcons name="lightbulb-outline" size={24} color="#e0e0e0" />
             <Text style={styles.buttonText}>Hint</Text>
           </TouchableOpacity>
@@ -703,5 +816,21 @@ const styles = StyleSheet.create({
     color: '#ff6b6b',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  hintMessage: {
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 20,
+    padding: 15,
+    borderRadius: 10,
+    width: '100%',
+    backgroundColor: '#2d2d2d',
+    borderWidth: 2,
+    borderColor: '#ffd700',
+  },
+  hintText: {
+    color: '#ffffff',
+    fontSize: 16,
+    textAlign: 'center',
   },
 }); 
