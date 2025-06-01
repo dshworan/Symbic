@@ -18,8 +18,12 @@ export class DuplicateRow2Rule extends MoveValidator {
     if (rowStep) {
       return {
         ...rowStep,
-        message: rowStep.message.replace(/\d/g, (match) => {
+        message: rowStep.message.replace(/\b([01])s?\b/g, (match) => {
           const value = parseInt(match);
+          if (!shapes[value]) {
+            console.error('Shape not found for value:', value, 'Available shapes:', shapes);
+            return match;
+          }
           return `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg>`;
         })
       };
@@ -30,8 +34,12 @@ export class DuplicateRow2Rule extends MoveValidator {
     if (colStep) {
       return {
         ...colStep,
-        message: colStep.message.replace(/\d/g, (match) => {
+        message: colStep.message.replace(/\b([01])s?\b/g, (match) => {
           const value = parseInt(match);
+          if (!shapes[value]) {
+            console.error('Shape not found for value:', value, 'Available shapes:', shapes);
+            return match;
+          }
           return `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg>`;
         })
       };
@@ -99,7 +107,7 @@ export class DuplicateRow2Rule extends MoveValidator {
               col: emptyCol,
               value: value,
               rule: 'duplicaterow2',
-              message: `No two rows can be identical. This cell must be different from row ${row2 + 1}.`,
+              message: `No two rows can be identical. This cell must be different.`,
               hintCellSets: [
                 // Highlight the row being filled
                 ...Array.from({ length: size }, (_, i) => ({ row: row1, col: i })),
@@ -177,7 +185,7 @@ export class DuplicateRow2Rule extends MoveValidator {
               col: col1,
               value: value,
               rule: 'duplicaterow2',
-              message: `No two columns can be identical. This cell must be different from column ${col2 + 1}.`,
+              message: `No two columns can be identical. This cell must be different.`,
               hintCellSets: [
                 // Highlight the column being filled
                 ...Array.from({ length: size }, (_, i) => ({ row: i, col: col1 })),

@@ -127,7 +127,7 @@ export class SpreadAntiTripletRule extends MoveValidator {
               col: thirdEmptyCell!,
               value: neededDigit,
               rule: 'spreadantitriplet',
-              message: `Found empty cells on both sides of a ${neededDigit} in row ${row+1}. Placing ${neededDigit} in the third empty cell.`,
+              message: `The group of three cannot all be ${neededDigit}, so a ${neededDigit} must be in this cell.`,
               hintCellSets: [
                 { row, col: i-1 },
                 { row, col: i },
@@ -146,7 +146,7 @@ export class SpreadAntiTripletRule extends MoveValidator {
               col: thirdEmptyCell!,
               value: neededDigit,
               pattern: '--X',
-              message: `We can't have three ${neededDigit} in row, so this must be a ${neededDigit}`,
+              message: `The group of three cannot all be ${neededDigit}, so a ${neededDigit} must be in this cell.`,
               hintCellSets: [
                 { row, col: i-2 },
                 { row, col: i-1 },
@@ -166,7 +166,7 @@ export class SpreadAntiTripletRule extends MoveValidator {
               col: thirdEmptyCell!,
               value: neededDigit,
               pattern: 'X--',
-              message: `We can't have three ${neededDigit} in row, so this must be a ${neededDigit}`,
+              message: `The group of three cannot all be ${neededDigit}, so a ${neededDigit} must be in this cell.`,
               hintCellSets: [
                 { row, col: i },
                 { row, col: i+1 },

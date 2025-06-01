@@ -30,7 +30,7 @@ export class LastCellRule extends MoveValidator {
             col,
             value: neededDigit,
             rule: 'lastCell',
-            message: `This row needs a ${neededDigit === 0 ? `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg>` : `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg>`} to balance the row`,
+            message: `We can complete this row with a ${neededDigit === 0 ? `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg>` : `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg>`}`,
             hintCellSets: rowValues
               .map((value, index) => ({ row, col: index }))
               .filter((_, index) => index !== col)
@@ -56,7 +56,7 @@ export class LastCellRule extends MoveValidator {
             col,
             value: neededDigit,
             rule: 'lastCell',
-            message: `This column needs a ${neededDigit === 0 ? `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg>` : `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg>`} to balance the column`,
+            message: `We can complete this column with a ${neededDigit === 0 ? `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg>` : `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg>`}`,
             hintCellSets: colValues
               .map((value, index) => ({ row: index, col }))
               .filter((_, index) => index !== row)

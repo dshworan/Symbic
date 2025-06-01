@@ -9,6 +9,7 @@ import { shapeSets } from '../data/shapes/shapeSets';
 import { getRandomSuccessMessage } from '../data/messages';
 import { useAudio } from '../context/AudioContext';
 import { RuleManager } from '../data/rules/ruleManager';
+import SettingsModal from './modals/SettingsModal';
 
 type CellValue = number | null;
 
@@ -28,7 +29,51 @@ interface Hint {
   rule: string;
 }
 
-const GameBoard: React.FC = () => {
+interface GameBoardProps {
+  isAutoplay: boolean;
+  onAutoplayChange: (isAutoplay: boolean) => void;
+}
+
+const Logo: React.FC = () => {
+  const size = 14; // Reduced from 20 to 14
+
+  return (
+    <View style={styles.logoContainer}>
+      <View style={styles.logoGrid}>
+        {/* Top Left - Diamond */}
+        <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+          <Path 
+            d="M50 5L95 50L50 95L5 50L50 5Z" 
+            fill="#FFD700" // Yellow diamond
+          />
+        </Svg>
+        {/* Top Right - Circle */}
+        <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+          <Path 
+            d="M91.5 50C91.5 72.9198 72.9198 91.5 50 91.5C27.0802 91.5 8.5 72.9198 8.5 50C8.5 27.0802 27.0802 8.5 50 8.5C72.9198 8.5 91.5 27.0802 91.5 50Z" 
+            fill="#2196F3" // Blue circle
+          />
+        </Svg>
+        {/* Bottom Left - Circle */}
+        <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+          <Path 
+            d="M91.5 50C91.5 72.9198 72.9198 91.5 50 91.5C27.0802 91.5 8.5 72.9198 8.5 50C8.5 27.0802 27.0802 8.5 50 8.5C72.9198 8.5 91.5 27.0802 91.5 50Z" 
+            fill="#2196F3" // Blue circle
+          />
+        </Svg>
+        {/* Bottom Right - Diamond */}
+        <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+          <Path 
+            d="M50 5L95 50L50 95L5 50L50 5Z" 
+            fill="#FFD700" // Yellow diamond
+          />
+        </Svg>
+      </View>
+    </View>
+  );
+};
+
+const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) => {
   const { width } = useWindowDimensions();
   const { playSound } = useAudio();
   const [cellSize, setCellSize] = useState(0);
@@ -49,6 +94,7 @@ const GameBoard: React.FC = () => {
   const [isSolved, setIsSolved] = useState(false);
   const [hint, setHint] = useState<Hint | null>(null);
   const [hintOpacity] = useState(new Animated.Value(0));
+  const [autoplayInterval, setAutoplayInterval] = useState<NodeJS.Timeout | null>(null);
   const ruleManager = new RuleManager();
 
   const calculateCellSize = (gridSize: number) => {
@@ -75,6 +121,17 @@ const GameBoard: React.FC = () => {
 
     // Reset solved state
     setIsSolved(false);
+
+    // Clear any existing hint
+    if (hint) {
+      Animated.timing(hintOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setHint(null);
+      });
+    }
 
     // Clear move history and redo stack
     setMoveHistory([]);
@@ -340,13 +397,13 @@ const GameBoard: React.FC = () => {
           const movedToNextLevel = puzzleManager.nextPuzzle();
           const currentLevel = levelManager.getCurrentLevel();
           
-          console.log('Level transition:', {
-            currentGridSize,
-            newLevelSize: currentLevel.size,
-            isDifferentSize: currentLevel.size !== currentGridSize,
-            movedToNextLevel,
-            currentLevelId: currentLevel.id
-          });
+          //console.log('Level transition:', {
+          //  currentGridSize,
+          //  newLevelSize: currentLevel.size,
+          //  isDifferentSize: currentLevel.size !== currentGridSize,
+          //  movedToNextLevel,
+          //  currentLevelId: currentLevel.id
+          //});
           
           // Fade out the board first
           Animated.timing(boardOpacity, {
@@ -363,21 +420,21 @@ const GameBoard: React.FC = () => {
             
             // Update grid size and cell size
             const newCellSize = calculateCellSize(currentLevel.size);
-            console.log('Updating sizes:', {
-              newCellSize,
-              newGridSize: currentLevel.size,
-              calculatedCellSize: calculateCellSize(currentLevel.size),
-              currentLevelId: currentLevel.id
-            });
+            //console.log('Updating sizes:', {
+            //  newCellSize,
+            //  newGridSize: currentLevel.size,
+            //  calculatedCellSize: calculateCellSize(currentLevel.size),
+            //  currentLevelId: currentLevel.id
+            //});
             
             // Update the grid with the new puzzle
             const newPuzzle = puzzleManager.getCurrentPuzzle();
-            console.log('New puzzle grid dimensions:', {
-              rows: newPuzzle.grid.length,
-              cols: newPuzzle.grid[0].length,
-              expectedSize: currentLevel.size,
-              currentLevelId: currentLevel.id
-            });
+            //console.log('New puzzle grid dimensions:', {
+            //  rows: newPuzzle.grid.length,
+            //  cols: newPuzzle.grid[0].length,
+            //  expectedSize: currentLevel.size,
+            //  currentLevelId: currentLevel.id
+            //});
             
             // Update all state in the correct order
             setCurrentLevelId(currentLevel.id);
@@ -415,9 +472,6 @@ const GameBoard: React.FC = () => {
     // Don't show hints if the board is solved
     if (isSolved) return;
 
-    // Play hint sound
-    playSound('hint');
-
     // If there's already a hint showing, apply it and clear
     if (hint && hint.row !== -1) {
       setGrid(prevGrid => {
@@ -453,6 +507,9 @@ const GameBoard: React.FC = () => {
       return;
     }
 
+    // Play hint sound only when showing a new hint
+    playSound('hint');
+
     // Get all rules
     const rules = ruleManager.getRules();
     const currentLevel = levelManager.getCurrentLevel();
@@ -461,7 +518,7 @@ const GameBoard: React.FC = () => {
     for (const rule of rules) {
       const step = rule.findStep(grid, currentGridSize, currentLevel.shapes);
       if (step) {
-        console.log('Found hint step:', step); // Add debug logging
+        //console.log('Found hint step:', step); // Add debug logging
         setHint({
           row: step.row,
           col: step.col,
@@ -498,6 +555,95 @@ const GameBoard: React.FC = () => {
       useNativeDriver: true,
     }).start();
   };
+
+  const toggleAutoplay = () => {
+    if (isAutoplay) {
+      // Stop autoplay
+      if (autoplayInterval) {
+        clearInterval(autoplayInterval);
+        setAutoplayInterval(null);
+      }
+      onAutoplayChange(false);
+    } else {
+      // Start autoplay
+      onAutoplayChange(true);
+      const interval = setInterval(() => {
+        handleHint();
+      }, 500);
+      setAutoplayInterval(interval);
+    }
+  };
+
+  // Clean up interval on unmount
+  useEffect(() => {
+    return () => {
+      if (autoplayInterval) {
+        clearInterval(autoplayInterval);
+      }
+    };
+  }, [autoplayInterval]);
+
+  // Stop autoplay when puzzle is solved
+  useEffect(() => {
+    if (isSolved && isAutoplay) {
+      // Don't stop autoplay, just wait for the next level to load
+      setTimeout(() => {
+        // Reset solved state after the level transition
+        setIsSolved(false);
+      }, 2600); // Wait for the success message and transition
+    }
+  }, [isSolved, isAutoplay]);
+
+  // Add effect to handle autoplay
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+
+    if (isAutoplay && !isSolved) {
+      interval = setInterval(() => {
+        // If there's already a hint showing, apply it
+        if (hint && hint.row !== -1) {
+          setGrid(prevGrid => {
+            const newGrid = prevGrid.map(row => [...row]);
+            newGrid[hint.row][hint.col] = hint.value as CellValue;
+            
+            // Add to move history
+            setMoveHistory(prev => [...prev, {
+              row: hint.row,
+              col: hint.col,
+              previousValue: null,
+              newValue: hint.value as CellValue
+            }]);
+            
+            // Clear redo stack
+            setRedoStack([]);
+            
+            // Check for completion
+            checkCompletion(newGrid);
+            
+            return newGrid;
+          });
+
+          // Clear the hint
+          Animated.timing(hintOpacity, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }).start(() => {
+            setHint(null);
+          });
+        } else {
+          // Get a new hint
+          handleHint();
+        }
+      }, 500);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isAutoplay, isSolved, hint]);
 
   useEffect(() => {
     // Hide status bar
@@ -609,6 +755,17 @@ const GameBoard: React.FC = () => {
     // Play undo sound
     playSound('undoRedo');
 
+    // Clear any existing hint
+    if (hint) {
+      Animated.timing(hintOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setHint(null);
+      });
+    }
+
     setGrid(prevGrid => {
       const newGrid = prevGrid.map(row => [...row]);
       const lastMove = moveHistory[moveHistory.length - 1];
@@ -629,6 +786,17 @@ const GameBoard: React.FC = () => {
 
     // Play redo sound
     playSound('undoRedo');
+
+    // Clear any existing hint
+    if (hint) {
+      Animated.timing(hintOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setHint(null);
+      });
+    }
 
     setGrid(prevGrid => {
       const newGrid = prevGrid.map(row => [...row]);
@@ -658,18 +826,18 @@ const GameBoard: React.FC = () => {
     const isHintSetCell = hint?.hintCellSets?.some(cell => cell.row === row && cell.col === col);
     const isErrorCell = hint?.rule === 'error' && hint?.hintCellSets?.some(cell => cell.row === row && cell.col === col);
     
-    if (isHintSetCell || isHintCell) {
-      console.log('GameBoard - Cell state:', { 
-        row, 
-        col, 
-        isInitial, 
-        isHintCell, 
-        isHintSetCell,
-        hint,
-        hintCellSets: hint?.hintCellSets,
-        currentValue: puzzle.grid[row][col]
-      });
-    }
+    //if (isHintSetCell || isHintCell) {
+    //  console.log('GameBoard - Cell state:', { 
+    //    row, 
+    //    col, 
+    //    isInitial, 
+    //    isHintCell, 
+    //    isHintSetCell,
+    //    hint,
+    //    hintCellSets: hint?.hintCellSets,
+    //    currentValue: puzzle.grid[row][col]
+    //  });
+    //}
     
     return (
       <TouchableOpacity
@@ -681,7 +849,7 @@ const GameBoard: React.FC = () => {
             width: cellSize,
             height: cellSize,
             backgroundColor: (isHintSetCell || isHintCell) ? '#1a1a1a' : (isInitial ? '#363636' : '#252525'),
-            borderColor: isErrorCell ? '#ff4444' : isHintCell ? '#ffd700' : isHintSetCell ? '#6c6c6c' : '#404040',
+            borderColor: isErrorCell ? '#ff4444' : isHintCell ? '#ffd700' : isHintSetCell ? '#ccc' : '#404040',
             borderWidth: isErrorCell ? 2 : isHintCell ? 2 : (currentLevel.size <= 6 ? 1 : 0.5),
           }
         ]}
@@ -706,6 +874,13 @@ const GameBoard: React.FC = () => {
     );
   };
 
+  const getDifficultyLabel = (difficulty: number): string => {
+    if (difficulty < 3) return 'Easy';
+    if (difficulty < 7) return 'Medium';
+    if (difficulty < 11) return 'Hard';
+    return 'Expert';
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
@@ -725,7 +900,7 @@ const GameBoard: React.FC = () => {
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Difficulty</Text>
             <View style={styles.statValueContainer}>
-              <Text style={styles.statValue}>{puzzleManager.getDifficulty().toFixed(1)}</Text>
+              <Text style={styles.statValue}>{getDifficultyLabel(puzzleManager.getDifficulty())}</Text>
             </View>
           </View>
         </View>
@@ -750,13 +925,12 @@ const GameBoard: React.FC = () => {
               <Text style={styles.successText}>{successMessage.message}</Text>
             </Animated.View>
           )}
+          {failureMessage && (
+            <Animated.View style={[styles.failureMessage, { opacity: failureOpacity }]}>
+              <Text style={styles.failureText}>{failureMessage}</Text>
+            </Animated.View>
+          )}
         </Animated.View>
-
-        {failureMessage && (
-          <Animated.View style={[styles.failureMessage, { opacity: failureOpacity }]}>
-            <Text style={styles.failureText}>{failureMessage}</Text>
-          </Animated.View>
-        )}
 
         {hint && (
           <Animated.View style={[styles.hintMessage, { opacity: hintOpacity }]}>
@@ -802,7 +976,7 @@ const GameBoard: React.FC = () => {
                   });
                 }}
               >
-                <Text style={styles.clearButtonText}>Clear Them</Text>
+                <Text style={styles.clearButtonText}>Clear Errors</Text>
               </TouchableOpacity>
             )}
           </Animated.View>
@@ -861,10 +1035,10 @@ const styles = StyleSheet.create({
   },
   statItem: {
     alignItems: 'center',
-    minWidth: 100,
+    minWidth: 90,
   },
   statLabel: {
-    color: '#e0e0e0',
+    color: '#bbbbbb',
     fontSize: 14,
     marginBottom: 6,
   },
@@ -875,7 +1049,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   statValue: {
-    color: '#ffffff',
+    color: '#f0f0f0',
     fontSize: 20,
     fontWeight: 'bold',
   },
@@ -884,6 +1058,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 20,
     marginBottom: 20,
+    position: 'relative',
   },
   row: {
     flexDirection: 'row',
@@ -903,7 +1078,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 10,
     position: 'absolute',
-    bottom: 45,
+    bottom: 55,
     left: 0,
     right: 0,
     gap: 10,
@@ -938,8 +1113,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   failureMessage: {
+    position: 'absolute',
+    bottom: -60,
+    left: '50%',
+    transform: [{ translateX: -155 }],
+    padding: 10,
+    borderRadius: 10,
+    width: 310,
     alignItems: 'center',
-    marginTop: 10,
+    zIndex: 1000,
+    backgroundColor: '#2d2d2d',
   },
   failureText: {
     color: '#ff6b6b',
@@ -948,9 +1131,11 @@ const styles = StyleSheet.create({
   },
   hintMessage: {
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 5,
     marginBottom: 20,
-    padding: 15,
+    paddingTop: 10,
+    paddingBottom: 15,
+    paddingHorizontal: 10,
     borderRadius: 10,
     width: '100%',
     backgroundColor: '#2d2d2d',
@@ -973,5 +1158,26 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  titleActive: {
+    color: '#ffd85d', // Green color to indicate autoplay is active
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  title: {
+    color: '#e0e0e0',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoGrid: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 }); 

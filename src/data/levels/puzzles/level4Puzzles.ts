@@ -3,6 +3,33 @@ import { Puzzle } from '../../types/levelTypes';
 export const level4Puzzles: Puzzle[] = [
     
     {
+        grid: [
+            [null, null, null, null, null, null, null, 0, null, 0],
+            [null, null, 1, null, null, 1, null, null, null, null],
+            [0, 0, null, 0, null, 0, null, null, null, null],
+            [null, null, null, null, null, null, null, null, null, null],
+            [null, 1, null, null, null, null, 1, null, null, null],
+            [0, null, 0, null, null, null, null, null, 0, null],
+            [null, null, null, null, null, null, null, null, null, null],
+            [null, null, null, 1, null, null, null, 0, null, null],
+            [null, null, null, null, null, 1, 1, null, 1, null],
+            [null, null, null, 0, null, null, null, null, 1, null]
+        ],
+        solution: [
+            [1, 1, 0, 1, 0, 1, 0, 0, 1, 0],
+            [0, 1, 1, 0, 0, 1, 1, 0, 0, 1],
+            [0, 0, 1, 0, 1, 0, 1, 1, 0, 1],
+            [1, 0, 0, 1, 0, 1, 0, 1, 1, 0],
+            [0, 1, 1, 0, 1, 0, 1, 0, 0, 1],
+            [0, 1, 0, 1, 1, 0, 0, 1, 0, 1],
+            [1, 0, 1, 0, 0, 1, 0, 1, 1, 0],
+            [1, 0, 0, 1, 1, 0, 1, 0, 0, 1],
+            [0, 1, 0, 1, 0, 1, 1, 0, 1, 0],
+            [1, 0, 1, 0, 1, 0, 0, 1, 1, 0]
+        ],
+        difficulty: 7.0
+    },
+    {
     grid: [
         [null, null, 1, null, 0, 0, null, null, null, 0],
         [1, null, null, null, null, null, null, null, 0, 0],
@@ -28,6 +55,6 @@ export const level4Puzzles: Puzzle[] = [
         [0, 1, 0, 1, 0, 1, 0, 1, 1, 0]
     ],
     difficulty: 7.0
-  },
+  }
   // Add more puzzles for level 4 here
 ]; 

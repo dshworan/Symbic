@@ -89,6 +89,10 @@ export class LevelManager {
     }
     return false;
   }
+
+  resetToFirstLevel(): void {
+    this.currentLevelIndex = 0;
+  }
 }
 
 export const levelManager = LevelManager.getInstance(); 

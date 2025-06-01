@@ -11,15 +11,26 @@ export class QuadAntiTripleRule extends MoveValidator {
   }
 
   findStep(puzzle: (number | null)[][], size: number, shapes?: Shape[]): HintStep | null {
-    if (!shapes) return null;
+    if (!shapes) {
+      console.error('QuadAntiTripleRule: No shapes provided');
+      return null;
+    }
 
     // First check rows
     const rowStep = this._checkRows(puzzle, size);
     if (rowStep) {
       return {
         ...rowStep,
-        message: rowStep.message.replace(/\d/g, (match) => {
+        message: rowStep.message.replace(/\b([01])s?\b/g, (match) => {
           const value = parseInt(match);
+          if (!shapes[value]) {
+            console.error('QuadAntiTripleRule: Shape not found for value', {
+              value,
+              availableShapes: shapes,
+              message: rowStep.message
+            });
+            return match;
+          }
           return `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg>`;
         })
       };
@@ -36,8 +47,16 @@ export class QuadAntiTripleRule extends MoveValidator {
         col: colStep.row,
         value: colStep.value,
         rule: colStep.rule,
-        message: colStep.message.replace('row', 'column').replace('Column', 'Row').replace(/\d/g, (match) => {
+        message: colStep.message.replace('row', 'column').replace('Column', 'Row').replace(/\b([01])s?\b/g, (match) => {
           const value = parseInt(match);
+          if (!shapes[value]) {
+            console.error('QuadAntiTripleRule: Shape not found for value', {
+              value,
+              availableShapes: shapes,
+              message: colStep.message
+            });
+            return match;
+          }
           return `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg>`;
         }),
         hintCellSets: colStep.hintCellSets.map(cell => ({ row: cell.col, col: cell.row }))
@@ -115,7 +134,7 @@ export class QuadAntiTripleRule extends MoveValidator {
           col: a,  // First cell in the cluster
           value: targetDigit,
           rule: 'quadantitriplet',
-          message: `Found 4 adjacent empty cells in row ${row+1} where we need ${needCount} ${targetDigit}s. Placing ${targetDigit} at column ${a+1} to prevent triplets.`,
+          message: `These four cells need ${needCount} ${targetDigit}. To avoid a triplet, we place ${targetDigit} at one end.`,
           hintCellSets: [
             { row, col: a },
             { row, col: b },

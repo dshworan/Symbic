@@ -3,9 +3,12 @@ import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, Switch, Pl
 import { Ionicons } from '@expo/vector-icons';
 import { Svg, Path, Circle } from 'react-native-svg';
 import AboutModal from './AboutModal';
+import ResetConfirmationModal from './ResetConfirmationModal';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAudio } from '../../context/AudioContext';
+import { puzzleManager } from '../../utils/puzzleManager';
+import { levelManager } from '../../data/levels/levelManager';
 
 type RootStackParamList = {
   TestInterstitialAd: undefined;
@@ -19,15 +22,30 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 interface SettingsModalProps {
   isVisible: boolean;
   onClose: () => void;
+  onReset: () => void;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose }) => {
+const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onReset }) => {
   const navigation = useNavigation<NavigationProp>();
   const { soundEnabled, toggleSound } = useAudio();
   const [showAbout, setShowAbout] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const handleSoundToggle = async () => {
     await toggleSound();
+  };
+
+  const handleReset = () => {
+    setShowResetConfirm(true);
+  };
+
+  const confirmReset = () => {
+    // Reset the game state
+    puzzleManager.resetToFirstPuzzle();
+    levelManager.resetToFirstLevel();
+    onReset();
+    setShowResetConfirm(false);
+    onClose();
   };
 
   const openAdScreen = (screenName: keyof RootStackParamList) => {
@@ -68,8 +86,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose }) => 
                   <Switch
                     value={soundEnabled}
                     onValueChange={handleSoundToggle}
-                    trackColor={{ false: '#404040', true: '#2196F3' }}
+                    trackColor={{ false: '#555555', true: '#2196F3' }}
                     thumbColor={soundEnabled ? '#2ecc71' : '#f4f3f4'}
+                    style={Platform.OS === 'android' ? { transform: [{ scaleX: 1.2 }, { scaleY: 1.2 }] } : undefined}
                   />
                 </View>
               </View>
@@ -117,7 +136,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose }) => 
                   </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.button, styles.resetButton]}>
+                <TouchableOpacity 
+                  style={[styles.button, styles.resetButton]}
+                  onPress={handleReset}
+                >
                   <View style={styles.buttonContent}>
                     <View style={styles.buttonIcon}>
                       <Svg width="24" height="24" viewBox="0 0 24 24">
@@ -167,6 +189,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose }) => 
       <AboutModal 
         isVisible={showAbout}
         onClose={() => setShowAbout(false)}
+      />
+
+      <ResetConfirmationModal
+        isVisible={showResetConfirm}
+        onConfirm={confirmReset}
+        onCancel={() => setShowResetConfirm(false)}
       />
     </>
   );

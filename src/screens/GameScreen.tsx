@@ -5,39 +5,42 @@ import Svg, { Path } from 'react-native-svg';
 import GameBoard from '../components/GameBoard';
 import { puzzleManager } from '../utils/puzzleManager';
 import SettingsModal from '../components/modals/SettingsModal';
+import { levelManager } from '../data/levels/levelManager';
 
 const Logo: React.FC = () => {
-  const size = 14; // Reduced from 20 to 14
+  const size = 14;
+  const currentLevel = levelManager.getCurrentLevel();
+  const shapes = currentLevel.shapes;
 
   return (
     <View style={styles.logoContainer}>
       <View style={styles.logoGrid}>
-        {/* Top Left - Diamond */}
+        {/* Top Left - First Shape */}
         <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
           <Path 
-            d="M50 5L95 50L50 95L5 50L50 5Z" 
-            fill="#FFD700" // Yellow diamond
+            d={shapes[0].path}
+            fill={shapes[0].fill}
           />
         </Svg>
-        {/* Top Right - Circle */}
+        {/* Top Right - Second Shape */}
         <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
           <Path 
-            d="M91.5 50C91.5 72.9198 72.9198 91.5 50 91.5C27.0802 91.5 8.5 72.9198 8.5 50C8.5 27.0802 27.0802 8.5 50 8.5C72.9198 8.5 91.5 27.0802 91.5 50Z" 
-            fill="#2196F3" // Blue circle
+            d={shapes[1].path}
+            fill={shapes[1].fill}
           />
         </Svg>
-        {/* Bottom Left - Circle */}
+        {/* Bottom Left - Second Shape */}
         <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
           <Path 
-            d="M91.5 50C91.5 72.9198 72.9198 91.5 50 91.5C27.0802 91.5 8.5 72.9198 8.5 50C8.5 27.0802 27.0802 8.5 50 8.5C72.9198 8.5 91.5 27.0802 91.5 50Z" 
-            fill="#2196F3" // Blue circle
+            d={shapes[1].path}
+            fill={shapes[1].fill}
           />
         </Svg>
-        {/* Bottom Right - Diamond */}
+        {/* Bottom Right - First Shape */}
         <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
           <Path 
-            d="M50 5L95 50L50 95L5 50L50 5Z" 
-            fill="#FFD700" // Yellow diamond
+            d={shapes[0].path}
+            fill={shapes[0].fill}
           />
         </Svg>
       </View>
@@ -48,11 +51,30 @@ const Logo: React.FC = () => {
 export const GameScreen: React.FC = () => {
   const [resetKey, setResetKey] = useState(0);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
+  const [isAutoplay, setIsAutoplay] = useState(false);
+  const [currentLevelId, setCurrentLevelId] = useState(levelManager.getCurrentLevel().id);
 
   const handleTitlePress = () => {
-    puzzleManager.resetToFirstPuzzle();
-    setResetKey(prev => prev + 1); // Force GameBoard to re-render
+    setIsAutoplay(!isAutoplay);
   };
+
+  const handleReset = () => {
+    setResetKey(prev => prev + 1); // Force GameBoard to remount
+  };
+
+  // Update currentLevelId when level changes
+  React.useEffect(() => {
+    const checkLevel = () => {
+      const newLevelId = levelManager.getCurrentLevel().id;
+      if (newLevelId !== currentLevelId) {
+        setCurrentLevelId(newLevelId);
+      }
+    };
+
+    // Check every second for level changes
+    const interval = setInterval(checkLevel, 1000);
+    return () => clearInterval(interval);
+  }, [currentLevelId]);
 
   return (
     <View style={styles.container}>
@@ -64,7 +86,7 @@ export const GameScreen: React.FC = () => {
           <View style={styles.titleContainer}>
             <Logo />
             <TouchableOpacity onPress={handleTitlePress}>
-              <Text style={styles.title}>SYMBIC</Text>
+              <Text style={[styles.title, isAutoplay && styles.titleActive]}>SYMBIC</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -77,10 +99,15 @@ export const GameScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </View>
-      <GameBoard key={resetKey} />
+      <GameBoard 
+        key={resetKey} 
+        isAutoplay={isAutoplay}
+        onAutoplayChange={setIsAutoplay}
+      />
       <SettingsModal 
         isVisible={isSettingsVisible}
         onClose={() => setIsSettingsVisible(false)}
+        onReset={handleReset}
       />
     </View>
   );
@@ -95,8 +122,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 25,
+    paddingTop: 25,
+    paddingBottom: 5,
+    paddingHorizontal: 15,
     backgroundColor: '#1a1a1a',
   },
   headerLeft: {
@@ -116,6 +144,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+  title: {
+    color: '#e0e0e0',
+    fontSize: 26,
+    fontWeight: 'bold',
+  },
+  titleActive: {
+    color: '#ffd85d', // Yellow color to indicate autoplay is active
+  },
+  settingsButton: {
+    padding: 5,
+  },
   logoContainer: {
     width: 28,
     height: 28,
@@ -128,14 +167,6 @@ const styles = StyleSheet.create({
     height: 28,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 0, // Removed gap
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#e0e0e0',
-  },
-  settingsButton: {
-    padding: 8,
+    gap: 0,
   },
 }); 
