@@ -1,5 +1,6 @@
 import { MoveValidator } from './moveValidator';
 import { HintStep } from './types';
+import { Shape } from '../types/levelTypes';
 
 export class SandwichRule extends MoveValidator {
   constructor() {
@@ -9,7 +10,9 @@ export class SandwichRule extends MoveValidator {
     );
   }
 
-  findStep(puzzle: (number | null)[][], size: number): HintStep | null {
+  findStep(puzzle: (number | null)[][], size: number, shapes?: Shape[]): HintStep | null {
+    if (!shapes) return null;
+
     // Check for sandwich patterns in rows
     for (let row = 0; row < size; row++) {
       for (let col = 0; col < size - 2; col++) {
@@ -27,7 +30,7 @@ export class SandwichRule extends MoveValidator {
             col: col + 1,
             value: neededDigit,
             rule: 'sandwich',
-            message: `We can't have three ${value} in a row, so this must be a ${neededDigit}`,
+            message: `We can't have three ${value === 0 ? `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg>` : `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg>`} in a row, so this must be a ${neededDigit === 0 ? `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg>` : `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg>`}`,
             hintCellSets: [
               { row: row, col: col },
               { row: row, col: col + 2 }
@@ -54,7 +57,7 @@ export class SandwichRule extends MoveValidator {
             col: col,
             value: neededDigit,
             rule: 'sandwich',
-            message: `We can't have three ${value} in a row, so this must be a ${neededDigit}`,
+            message: `We can't have three ${value === 0 ? `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg>` : `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg>`} in a row, so this must be a ${neededDigit === 0 ? `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg>` : `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg>`}`,
             hintCellSets: [
               { row: row, col: col },
               { row: row + 2, col: col }
@@ -65,5 +68,45 @@ export class SandwichRule extends MoveValidator {
     }
     
     return null;
+  }
+
+  private _isValidMove(puzzle: (number | null)[][], row: number, col: number, value: number, size: number): boolean {
+    // Check for three consecutive same values in row
+    if (col >= 2 && puzzle[row][col-1] === value && puzzle[row][col-2] === value) {
+      return false;
+    }
+    if (col <= size-3 && puzzle[row][col+1] === value && puzzle[row][col+2] === value) {
+      return false;
+    }
+    if (col > 0 && col < size-1 && puzzle[row][col-1] === value && puzzle[row][col+1] === value) {
+      return false;
+    }
+    
+    // Check for three consecutive same values in column
+    if (row >= 2 && puzzle[row-1][col] === value && puzzle[row-2][col] === value) {
+      return false;
+    }
+    if (row <= size-3 && puzzle[row+1][col] === value && puzzle[row+2][col] === value) {
+      return false;
+    }
+    if (row > 0 && row < size-1 && puzzle[row-1][col] === value && puzzle[row+1][col] === value) {
+      return false;
+    }
+    
+    // Count values in row and column
+    let rowCount = 0;
+    let colCount = 0;
+    
+    for (let i = 0; i < size; i++) {
+      if (puzzle[row][i] === value) rowCount++;
+      if (puzzle[i][col] === value) colCount++;
+    }
+    
+    // Check if adding this value would cause too many of the same digit
+    if (rowCount >= size/2 || colCount >= size/2) {
+      return false;
+    }
+    
+    return true;
   }
 } 

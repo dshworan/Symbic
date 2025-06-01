@@ -10,12 +10,14 @@ import { Clustered5EmptyCellsRule } from './clustered5EmptyCellsRule';
 import { DuplicateRow2Rule } from './duplicateRow2Rule';
 import { DuplicateRow3Rule } from './duplicateRow3Rule';
 import { FarAntiTripletRule } from './farAntiTripletRule';
+import { ShowErrorsRule } from './showErrorsRule';
 
 export class RuleManager {
   private rules: MoveValidator[];
 
   constructor() {
     this.rules = [
+      new ShowErrorsRule(),
       new LastCellRule(),
       new PairsRule(),
       new SandwichRule(),

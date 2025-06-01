@@ -1,18 +1,29 @@
 import { MoveValidator } from './moveValidator';
 import { HintStep } from './types';
+import { Shape } from '../types/levelTypes';
 
 export class FarAntiTripletRule extends MoveValidator {
   constructor() {
     super(
       'farantitriplet',
-      'Places digits to avoid creating triplets when two nulls are adjacent to a needed digit'
+      'When two cells of the same value are separated by two cells, the middle cell must be the opposite value'
     );
   }
 
-  findStep(puzzle: (number | null)[][], size: number): HintStep | null {
+  findStep(puzzle: (number | null)[][], size: number, shapes?: Shape[]): HintStep | null {
+    if (!shapes) return null;
+
     // First check rows
     const rowStep = this._checkRows(puzzle, size);
-    if (rowStep) return rowStep;
+    if (rowStep) {
+      return {
+        ...rowStep,
+        message: rowStep.message.replace(/\d/g, (match) => {
+          const value = parseInt(match);
+          return `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg>`;
+        })
+      };
+    }
     
     // Then check columns by transposing the puzzle
     const transposed = this._transposeGrid(puzzle, size);
@@ -25,8 +36,11 @@ export class FarAntiTripletRule extends MoveValidator {
         col: colStep.row,
         value: colStep.value,
         rule: colStep.rule,
-        message: colStep.message.replace('row', 'column').replace('Column', 'Row'),
-        hintCellSets: colStep.hintCellSets.map(cell => ({ row: cell.col, col: cell.row }))
+        message: colStep.message.replace('row', 'column').replace('Column', 'Row').replace(/\d/g, (match) => {
+          const value = parseInt(match);
+          return `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg>`;
+        }),
+        hintCellSets: colStep.hintCellSets?.map(cell => ({ row: cell.col, col: cell.row }))
       };
     }
     

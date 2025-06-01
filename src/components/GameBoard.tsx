@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, useWindowDimensions, Animated, StatusBar } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
-import { CellValue } from '../types/puzzle';
+import { Puzzle } from '../data/types/levelTypes';
 import { puzzleManager } from '../utils/puzzleManager';
+import { levelManager } from '../data/levels/levelManager';
 import { shapeSets } from '../data/shapes/shapeSets';
 import { getRandomSuccessMessage } from '../data/messages';
 import { useAudio } from '../context/AudioContext';
 import { RuleManager } from '../data/rules/ruleManager';
+
+type CellValue = number | null;
 
 interface Move {
   row: number;
@@ -22,6 +25,7 @@ interface Hint {
   value: number;
   message: string;
   hintCellSets?: Array<{row: number; col: number}>;
+  rule: string;
 }
 
 const GameBoard: React.FC = () => {
@@ -37,8 +41,8 @@ const GameBoard: React.FC = () => {
   const [shapeScale] = useState(new Animated.Value(1));
   const [boardOpacity] = useState(new Animated.Value(1));
   const [failureTimeout, setFailureTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
-  const [currentPuzzleId, setCurrentPuzzleId] = useState(puzzleManager.getCurrentPuzzle().id);
-  const [currentGridSize, setCurrentGridSize] = useState(puzzleManager.getCurrentPuzzle().gridSize);
+  const [currentLevelId, setCurrentLevelId] = useState(levelManager.getCurrentLevel().id);
+  const [currentGridSize, setCurrentGridSize] = useState(levelManager.getCurrentLevel().size);
   const [moveHistory, setMoveHistory] = useState<Move[]>([]);
   const [redoStack, setRedoStack] = useState<Move[]>([]);
   const [showSettings, setShowSettings] = useState(false);
@@ -84,13 +88,14 @@ const GameBoard: React.FC = () => {
     setFailureMessage(null);
     failureOpacity.setValue(0);
 
-    const newPuzzle = puzzleManager.getCurrentPuzzle();
-    if (!newPuzzle || !newPuzzle.grid) {
-      console.error('Invalid puzzle data:', newPuzzle);
+    const puzzle = puzzleManager.getCurrentPuzzle();
+    const currentLevel = levelManager.getCurrentLevel();
+    if (!puzzle || !puzzle.grid) {
+      console.error('Invalid puzzle data:', puzzle);
       return;
     }
 
-    const isDifferentSize = newPuzzle.gridSize !== currentGridSize;
+    const isDifferentSize = currentLevel.size !== currentGridSize;
 
     if (isDifferentSize) {
       // Fade out the entire board
@@ -101,13 +106,13 @@ const GameBoard: React.FC = () => {
       }).start(() => {
         try {
           // Calculate new cell size before updating the grid
-          const newCellSize = calculateCellSize(newPuzzle.gridSize);
+          const newCellSize = calculateCellSize(currentLevel.size);
           setCellSize(newCellSize);
           
           // Update grid and size
-          setGrid([...newPuzzle.grid]);
-          setCurrentGridSize(newPuzzle.gridSize);
-          setCurrentPuzzleId(newPuzzle.id);
+          setGrid(puzzle.grid as CellValue[][]);
+          setCurrentGridSize(currentLevel.size);
+          setCurrentLevelId(currentLevel.id);
           
           // Reset shape scale to 0
           shapeScale.setValue(0);
@@ -130,7 +135,7 @@ const GameBoard: React.FC = () => {
           // Fallback to safe state
           setGrid([]);
           setCurrentGridSize(0);
-          setCurrentPuzzleId('');
+          setCurrentLevelId(0);
         }
       });
     } else {
@@ -141,8 +146,8 @@ const GameBoard: React.FC = () => {
         useNativeDriver: true,
       }).start(() => {
         try {
-          setGrid([...newPuzzle.grid]);
-          setCurrentPuzzleId(newPuzzle.id);
+          setGrid(puzzle.grid as CellValue[][]);
+          setCurrentLevelId(currentLevel.id);
           
           Animated.timing(shapeScale, {
             toValue: 1,
@@ -153,7 +158,7 @@ const GameBoard: React.FC = () => {
           console.error('Error during shape animation:', error);
           // Fallback to safe state
           setGrid([]);
-          setCurrentPuzzleId('');
+          setCurrentLevelId(0);
         }
       });
     }
@@ -175,13 +180,14 @@ const GameBoard: React.FC = () => {
     setFailureMessage(null);
     failureOpacity.setValue(0);
 
-    const newPuzzle = puzzleManager.getCurrentPuzzle();
-    if (!newPuzzle || !newPuzzle.grid) {
-      console.error('Invalid puzzle data:', newPuzzle);
+    const puzzle = puzzleManager.getCurrentPuzzle();
+    const currentLevel = levelManager.getCurrentLevel();
+    if (!puzzle || !puzzle.grid) {
+      console.error('Invalid puzzle data:', puzzle);
       return;
     }
 
-    const isDifferentSize = newPuzzle.gridSize !== currentGridSize;
+    const isDifferentSize = currentLevel.size !== currentGridSize;
 
     if (isDifferentSize) {
       // Fade out the entire board
@@ -192,13 +198,13 @@ const GameBoard: React.FC = () => {
       }).start(() => {
         try {
           // Calculate new cell size before updating the grid
-          const newCellSize = calculateCellSize(newPuzzle.gridSize);
+          const newCellSize = calculateCellSize(currentLevel.size);
           setCellSize(newCellSize);
           
           // Update grid and size
-          setGrid([...newPuzzle.grid]);
-          setCurrentGridSize(newPuzzle.gridSize);
-          setCurrentPuzzleId(newPuzzle.id);
+          setGrid(puzzle.grid as CellValue[][]);
+          setCurrentGridSize(currentLevel.size);
+          setCurrentLevelId(currentLevel.id);
           
           // Reset shape scale to 0
           shapeScale.setValue(0);
@@ -221,7 +227,7 @@ const GameBoard: React.FC = () => {
           // Fallback to safe state
           setGrid([]);
           setCurrentGridSize(0);
-          setCurrentPuzzleId('');
+          setCurrentLevelId(0);
         }
       });
     } else {
@@ -232,8 +238,8 @@ const GameBoard: React.FC = () => {
         useNativeDriver: true,
       }).start(() => {
         try {
-          setGrid([...newPuzzle.grid]);
-          setCurrentPuzzleId(newPuzzle.id);
+          setGrid(puzzle.grid as CellValue[][]);
+          setCurrentLevelId(currentLevel.id);
           
           Animated.timing(shapeScale, {
             toValue: 1,
@@ -244,18 +250,18 @@ const GameBoard: React.FC = () => {
           console.error('Error during shape animation:', error);
           // Fallback to safe state
           setGrid([]);
-          setCurrentPuzzleId('');
+          setCurrentLevelId(0);
         }
       });
     }
   };
 
   const showSuccessMessage = (messageData: { message: string; color: string }) => {
-    const shapeSet = shapeSets.find(set => set.id === puzzleManager.getCurrentPuzzle().shapeSetId);
+    const currentLevel = levelManager.getCurrentLevel();
     setSuccessMessage({
       message: messageData.message,
-      backgroundColor: shapeSet?.colors.shape1 || '#252525',
-      borderColor: shapeSet?.colors.shape2 || '#404040'
+      backgroundColor: currentLevel.colors.primary,
+      borderColor: currentLevel.colors.secondary
     });
     Animated.sequence([
       Animated.timing(messageOpacity, {
@@ -331,8 +337,71 @@ const GameBoard: React.FC = () => {
         showSuccessMessage(getRandomSuccessMessage());
         setScore(prev => prev + 1);
         setTimeout(() => {
-          puzzleManager.nextPuzzle();
-          loadNewPuzzle();
+          const movedToNextLevel = puzzleManager.nextPuzzle();
+          const currentLevel = levelManager.getCurrentLevel();
+          
+          console.log('Level transition:', {
+            currentGridSize,
+            newLevelSize: currentLevel.size,
+            isDifferentSize: currentLevel.size !== currentGridSize,
+            movedToNextLevel,
+            currentLevelId: currentLevel.id
+          });
+          
+          // Fade out the board first
+          Animated.timing(boardOpacity, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }).start(() => {
+            // Reset solved state
+            setIsSolved(false);
+            
+            // Clear move history and redo stack
+            setMoveHistory([]);
+            setRedoStack([]);
+            
+            // Update grid size and cell size
+            const newCellSize = calculateCellSize(currentLevel.size);
+            console.log('Updating sizes:', {
+              newCellSize,
+              newGridSize: currentLevel.size,
+              calculatedCellSize: calculateCellSize(currentLevel.size),
+              currentLevelId: currentLevel.id
+            });
+            
+            // Update the grid with the new puzzle
+            const newPuzzle = puzzleManager.getCurrentPuzzle();
+            console.log('New puzzle grid dimensions:', {
+              rows: newPuzzle.grid.length,
+              cols: newPuzzle.grid[0].length,
+              expectedSize: currentLevel.size,
+              currentLevelId: currentLevel.id
+            });
+            
+            // Update all state in the correct order
+            setCurrentLevelId(currentLevel.id);
+            setCurrentGridSize(currentLevel.size);
+            setCellSize(newCellSize);
+            setGrid(newPuzzle.grid as CellValue[][]);
+            
+            // Reset shape scale
+            shapeScale.setValue(0);
+            
+            // Fade in the new board
+            Animated.timing(boardOpacity, {
+              toValue: 1,
+              duration: 300,
+              useNativeDriver: true,
+            }).start(() => {
+              // After grid is visible, grow in the shapes
+              Animated.timing(shapeScale, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+              }).start();
+            });
+          });
         }, 1500);
       }, 500);
     } else if (isFilled) {
@@ -386,10 +455,11 @@ const GameBoard: React.FC = () => {
 
     // Get all rules
     const rules = ruleManager.getRules();
+    const currentLevel = levelManager.getCurrentLevel();
     
     // Try each rule in order
     for (const rule of rules) {
-      const step = rule.findStep(grid, currentGridSize);
+      const step = rule.findStep(grid, currentGridSize, currentLevel.shapes);
       if (step) {
         console.log('Found hint step:', step); // Add debug logging
         setHint({
@@ -397,7 +467,8 @@ const GameBoard: React.FC = () => {
           col: step.col,
           value: step.value,
           message: step.message,
-          hintCellSets: step.hintCellSets
+          hintCellSets: step.hintCellSets,
+          rule: step.rule
         });
         
         // Fade in the hint message
@@ -416,7 +487,8 @@ const GameBoard: React.FC = () => {
       row: -1,
       col: -1,
       value: -1,
-      message: "No hints available at this stage."
+      message: "No hints available at this stage.",
+      rule: ''
     });
     
     // Fade in the no-hint message
@@ -433,11 +505,12 @@ const GameBoard: React.FC = () => {
     
     // Initialize the grid and cell size
     const puzzle = puzzleManager.getCurrentPuzzle();
-    const initialCellSize = calculateCellSize(puzzle.gridSize);
+    const currentLevel = levelManager.getCurrentLevel();
+    const initialCellSize = calculateCellSize(currentLevel.size);
     setCellSize(initialCellSize);
-    setGrid([...puzzle.grid]);
-    setCurrentGridSize(puzzle.gridSize);
-    setCurrentPuzzleId(puzzle.id);
+    setGrid(puzzle.grid as CellValue[][]);
+    setCurrentGridSize(currentLevel.size);
+    setCurrentLevelId(currentLevel.id);
     
     // Cleanup when component unmounts
     return () => {
@@ -447,15 +520,16 @@ const GameBoard: React.FC = () => {
 
   useEffect(() => {
     const puzzle = puzzleManager.getCurrentPuzzle();
-    if (puzzle.id !== currentPuzzleId) {
+    const currentLevel = levelManager.getCurrentLevel();
+    if (currentLevel.id !== currentLevelId) {
       resetGrid();
     }
-  }, [currentPuzzleId]);
+  }, [currentLevelId]);
 
   useEffect(() => {
     // Only recalculate cell size when width changes
-    const puzzle = puzzleManager.getCurrentPuzzle();
-    setCellSize(calculateCellSize(puzzle.gridSize));
+    const currentLevel = levelManager.getCurrentLevel();
+    setCellSize(calculateCellSize(currentLevel.size));
   }, [width]);
 
   const handleCellPress = (row: number, col: number) => {
@@ -578,9 +652,11 @@ const GameBoard: React.FC = () => {
     }
 
     const isInitial = puzzle.grid[row]?.[col] !== null;
-    const shapeSet = shapeSets.find(set => set.id === puzzle.shapeSetId);
+    const currentLevel = levelManager.getCurrentLevel();
+    const shapes = currentLevel.shapes;
     const isHintCell = hint && hint.row === row && hint.col === col;
     const isHintSetCell = hint?.hintCellSets?.some(cell => cell.row === row && cell.col === col);
+    const isErrorCell = hint?.rule === 'error' && hint?.hintCellSets?.some(cell => cell.row === row && cell.col === col);
     
     if (isHintSetCell || isHintCell) {
       console.log('GameBoard - Cell state:', { 
@@ -605,13 +681,13 @@ const GameBoard: React.FC = () => {
             width: cellSize,
             height: cellSize,
             backgroundColor: (isHintSetCell || isHintCell) ? '#1a1a1a' : (isInitial ? '#363636' : '#252525'),
-            borderColor: isHintCell ? '#ffd700' : isHintSetCell ? '#6c6c6c' : '#404040',
-            borderWidth: isHintCell ? 2 : (puzzle.gridSize <= 6 ? 1 : 0.5),
+            borderColor: isErrorCell ? '#ff4444' : isHintCell ? '#ffd700' : isHintSetCell ? '#6c6c6c' : '#404040',
+            borderWidth: isErrorCell ? 2 : isHintCell ? 2 : (currentLevel.size <= 6 ? 1 : 0.5),
           }
         ]}
         onPress={() => handleCellPress(row, col)}
       >
-        {value !== null && shapeSet && (
+        {value !== null && shapes && (
           <Animated.View style={{ transform: [{ scale: shapeScale }] }}>
             <Svg 
               width={cellSize * 0.8}
@@ -619,17 +695,10 @@ const GameBoard: React.FC = () => {
               viewBox="0 0 100 100"
               fill="none"
             >
-              {value === 0 ? (
                 <Path 
-                  d="M65.8505 95.5H34.8934L34.4245 94.628C34.1595 94.0989 34.241 93.4621 34.6284 93.0114C35.2502 92.2864 41.2744 82.8512 42.6709 73.9353C38.0839 76.7179 32.9159 78.0308 26.647 78.0308H26.6266C22.2843 78.0308 17.1367 75.6499 13.202 71.8288C8.68639 67.4395 6.19922 61.7471 6.19922 55.7999C6.19922 42.6906 13.0389 37.6938 22.4983 30.7865C29.9599 25.339 39.2358 18.559 48.4301 5.27338L49.6534 3.5L50.9377 5.23419C60.499 18.0789 69.5507 24.8197 76.8389 30.2378C86.3391 37.3019 93.1992 42.4065 93.1992 55.8097C93.1992 61.7569 90.7222 67.4493 86.2066 71.8288C82.272 75.6597 77.1244 78.0308 72.782 78.0406C65.8302 78.0406 61.9975 76.3554 58.8273 74.1901C60.4888 83.3117 65.718 91.1302 67.0839 93.0114C67.3184 93.3347 67.5222 94.1773 67.2776 94.5692C66.9208 95.1571 66.4621 95.5 65.8505 95.5Z" 
-                  fill={shapeSet.colors.shape1}
+                d={value === 0 ? shapes[0].path : shapes[1].path}
+                fill={value === 0 ? shapes[0].fill : shapes[1].fill}
                 />
-              ) : (
-                <Path 
-                  d="M50.3707 92.13L49.5007 92.75L48.6307 92.13C-0.549301 57.24 -1.2293 33.5 6.8507 19.72L6.9707 19.56C12.4607 12.55 19.4407 8.70002 27.1807 8.42002C34.9907 8.14002 43.0607 11.73 49.5007 18.3C55.7107 11.96 63.4207 8.40002 70.9807 8.40002C71.2707 8.40002 71.5507 8.40002 71.8307 8.40002C79.5607 8.68002 86.5507 12.53 92.0407 19.54L92.1507 19.7C100.241 33.48 99.5507 57.21 50.3707 92.11V92.13Z" 
-                  fill={shapeSet.colors.shape2}
-                />
-              )}
             </Svg>
           </Animated.View>
         )}
@@ -650,7 +719,7 @@ const GameBoard: React.FC = () => {
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Level</Text>
             <View style={styles.statValueContainer}>
-              <Text style={styles.statValue}>{puzzleManager.getLevel()}</Text>
+              <Text style={styles.statValue}>{levelManager.getCurrentLevelNumber()}</Text>
             </View>
           </View>
           <View style={styles.statItem}>
@@ -691,7 +760,51 @@ const GameBoard: React.FC = () => {
 
         {hint && (
           <Animated.View style={[styles.hintMessage, { opacity: hintOpacity }]}>
-            <Text style={styles.hintText}>{hint.message}</Text>
+            <Text style={styles.hintText}>
+              {hint.message.split(/<svg.*?<\/svg>/).map((part, index, array) => {
+                if (index === array.length - 1) return part;
+                const svgMatch = hint.message.match(/<svg.*?<\/svg>/g);
+                if (!svgMatch) return part;
+                const svgContent = svgMatch[index];
+                const pathMatch = svgContent.match(/<path d="([^"]*)" fill="([^"]*)"/);
+                if (!pathMatch) return part;
+                return (
+                  <React.Fragment key={index}>
+                    {part}
+                    <View style={{ transform: [{ translateY: 5 }] }}>
+                      <Svg width={20} height={20} viewBox="0 0 100 100">
+                        <Path d={pathMatch[1]} fill={pathMatch[2]} />
+                      </Svg>
+                    </View>
+                  </React.Fragment>
+                );
+              })}
+            </Text>
+            {hint.rule === 'error' && (
+              <TouchableOpacity 
+                style={styles.clearButton}
+                onPress={() => {
+                  // Clear all incorrect cells
+                  setGrid(prevGrid => {
+                    const newGrid = prevGrid.map(row => [...row]);
+                    hint.hintCellSets?.forEach(({ row, col }) => {
+                      newGrid[row][col] = null;
+                    });
+                    return newGrid;
+                  });
+                  // Clear the hint
+                  Animated.timing(hintOpacity, {
+                    toValue: 0,
+                    duration: 300,
+                    useNativeDriver: true,
+                  }).start(() => {
+                    setHint(null);
+                  });
+                }}
+              >
+                <Text style={styles.clearButtonText}>Clear Them</Text>
+              </TouchableOpacity>
+            )}
           </Animated.View>
         )}
 
@@ -732,7 +845,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1a1a',
-    padding: 10,
+    paddingHorizontal: 10,
     alignItems: 'center',
   },
   contentContainer: {
@@ -745,7 +858,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     padding: 10,
-    marginBottom: 20,
   },
   statItem: {
     alignItems: 'center',
@@ -849,5 +961,17 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     textAlign: 'center',
+  },
+  clearButton: {
+    marginTop: 10,
+    backgroundColor: '#ff4444',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 5,
+  },
+  clearButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 }); 

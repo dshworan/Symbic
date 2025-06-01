@@ -1,5 +1,6 @@
 import { MoveValidator } from './moveValidator';
 import { HintStep } from './types';
+import { Shape } from '../types/levelTypes';
 
 export class SpreadAntiTripletRule extends MoveValidator {
   constructor() {
@@ -9,24 +10,35 @@ export class SpreadAntiTripletRule extends MoveValidator {
     );
   }
 
-  findStep(puzzle: (number | null)[][], size: number): HintStep | null {
+  findStep(puzzle: (number | null)[][], size: number, shapes?: Shape[]): HintStep | null {
+    if (!shapes) return null;
+
     let result = this._checkRows(puzzle, size);
     if (result !== null) {
-      return result;
+      return {
+        ...result,
+        message: result.message.replace(/\d/g, (match) => {
+          const value = parseInt(match);
+          return `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg>`;
+        })
+      };
     }
-   
+    
     // transpose puzzle to check columns
     const transposed = this._transposeGrid(puzzle, size);
     result = this._checkRows(transposed, size);
     if (result !== null) {
       // swap row/col in result because we transposed the puzzle
       const { row, col, value, rule, hintCellSets } = result;
-      return { 
+      return {
         row: col, 
         col: row, 
         value, 
         rule,
-        message: result.message.replace('row', 'column'),
+        message: result.message.replace('row', 'column').replace(/\d/g, (match) => {
+          const value = parseInt(match);
+          return `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg>`;
+        }),
         hintCellSets: hintCellSets.map(cell => ({ row: cell.col, col: cell.row }))
       };
     }
@@ -180,5 +192,31 @@ export class SpreadAntiTripletRule extends MoveValidator {
     }
     
     return null;
+  }
+
+  private _isValidMove(puzzle: (number | null)[][], row: number, col: number, value: number, size: number): boolean {
+    // Check for three consecutive same values in row
+    if (col >= 2 && puzzle[row][col-1] === value && puzzle[row][col-2] === value) {
+      return false;
+    }
+    if (col <= size-3 && puzzle[row][col+1] === value && puzzle[row][col+2] === value) {
+      return false;
+    }
+    if (col > 0 && col < size-1 && puzzle[row][col-1] === value && puzzle[row][col+1] === value) {
+      return false;
+    }
+    
+    // Check for three consecutive same values in column
+    if (row >= 2 && puzzle[row-1][col] === value && puzzle[row-2][col] === value) {
+      return false;
+    }
+    if (row <= size-3 && puzzle[row+1][col] === value && puzzle[row+2][col] === value) {
+      return false;
+    }
+    if (row > 0 && row < size-1 && puzzle[row-1][col] === value && puzzle[row+1][col] === value) {
+      return false;
+    }
+    
+    return true;
   }
 } 

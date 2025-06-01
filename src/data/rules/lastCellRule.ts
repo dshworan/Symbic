@@ -1,54 +1,70 @@
 import { MoveValidator } from './moveValidator';
 import { HintStep } from './types';
+import { Shape } from '../types/levelTypes';
 
 export class LastCellRule extends MoveValidator {
   constructor() {
     super(
-      'lastcell',
-      'When only one cell remains empty in a row or column, its value can be determined by the count of 0s and 1s'
+      'lastCell',
+      'When a row or column has only one empty cell, it must contain the missing value'
     );
   }
 
-  findStep(puzzle: (number | null)[][], size: number): HintStep | null {
+  findStep(puzzle: (number | null)[][], size: number, shapes?: Shape[]): HintStep | null {
+    if (!shapes) return null;
+
     // Check rows
     for (let row = 0; row < size; row++) {
-      const emptyCells = this.findEmptyCells(puzzle[row]);
-      if (emptyCells.length === 1) {
-        const col = emptyCells[0];
-        const value = this.determineValue(puzzle[row]);
-        if (this._isValidMove(puzzle, row, col, value, size)) {
+      const rowValues = puzzle[row];
+      const emptyCells = rowValues.reduce((count, cell) => count + (cell === null ? 1 : 0), 0);
+      
+      if (emptyCells === 1) {
+        const col = rowValues.indexOf(null);
+        const count0 = rowValues.filter(cell => cell === 0).length;
+        const count1 = rowValues.filter(cell => cell === 1).length;
+        const neededDigit = count0 > count1 ? 1 : 0;
+        
+        if (this.isValidMove(puzzle, row, col, neededDigit, size)) {
           return {
             row,
             col,
-            value,
-            rule: 'lastcell',
-            message: `This is the last empty cell in the row. It must be a ${value}`,
-            hintCellSets: puzzle[row].map((_, colIndex) => ({ row, col: colIndex }))
+            value: neededDigit,
+            rule: 'lastCell',
+            message: `This row needs a ${neededDigit === 0 ? `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg>` : `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg>`} to balance the row`,
+            hintCellSets: rowValues
+              .map((value, index) => ({ row, col: index }))
+              .filter((_, index) => index !== col)
           };
         }
       }
     }
-
+    
     // Check columns
     for (let col = 0; col < size; col++) {
-      const column = puzzle.map(row => row[col]);
-      const emptyCells = this.findEmptyCells(column);
-      if (emptyCells.length === 1) {
-        const row = emptyCells[0];
-        const value = this.determineValue(column);
-        if (this._isValidMove(puzzle, row, col, value, size)) {
+      const colValues = puzzle.map(row => row[col]);
+      const emptyCells = colValues.reduce((count, cell) => count + (cell === null ? 1 : 0), 0);
+      
+      if (emptyCells === 1) {
+        const row = colValues.indexOf(null);
+        const count0 = colValues.filter(cell => cell === 0).length;
+        const count1 = colValues.filter(cell => cell === 1).length;
+        const neededDigit = count0 > count1 ? 1 : 0;
+        
+        if (this.isValidMove(puzzle, row, col, neededDigit, size)) {
           return {
             row,
             col,
-            value,
-            rule: 'lastcell',
-            message: `This is the last empty cell in the column. It must be ${value} to maintain the correct count.`,
-            hintCellSets: puzzle.map((_, rowIndex) => ({ row: rowIndex, col }))
+            value: neededDigit,
+            rule: 'lastCell',
+            message: `This column needs a ${neededDigit === 0 ? `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg>` : `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg>`} to balance the column`,
+            hintCellSets: colValues
+              .map((value, index) => ({ row: index, col }))
+              .filter((_, index) => index !== row)
           };
         }
       }
     }
-
+    
     return null;
   }
 

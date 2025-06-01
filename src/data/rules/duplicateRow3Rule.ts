@@ -1,5 +1,6 @@
 import { MoveValidator } from './moveValidator';
 import { HintStep } from './types';
+import { Shape } from '../types/levelTypes';
 
 export class DuplicateRow3Rule extends MoveValidator {
   constructor() {
@@ -9,14 +10,32 @@ export class DuplicateRow3Rule extends MoveValidator {
     );
   }
 
-  findStep(puzzle: (number | null)[][], size: number): HintStep | null {
+  findStep(puzzle: (number | null)[][], size: number, shapes?: Shape[]): HintStep | null {
+    if (!shapes) return null;
+
     // First check rows
     const rowStep = this._findStepInRows(puzzle, size);
-    if (rowStep) return rowStep;
+    if (rowStep) {
+      return {
+        ...rowStep,
+        message: rowStep.message.replace(/\d/g, (match) => {
+          const value = parseInt(match);
+          return `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg>`;
+        })
+      };
+    }
     
     // Then check columns
     const colStep = this._findStepInColumns(puzzle, size);
-    if (colStep) return colStep;
+    if (colStep) {
+      return {
+        ...colStep,
+        message: colStep.message.replace(/\d/g, (match) => {
+          const value = parseInt(match);
+          return `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg>`;
+        })
+      };
+    }
     
     return null;
   }

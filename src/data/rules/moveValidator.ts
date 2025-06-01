@@ -1,4 +1,5 @@
 import { Rule, HintStep } from './types';
+import { Shape } from '../types/levelTypes';
 
 export abstract class MoveValidator implements Rule {
   constructor(
@@ -6,7 +7,7 @@ export abstract class MoveValidator implements Rule {
     public readonly description: string
   ) {}
 
-  abstract findStep(puzzle: (number | null)[][], size: number): HintStep | null;
+  abstract findStep(puzzle: (number | null)[][], size: number, shapes?: Shape[]): HintStep | null;
 
   getName(): string {
     return this.name;

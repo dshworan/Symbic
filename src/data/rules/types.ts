@@ -1,3 +1,5 @@
+import { Shape } from '../types/levelTypes';
+
 export interface HintStep {
   row: number;
   col: number;
@@ -10,7 +12,7 @@ export interface HintStep {
 export interface Rule {
   name: string;
   description: string;
-  findStep(puzzle: number[][], size: number): HintStep | null;
+  findStep(puzzle: number[][], size: number, shapes?: Shape[]): HintStep | null;
 }
 
 export interface RuleManager {

@@ -1,15 +1,18 @@
 import { MoveValidator } from './moveValidator';
 import { HintStep } from './types';
+import { Shape } from '../types/levelTypes';
 
 export class PairsRule extends MoveValidator {
   constructor() {
     super(
       'pairs',
-      'When two adjacent cells have the same value, a third consecutive cell cannot have this value'
+      'When a cell is between two cells of the same value, it must be the opposite value'
     );
   }
 
-  findStep(puzzle: (number | null)[][], size: number): HintStep | null {
+  findStep(puzzle: (number | null)[][], size: number, shapes?: Shape[]): HintStep | null {
+    if (!shapes) return null;
+
     // Check for adjacent pairs (00 or 11) in rows
     for (let row = 0; row < size; row++) {
       for (let col = 0; col < size - 1; col++) {
@@ -31,7 +34,7 @@ export class PairsRule extends MoveValidator {
                 col: col + 2,
                 value: neededDigit,
                 rule: 'pairs',
-                message: `We can't have three ${value} in a row, so this must be a ${neededDigit}`,
+                message: `We can't have three <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg> in a row, so this must be a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[neededDigit].path}" fill="${shapes[neededDigit].fill}"/></svg>`,
                 hintCellSets: [
                   { row: row, col: col },
                   { row: row, col: col + 1 }
@@ -49,7 +52,7 @@ export class PairsRule extends MoveValidator {
                 col: col - 1,
                 value: neededDigit,
                 rule: 'pairs',
-                message: `We can't have three ${value} in a row, so this must be a ${neededDigit}`,
+                message: `We can't have three <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg> in a row, so this must be a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[neededDigit].path}" fill="${shapes[neededDigit].fill}"/></svg>`,
                 hintCellSets: [
                   { row: row, col: col },
                   { row: row, col: col + 1 }
@@ -82,7 +85,7 @@ export class PairsRule extends MoveValidator {
                 col: col,
                 value: neededDigit,
                 rule: 'pairs',
-                message: `We can't have three ${value} in a row, so this must be a ${neededDigit}`,
+                message: `We can't have three <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg> in a row, so this must be a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[neededDigit].path}" fill="${shapes[neededDigit].fill}"/></svg>`,
                 hintCellSets: [
                   { row: row, col: col },
                   { row: row + 1, col: col }
@@ -100,7 +103,7 @@ export class PairsRule extends MoveValidator {
                 col: col,
                 value: neededDigit,
                 rule: 'pairs',
-                message: `We can't have three ${value} in a row, so this must be a ${neededDigit}`,
+                message: `We can't have three <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg> in a row, so this must be a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[neededDigit].path}" fill="${shapes[neededDigit].fill}"/></svg>`,
                 hintCellSets: [
                   { row: row, col: col },
                   { row: row + 1, col: col }
