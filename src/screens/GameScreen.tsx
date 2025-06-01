@@ -80,7 +80,7 @@ export const GameScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          {/* Left section - empty for now */}
+          <Text style={styles.packText}>Pack: {levelManager.getCurrentPackNumber()}</Text>
         </View>
         <View style={styles.headerCenter}>
           <View style={styles.titleContainer}>
@@ -154,6 +154,11 @@ const styles = StyleSheet.create({
   },
   settingsButton: {
     padding: 5,
+  },
+  packText: {
+    color: '#e0e0e0',
+    fontSize: 16,
+    fontWeight: '500',
   },
   logoContainer: {
     width: 28,

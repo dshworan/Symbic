@@ -17,8 +17,14 @@ export interface Puzzle {
 
 export interface Level {
   id: number;
+  packId: number;
   shapes: Shape[];
   colors: LevelColors;
   puzzles: Puzzle[];
-  size: number;
+}
+
+export interface Pack {
+  id: number;
+  name: string;
+  levels: Level[];
 } 

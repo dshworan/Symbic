@@ -87,7 +87,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
   const [boardOpacity] = useState(new Animated.Value(1));
   const [failureTimeout, setFailureTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [currentLevelId, setCurrentLevelId] = useState(levelManager.getCurrentLevel().id);
-  const [currentGridSize, setCurrentGridSize] = useState(levelManager.getCurrentLevel().size);
+  const [currentGridSize, setCurrentGridSize] = useState(puzzleManager.getCurrentPuzzle().grid.length);
   const [moveHistory, setMoveHistory] = useState<Move[]>([]);
   const [redoStack, setRedoStack] = useState<Move[]>([]);
   const [showSettings, setShowSettings] = useState(false);
@@ -152,7 +152,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
       return;
     }
 
-    const isDifferentSize = currentLevel.size !== currentGridSize;
+    const gridSize = puzzle.grid.length;
+    const isDifferentSize = gridSize !== currentGridSize;
 
     if (isDifferentSize) {
       // Fade out the entire board
@@ -163,12 +164,12 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
       }).start(() => {
         try {
           // Calculate new cell size before updating the grid
-          const newCellSize = calculateCellSize(currentLevel.size);
+          const newCellSize = calculateCellSize(gridSize);
           setCellSize(newCellSize);
           
           // Update grid and size
           setGrid(puzzle.grid as CellValue[][]);
-          setCurrentGridSize(currentLevel.size);
+          setCurrentGridSize(gridSize);
           setCurrentLevelId(currentLevel.id);
           
           // Reset shape scale to 0
@@ -244,7 +245,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
       return;
     }
 
-    const isDifferentSize = currentLevel.size !== currentGridSize;
+    const gridSize = puzzle.grid.length;
+    const isDifferentSize = gridSize !== currentGridSize;
 
     if (isDifferentSize) {
       // Fade out the entire board
@@ -255,12 +257,12 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
       }).start(() => {
         try {
           // Calculate new cell size before updating the grid
-          const newCellSize = calculateCellSize(currentLevel.size);
+          const newCellSize = calculateCellSize(gridSize);
           setCellSize(newCellSize);
           
           // Update grid and size
           setGrid(puzzle.grid as CellValue[][]);
-          setCurrentGridSize(currentLevel.size);
+          setCurrentGridSize(gridSize);
           setCurrentLevelId(currentLevel.id);
           
           // Reset shape scale to 0
@@ -396,14 +398,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
         setTimeout(() => {
           const movedToNextLevel = puzzleManager.nextPuzzle();
           const currentLevel = levelManager.getCurrentLevel();
-          
-          //console.log('Level transition:', {
-          //  currentGridSize,
-          //  newLevelSize: currentLevel.size,
-          //  isDifferentSize: currentLevel.size !== currentGridSize,
-          //  movedToNextLevel,
-          //  currentLevelId: currentLevel.id
-          //});
+          const newPuzzle = puzzleManager.getCurrentPuzzle();
           
           // Fade out the board first
           Animated.timing(boardOpacity, {
@@ -419,26 +414,12 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
             setRedoStack([]);
             
             // Update grid size and cell size
-            const newCellSize = calculateCellSize(currentLevel.size);
-            //console.log('Updating sizes:', {
-            //  newCellSize,
-            //  newGridSize: currentLevel.size,
-            //  calculatedCellSize: calculateCellSize(currentLevel.size),
-            //  currentLevelId: currentLevel.id
-            //});
-            
-            // Update the grid with the new puzzle
-            const newPuzzle = puzzleManager.getCurrentPuzzle();
-            //console.log('New puzzle grid dimensions:', {
-            //  rows: newPuzzle.grid.length,
-            //  cols: newPuzzle.grid[0].length,
-            //  expectedSize: currentLevel.size,
-            //  currentLevelId: currentLevel.id
-            //});
+            const gridSize = newPuzzle.grid.length;
+            const newCellSize = calculateCellSize(gridSize);
             
             // Update all state in the correct order
             setCurrentLevelId(currentLevel.id);
-            setCurrentGridSize(currentLevel.size);
+            setCurrentGridSize(gridSize);
             setCellSize(newCellSize);
             setGrid(newPuzzle.grid as CellValue[][]);
             
@@ -590,7 +571,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
       setTimeout(() => {
         // Reset solved state after the level transition
         setIsSolved(false);
-      }, 2600); // Wait for the success message and transition
+      }, 2800); // Wait for the success message and transition
     }
   }, [isSolved, isAutoplay]);
 
@@ -652,10 +633,11 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
     // Initialize the grid and cell size
     const puzzle = puzzleManager.getCurrentPuzzle();
     const currentLevel = levelManager.getCurrentLevel();
-    const initialCellSize = calculateCellSize(currentLevel.size);
+    const gridSize = puzzle.grid.length;
+    const initialCellSize = calculateCellSize(gridSize);
     setCellSize(initialCellSize);
     setGrid(puzzle.grid as CellValue[][]);
-    setCurrentGridSize(currentLevel.size);
+    setCurrentGridSize(gridSize);
     setCurrentLevelId(currentLevel.id);
     
     // Cleanup when component unmounts
@@ -674,8 +656,10 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
 
   useEffect(() => {
     // Only recalculate cell size when width changes
-    const currentLevel = levelManager.getCurrentLevel();
-    setCellSize(calculateCellSize(currentLevel.size));
+    const puzzle = puzzleManager.getCurrentPuzzle();
+    if (puzzle && puzzle.grid) {
+      setCellSize(calculateCellSize(puzzle.grid.length));
+    }
   }, [width]);
 
   const handleCellPress = (row: number, col: number) => {
@@ -826,19 +810,6 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
     const isHintSetCell = hint?.hintCellSets?.some(cell => cell.row === row && cell.col === col);
     const isErrorCell = hint?.rule === 'error' && hint?.hintCellSets?.some(cell => cell.row === row && cell.col === col);
     
-    //if (isHintSetCell || isHintCell) {
-    //  console.log('GameBoard - Cell state:', { 
-    //    row, 
-    //    col, 
-    //    isInitial, 
-    //    isHintCell, 
-    //    isHintSetCell,
-    //    hint,
-    //    hintCellSets: hint?.hintCellSets,
-    //    currentValue: puzzle.grid[row][col]
-    //  });
-    //}
-    
     return (
       <TouchableOpacity
         key={`${row}-${col}`}
@@ -850,7 +821,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
             height: cellSize,
             backgroundColor: (isHintSetCell || isHintCell) ? '#1a1a1a' : (isInitial ? '#363636' : '#252525'),
             borderColor: isErrorCell ? '#ff4444' : isHintCell ? '#ffd700' : isHintSetCell ? '#ccc' : '#404040',
-            borderWidth: isErrorCell ? 2 : isHintCell ? 2 : (currentLevel.size <= 6 ? 1 : 0.5),
+            borderWidth: isErrorCell ? 2 : isHintCell ? 2 : (puzzle.grid.length <= 6 ? 1 : 0.5),
           }
         ]}
         onPress={() => handleCellPress(row, col)}
@@ -1180,4 +1151,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-}); 
+});
