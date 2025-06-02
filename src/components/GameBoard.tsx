@@ -1262,7 +1262,9 @@ const styles = StyleSheet.create({
   statsBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    padding: 10,
+    paddingTop: 5,
+    paddingBottom: 10,
+    paddingHorizontal: 10,
   },
   statItem: {
     alignItems: 'center',
@@ -1418,7 +1420,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-    marginTop: 10,
+    marginTop: 5,
     marginBottom: 10,
   },
   progressDot: {
@@ -1429,7 +1431,7 @@ const styles = StyleSheet.create({
   },
   messageContainer: {
     position: 'relative',
-    marginTop: 10,
+    marginTop: 0,
     marginBottom: 10,
   },
   tutorialMessage: {
