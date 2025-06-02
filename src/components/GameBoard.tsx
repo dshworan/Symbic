@@ -31,7 +31,8 @@ interface Hint {
 
 interface GameBoardProps {
   isAutoplay: boolean;
-  onAutoplayChange: (isAutoplay: boolean) => void;
+  onAutoplayChange: (value: boolean) => void;
+  onPackPress?: () => void;
 }
 
 const Logo: React.FC = () => {
@@ -73,7 +74,7 @@ const Logo: React.FC = () => {
   );
 };
 
-const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) => {
+const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onPackPress }) => {
   const { width } = useWindowDimensions();
   const { playSound } = useAudio();
   const [cellSize, setCellSize] = useState(0);
@@ -216,10 +217,10 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
       // For same-size grids, only animate the shapes
       Animated.sequence([
         // First fade out the shapes
-        Animated.timing(shapeScale, {
-          toValue: 0,
+      Animated.timing(shapeScale, {
+        toValue: 0,
           duration: 150,
-          useNativeDriver: true,
+        useNativeDriver: true,
         })
       ]).start(() => {
         try {
@@ -324,10 +325,10 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
       // For same-size grids, only animate the shapes
       Animated.sequence([
         // First fade out the shapes
-        Animated.timing(shapeScale, {
-          toValue: 0,
+      Animated.timing(shapeScale, {
+        toValue: 0,
           duration: 150,
-          useNativeDriver: true,
+        useNativeDriver: true,
         })
       ]).start(() => {
         try {
@@ -383,7 +384,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
         duration: 200,
         useNativeDriver: true,
       }),
-      Animated.delay(1000),
+      Animated.delay(1500),
       Animated.timing(failureOpacity, {
         toValue: 0,
         duration: 200,
@@ -442,6 +443,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
           const nextPuzzle = puzzleManager.nextPuzzle();
           const nextLevel = levelManager.getCurrentLevel();
           const newPuzzle = puzzleManager.getCurrentPuzzle();
+          const nextShapes = nextLevel.shapes; // Store next level shapes
           
           // Update current puzzle index
           setCurrentPuzzleIndex(puzzleManager.getCurrentPuzzleIndex());
@@ -467,7 +469,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
               
               // Update the grid and shapes first
               setGrid(newPuzzle.grid as CellValue[][]);
-              setCurrentShapes(nextLevel.shapes);
+              setCurrentShapes(nextShapes);
               
               // Reset shape scale
               shapeScale.setValue(0);
@@ -478,17 +480,13 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
                 duration: 300,
                 useNativeDriver: true,
               }).start(() => {
-                // After board is visible, grow in the new shapes
+                // Set new shapes just before growing them in
+                setCurrentShapes(nextShapes);
                 Animated.timing(shapeScale, {
                   toValue: 1,
                   duration: 300,
                   useNativeDriver: true,
-                }).start(() => {
-                  // Update level ID after shapes are fully grown in
-                  setTimeout(() => {
-                    setCurrentLevelId(nextLevel.id);
-                  }, 50);
-                });
+                }).start();
               });
             });
           } else {
@@ -511,6 +509,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
               // Update grid data
               setGrid(newPuzzle.grid as CellValue[][]);
               
+              // Set new shapes just before growing them in
+              setCurrentShapes(nextShapes);
               // Grow in the new shapes
               Animated.timing(shapeScale, {
                 toValue: 1,
@@ -993,22 +993,25 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
   // Update tutorial opacity when hint changes
   useEffect(() => {
     Animated.timing(tutorialOpacity, {
-      toValue: hint ? 0 : 1,
+      toValue: (hint || failureMessage) ? 0 : 1,
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [hint]);
+  }, [hint, failureMessage]);
 
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
         <View style={styles.statsBar}>
-          <View style={styles.statItem}>
+          <TouchableOpacity 
+            style={styles.statItem}
+            onPress={onPackPress}
+          >
             <Text style={styles.statLabel}>Pack</Text>
             <View style={styles.statValueContainer}>
               <Text style={styles.statValue}>{levelManager.getCurrentPackNumber()}</Text>
             </View>
-          </View>
+          </TouchableOpacity>
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Level</Text>
             <TouchableOpacity 
@@ -1017,11 +1020,13 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
                 if (puzzleManager.nextPuzzle()) {
                   const currentLevel = levelManager.getCurrentLevel();
                   const newPuzzle = puzzleManager.getCurrentPuzzle();
+                  const newShapes = currentLevel.shapes; // Store shapes in variable
                   
                   // Update currentLevelId first to trigger the level change
                   setCurrentLevelId(currentLevel.id);
                   setCurrentPuzzleIndex(puzzleManager.getCurrentPuzzleIndex());
                   setTotalPuzzles(currentLevel.puzzles.length);
+                  setShowWelcome(false);
                   
                   const isDifferentSize = newPuzzle.grid.length !== currentGridSize;
                   
@@ -1057,7 +1062,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
                         duration: 300,
                         useNativeDriver: true,
                       }).start(() => {
-                        // After board is visible, grow in the new shapes
+                        // Set new shapes just before growing them in
+                        setCurrentShapes(newShapes);
                         Animated.timing(shapeScale, {
                           toValue: 1,
                           duration: 300,
@@ -1085,6 +1091,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
                       // Update grid data
                       setGrid(newPuzzle.grid as CellValue[][]);
                       
+                      // Set new shapes just before growing them in
+                      setCurrentShapes(newShapes);
                       // Grow in the new shapes
                       Animated.timing(shapeScale, {
                         toValue: 1,
@@ -1117,6 +1125,12 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange }) =
               style={styles.welcomeTouchable}
             >
               <Animated.View style={[styles.welcomeMessage, { opacity: welcomeOpacity }]}>
+                <TouchableOpacity 
+                  onPress={dismissWelcomeMessage}
+                  style={styles.welcomeCloseButton}
+                >
+                  <Ionicons name="close" size={20} color="#1a1a1a" />
+                </TouchableOpacity>
                 <Text style={styles.welcomeText}>Click on an empty cell{'\n'}once or twice to insert{'\n'}the proper shape.</Text>
               </Animated.View>
             </TouchableOpacity>
@@ -1347,18 +1361,17 @@ const styles = StyleSheet.create({
   },
   failureMessage: {
     position: 'absolute',
-    bottom: -60,
+    bottom: -75,
     left: '50%',
     transform: [{ translateX: -155 }],
-    padding: 10,
-    borderRadius: 10,
+    padding: 15,
     width: 310,
     alignItems: 'center',
-    zIndex: 1000,
-    backgroundColor: '#2d2d2d',
+    zIndex: 2000,
+    backgroundColor: '#1a1a1a',
   },
   failureText: {
-    color: '#ff6b6b',
+    color: '#ff5362',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -1395,7 +1408,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   titleActive: {
-    color: '#ffd85d', // Green color to indicate autoplay is active
+    color: '#ffd85d', // autoplay is active
   },
   titleContainer: {
     flexDirection: 'row',
@@ -1433,13 +1446,11 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginTop: 0,
     marginBottom: 10,
+    zIndex: 1,
   },
   tutorialMessage: {
-    backgroundColor: '#2d2d2d',
     padding: 15,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#404040',
+    paddingTop: 5,
   },
   tutorialText: {
     color: '#e0e0e0',
@@ -1451,16 +1462,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '50%',
     left: '50%',
-    transform: [{ translateX: -120 }, { translateY: -50 }],
+    transform: [{ translateX: -130 }, { translateY: -50 }],
     zIndex: 2,
   },
   welcomeMessage: {
     backgroundColor: 'rgba(255, 196, 0, 0.9)',
-    padding: 15,
+    padding: 25,
     borderRadius: 8,
     borderWidth: 2,
     borderColor: '#1a1a1a',
-    width: 240,
+    width: 260,
   },
   welcomeText: {
     color: '#1a1a1a',
@@ -1468,5 +1479,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     lineHeight: 22,
+    marginTop: 5,
+  },
+  welcomeCloseButton: {
+    position: 'absolute',
+    top: 4,
+    right: 4
   },
 }); 

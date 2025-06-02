@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Svg, Path, Circle } from 'react-native-svg';
 import AboutModal from './AboutModal';
 import ResetConfirmationModal from './ResetConfirmationModal';
+import PuzzlePacksModal from './PuzzlePacksModal';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAudio } from '../../context/AudioContext';
@@ -30,6 +31,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
   const { soundEnabled, toggleSound } = useAudio();
   const [showAbout, setShowAbout] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showPuzzlePacks, setShowPuzzlePacks] = useState(false);
 
   const handleSoundToggle = async () => {
     await toggleSound();
@@ -76,47 +78,42 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
               showsVerticalScrollIndicator={true}
             >
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Game Settings</Text>
-                
-                <View style={styles.settingItem}>
-                  <View style={styles.settingInfo}>
-                    <Text style={styles.settingLabel}>Sound Effects</Text>
-                    <Text style={styles.settingDescription}>Enable / disable game sounds</Text>
+                <Text style={styles.sectionTitle}>Puzzle Packs</Text>
+                <TouchableOpacity 
+                  style={[styles.button, styles.tutorialButton]}
+                  onPress={() => setShowPuzzlePacks(true)}
+                >
+                  <View style={styles.buttonContent}>
+                    <View style={styles.buttonIcon}>
+                      <Svg width="24" height="24" viewBox="0 0 24 24">
+                        <Path d="M3 3h7v7H3V3z" stroke="#FFFFFF" strokeWidth="1.5" fill="none" />
+                        <Path d="M14 3h7v7h-7V3z" stroke="#FFFFFF" strokeWidth="1.5" fill="none" />
+                        <Path d="M3 14h7v7H3v-7z" stroke="#FFFFFF" strokeWidth="1.5" fill="none" />
+                        <Path d="M14 14h7v7h-7v-7z" stroke="#FFFFFF" strokeWidth="1.5" fill="none" />
+                      </Svg>
+                    </View>
+                    <Text style={styles.buttonText}>View Puzzle Packs</Text>
                   </View>
-                  <Switch
-                    value={soundEnabled}
-                    onValueChange={handleSoundToggle}
-                    trackColor={{ false: '#555555', true: '#2196F3' }}
-                    thumbColor={soundEnabled ? '#2ecc71' : '#f4f3f4'}
-                    style={Platform.OS === 'android' ? { transform: [{ scaleX: 1.2 }, { scaleY: 1.2 }] } : undefined}
-                  />
-                </View>
+                </TouchableOpacity>
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Game Controls</Text>
-                
-                <TouchableOpacity style={[styles.button, styles.helpButton]}>
+                <TouchableOpacity 
+                  style={[styles.button, styles.helpButton]}
+                  onPress={handleSoundToggle}
+                >
                   <View style={styles.buttonContent}>
                     <View style={styles.buttonIcon}>
                       <Svg width="24" height="24" viewBox="0 0 24 24">
-                        <Circle cx="12" cy="12" r="10" stroke="#FFFFFF" strokeWidth="2" fill="none" />
-                        <Path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                        <Circle cx="12" cy="17" r="0.5" stroke="#FFFFFF" strokeWidth="2" fill="#FFFFFF" />
+                        <Path d="M11 5L6 9H2v6h4l5 4V5z" stroke="#FFFFFF" strokeWidth="2" fill="none" />
+                        <Path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="#FFFFFF" strokeWidth="2" fill="none" />
+                        <Path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="#FFFFFF" strokeWidth="2" fill="none" />
+                        {!soundEnabled && (
+                          <Path d="M3 3l18 18" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
+                        )}
                       </Svg>
                     </View>
-                    <Text style={styles.buttonText}>Help</Text>
-                  </View>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={[styles.button, styles.tutorialButton]}>
-                  <View style={styles.buttonContent}>
-                    <View style={styles.buttonIcon}>
-                      <Svg width="24" height="24" viewBox="0 0 24 24">
-                        <Path d="M5 3 19 12 5 21 5 3z" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                      </Svg>
-                    </View>
-                    <Text style={styles.buttonText}>Tutorial</Text>
+                    <Text style={styles.buttonText}>{soundEnabled ? 'Disable Sound' : 'Enable Sound'}</Text>
                   </View>
                 </TouchableOpacity>
 
@@ -195,6 +192,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
         isVisible={showResetConfirm}
         onConfirm={confirmReset}
         onCancel={() => setShowResetConfirm(false)}
+      />
+
+      <PuzzlePacksModal
+        isVisible={showPuzzlePacks}
+        onClose={() => setShowPuzzlePacks(false)}
       />
     </>
   );
@@ -306,7 +308,7 @@ const styles = StyleSheet.create({
   },
   buttonIcon: {
     position: 'absolute',
-    left: 15,
+    left: 10,
   },
   buttonText: {
     color: '#e0e0e0',
@@ -320,7 +322,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#3498db',
   },
   aboutButton: {
-    backgroundColor: '#2ecc71',
+    backgroundColor: '#23b360',
   },
   adminButtons: {
     gap: 10,
