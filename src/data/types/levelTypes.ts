@@ -13,6 +13,7 @@ export interface Puzzle {
   grid: (number | null)[][];
   solution: number[][];
   difficulty: number;
+  message?: string;
 }
 
 export interface Level {

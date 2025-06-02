@@ -10,6 +10,10 @@ class PuzzleManager {
     return currentLevel.puzzles[this.currentPuzzleIndex];
   }
 
+  getCurrentPuzzleIndex(): number {
+    return this.currentPuzzleIndex;
+  }
+
   getLevel(): number {
     return levelManager.getCurrentLevelNumber();
   }
