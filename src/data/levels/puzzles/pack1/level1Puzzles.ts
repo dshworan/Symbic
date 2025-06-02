@@ -32,23 +32,7 @@ export const level1Puzzles: Puzzle[] = [
         [1, 0, 1, 0]
       ],
     difficulty: 1,
-    message: "You can never have 3 in a row horizontally or vertically."
-  },
-  {
-    grid: [
-        [null, 0, 0, null],
-        [null, null, null, null],
-        [1, null, 1, null],
-        [null, 1, 0, null]
-      ],
-      solution: [
-        [1, 0, 0, 1],
-        [0, 1, 1, 0],
-        [1, 0, 1, 0],
-        [0, 1, 0, 1]
-      ],
-    difficulty: 1,
-    message: "No two rows can be exactly the same."
+    message: "You are not allowed to have 3 in a row horizontally or vertically."
   },
   {
     grid: [
@@ -64,7 +48,7 @@ export const level1Puzzles: Puzzle[] = [
         [1, 0, 0, 1]
       ],
     difficulty: 1,
-    message: "No two columns can be exactly the same."
+    message: "No two rows can be exactly the same."
   },
   {
     grid: [
@@ -80,6 +64,22 @@ export const level1Puzzles: Puzzle[] = [
         [1, 0, 1, 0]
       ],
     difficulty: 1,
-    message: "You should never have to guess. Use logic to solve the puzzle."
+    message: "No two columns can be exactly the same."
+  },
+  {
+    grid: [
+        [null, 0, 0, null],
+        [null, null, null, null],
+        [1, null, 1, null],
+        [null, 1, 0, null]
+      ],
+      solution: [
+        [1, 0, 0, 1],
+        [0, 1, 1, 0],
+        [1, 0, 1, 0],
+        [0, 1, 0, 1]
+      ],
+    difficulty: 1,
+    message: "You shouldn't have to guess. Use logic to solve the puzzle."
   }
 ]; 
