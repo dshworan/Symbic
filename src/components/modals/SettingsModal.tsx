@@ -10,6 +10,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAudio } from '../../context/AudioContext';
 import { puzzleManager } from '../../utils/puzzleManager';
 import { levelManager } from '../../data/levels/levelManager';
+import ColorTestModal from './ColorTestModal';
 
 type RootStackParamList = {
   TestInterstitialAd: undefined;
@@ -32,6 +33,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
   const [showAbout, setShowAbout] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showPuzzlePacks, setShowPuzzlePacks] = useState(false);
+  const [showColorTest, setShowColorTest] = useState(false);
 
   const handleSoundToggle = async () => {
     await toggleSound();
@@ -178,6 +180,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
                   </TouchableOpacity>
                 </View>
               </View>
+
+              <View style={styles.adminSection}>
+                <Text style={styles.adminTitle}>Admin</Text>
+                <TouchableOpacity 
+                  style={styles.adminButton}
+                  onPress={() => setShowColorTest(true)}
+                >
+                  <Ionicons name="color-palette" size={24} color="#e0e0e0" />
+                  <Text style={styles.buttonText}>Color Test</Text>
+                </TouchableOpacity>
+              </View>
             </ScrollView>
           </View>
         </View>
@@ -197,6 +210,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
       <PuzzlePacksModal
         isVisible={showPuzzlePacks}
         onClose={() => setShowPuzzlePacks(false)}
+      />
+
+      <ColorTestModal 
+        visible={showColorTest}
+        onClose={() => setShowColorTest(false)}
       />
     </>
   );
@@ -340,6 +358,17 @@ const styles = StyleSheet.create({
   },
   helpButton: {
     backgroundColor: '#9b59b6',
+  },
+  adminSection: {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#333',
+  },
+  adminTitle: {
+    color: '#999',
+    fontSize: 16,
+    marginBottom: 15,
   },
 });
 

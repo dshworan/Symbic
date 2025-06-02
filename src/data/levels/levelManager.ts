@@ -22,40 +22,24 @@ export class LevelManager {
             id: 1,
             packId: 1,
             shapes: shapes[0],
-            colors: {
-              primary: '#f53646',    // Red
-              secondary: '#07bd2f'   // Green
-            },
             puzzles: level1Puzzles,
           },
           {
             id: 2,
             packId: 1,
             shapes: shapes[1],
-            colors: {
-              primary: '#2196F3',    // Blue
-              secondary: '#FFC107'   // Yellow
-            },
             puzzles: level2Puzzles,
           },
           {
             id: 3,
             packId: 1,
             shapes: shapes[2],
-            colors: {
-              primary: '#f53646',    // Red
-              secondary: '#FFC107'   // Yellow
-            },
             puzzles: level3Puzzles,
           },
           {
             id: 4,
             packId: 1,
             shapes: shapes[3],
-            colors: {
-              primary: '#2196F3',    // Blue
-              secondary: '#f53646'   // Red
-            },
             puzzles: level4Puzzles,
           }
         ]
@@ -68,20 +52,12 @@ export class LevelManager {
             id: 1,
             packId: 2,
             shapes: shapes[0],
-            colors: {
-              primary: '#f53646',    // Red
-              secondary: '#07bd2f'   // Green
-            },
             puzzles: pack2Level1Puzzles,
           },
           {
             id: 2,
             packId: 2,
             shapes: shapes[1],
-            colors: {
-              primary: '#2196F3',    // Blue
-              secondary: '#f53646'   // Red
-            },
             puzzles: pack2Level2Puzzles,
           }
         ]

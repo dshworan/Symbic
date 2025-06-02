@@ -20,7 +20,6 @@ export interface Level {
   id: number;
   packId: number;
   shapes: Shape[];
-  colors: LevelColors;
   puzzles: Puzzle[];
 }
 

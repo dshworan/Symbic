@@ -5,7 +5,6 @@ import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { Puzzle } from '../data/types/levelTypes';
 import { puzzleManager } from '../utils/puzzleManager';
 import { levelManager } from '../data/levels/levelManager';
-import { shapeSets } from '../data/shapes/shapeSets';
 import { getRandomSuccessMessage } from '../data/messages';
 import { useAudio } from '../context/AudioContext';
 import { RuleManager } from '../data/rules/ruleManager';
@@ -356,8 +355,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
     const currentLevel = levelManager.getCurrentLevel();
     setSuccessMessage({
       message: messageData.message,
-      backgroundColor: currentLevel.colors.primary,
-      borderColor: currentLevel.colors.secondary
+      backgroundColor: currentLevel.shapes[0].fill,
+      borderColor: currentLevel.shapes[1].fill
     });
     Animated.sequence([
       Animated.timing(messageOpacity, {
@@ -1462,7 +1461,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '50%',
     left: '50%',
-    transform: [{ translateX: -130 }, { translateY: -50 }],
+    transform: [{ translateX: -130 }, { translateY: -60 }],
     zIndex: 2,
   },
   welcomeMessage: {
