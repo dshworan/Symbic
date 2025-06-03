@@ -178,19 +178,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
                   >
                     <Text style={styles.adminButtonText}>Live Reward</Text>
                   </TouchableOpacity>
-                </View>
-              </View>
-
-              <View style={styles.adminSection}>
-                <Text style={styles.adminTitle}>Admin</Text>
-                <TouchableOpacity 
+                  <View style={styles.spacerLine} />
+                  <TouchableOpacity 
                   style={styles.adminButton}
                   onPress={() => setShowColorTest(true)}
                 >
-                  <Ionicons name="color-palette" size={24} color="#e0e0e0" />
-                  <Text style={styles.buttonText}>Color Test</Text>
+                  <Text style={styles.adminButtonText}>Color Test</Text>
                 </TouchableOpacity>
+                </View>
               </View>
+
             </ScrollView>
           </View>
         </View>
@@ -369,6 +366,12 @@ const styles = StyleSheet.create({
     color: '#999',
     fontSize: 16,
     marginBottom: 15,
+  },
+  spacerLine: {
+    height: 1, 
+    backgroundColor: '#555', 
+    marginVertical: 10,     
+    width: '100%',          
   },
 });
 

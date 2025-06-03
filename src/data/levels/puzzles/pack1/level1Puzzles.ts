@@ -64,7 +64,7 @@ export const level1Puzzles: Puzzle[] = [
         [1, 0, 1, 0]
       ],
     difficulty: 1,
-    message: "No two columns can be exactly the same."
+    message: "Also, no two columns can be exactly the same."
   },
   {
     grid: [

@@ -53,7 +53,10 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose 
   };
 
   const renderPackHeader = (pack: PackInfo) => (
-    <View style={styles.packHeader}>
+    <TouchableOpacity 
+      style={styles.packHeader}
+      onPress={() => setSelectedPack(pack)}
+    >
       <Text style={styles.packTitle}>{pack.name}</Text>
       {pack.isPlayable ? (
         <Ionicons name="checkmark-circle" size={24} color="#4CAF50" style={styles.packIcon} />
@@ -62,7 +65,7 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose 
           <Ionicons name="play-circle" size={24} color="#2196F3" style={styles.packIcon} />
         </TouchableOpacity>
       )}
-    </View>
+    </TouchableOpacity>
   );
 
   const renderLevelTile = (level: LevelInfo) => (
