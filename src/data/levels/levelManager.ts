@@ -1,11 +1,11 @@
 import { Level, LevelColors, Pack } from '../types/levelTypes';
-import { shapes } from './shapes';
-import { level1Puzzles } from './puzzles/pack1/level1Puzzles';
-import { level2Puzzles } from './puzzles/pack1/level2Puzzles';
-import { level3Puzzles } from './puzzles/pack1/level3Puzzles';
-import { level4Puzzles } from './puzzles/pack1/level4Puzzles';
-import { level1Puzzles as pack2Level1Puzzles } from './puzzles/pack2/level1Puzzles';
-import { level2Puzzles as pack2Level2Puzzles } from './puzzles/pack2/level2Puzzles';
+import { shapes } from './shapes_and_colors';
+import { level1Puzzles } from './puzzles/pack1/puzzles_pack_1_level_1';
+import { level2Puzzles } from './puzzles/pack1/puzzles_pack_1_level_2';
+import { level3Puzzles } from './puzzles/pack1/puzzles_pack_1_level_3';
+import { level4Puzzles } from './puzzles/pack1/puzzles_pack_1_level_4';
+import { level1Puzzles as pack2Level1Puzzles } from './puzzles/pack2/puzzles_pack_2_level_1';
+import { level2Puzzles as pack2Level2Puzzles } from './puzzles/pack2/puzzles_pack_2_level_2';
 export class LevelManager {
   private currentPackIndex: number = 0;
   private currentLevelIndex: number = 0;

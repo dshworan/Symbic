@@ -9,6 +9,7 @@ import { getRandomSuccessMessage } from '../data/messages';
 import { useAudio } from '../context/AudioContext';
 import { RuleManager } from '../data/rules/ruleManager';
 import SettingsModal from './modals/SettingsModal';
+import { pack1Tutorials } from '../data/tutorials/pack1Tutorials';
 
 type CellValue = number | null;
 
@@ -1161,9 +1162,11 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
         </Animated.View>
 
         <View style={styles.messageContainer}>
-          {puzzleManager.getCurrentPuzzle().message && (
+          {levelManager.getCurrentPackNumber() === 1 && levelManager.getCurrentLevelNumber() === 1 && (
             <Animated.View style={[styles.tutorialMessage, { opacity: tutorialOpacity }]}>
-              <Text style={styles.tutorialText}>{puzzleManager.getCurrentPuzzle().message}</Text>
+              <Text style={styles.tutorialText}>
+                {pack1Tutorials.level1[puzzleManager.getCurrentPuzzleIndex()]}
+              </Text>
             </Animated.View>
           )}
 

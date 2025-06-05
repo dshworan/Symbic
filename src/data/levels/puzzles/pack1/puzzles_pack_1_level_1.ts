@@ -14,8 +14,7 @@ export const level1Puzzles: Puzzle[] = [
         [0, 1, 1, 0],
         [1, 0, 0, 1]
       ],
-    difficulty: 1,
-    message: "There will always be an equal number of shapes in a row or column."
+    difficulty: 1
     
   },
   {
@@ -31,8 +30,7 @@ export const level1Puzzles: Puzzle[] = [
         [0, 1, 0, 1],
         [1, 0, 1, 0]
       ],
-    difficulty: 1,
-    message: "You are not allowed to have 3 in a row horizontally or vertically."
+    difficulty: 1
   },
   {
     grid: [
@@ -47,8 +45,7 @@ export const level1Puzzles: Puzzle[] = [
         [0, 1, 1, 0],
         [1, 0, 0, 1]
       ],
-    difficulty: 1,
-    message: "No two rows can be exactly the same."
+    difficulty: 1
   },
   {
     grid: [
@@ -63,8 +60,7 @@ export const level1Puzzles: Puzzle[] = [
         [0, 1, 0, 1],
         [1, 0, 1, 0]
       ],
-    difficulty: 1,
-    message: "Also, no two columns can be exactly the same."
+    difficulty: 1
   },
   {
     grid: [
@@ -79,7 +75,6 @@ export const level1Puzzles: Puzzle[] = [
         [1, 0, 1, 0],
         [0, 1, 0, 1]
       ],
-    difficulty: 1,
-    message: "You shouldn't have to guess. Use logic to solve the puzzle."
+    difficulty: 1
   }
 ]; 
