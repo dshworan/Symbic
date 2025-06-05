@@ -4,6 +4,7 @@ import { level1Puzzles } from './puzzles/pack1/puzzles_pack_1_level_1';
 import { level2Puzzles } from './puzzles/pack1/puzzles_pack_1_level_2';
 import { level3Puzzles } from './puzzles/pack1/puzzles_pack_1_level_3';
 import { level4Puzzles } from './puzzles/pack1/puzzles_pack_1_level_4';
+import { level5Puzzles } from './puzzles/pack1/puzzles_pack_1_level_5';
 import { level1Puzzles as pack2Level1Puzzles } from './puzzles/pack2/puzzles_pack_2_level_1';
 import { level2Puzzles as pack2Level2Puzzles } from './puzzles/pack2/puzzles_pack_2_level_2';
 export class LevelManager {
@@ -41,6 +42,12 @@ export class LevelManager {
             packId: 1,
             shapes: shapes[3],
             puzzles: level4Puzzles,
+          },
+          {
+            id: 5,
+            packId: 1,
+            shapes: shapes[4],
+            puzzles: level5Puzzles,
           }
         ]
       },
