@@ -7,6 +7,15 @@ import { level4Puzzles } from './puzzles/pack1/puzzles_pack_1_level_4';
 import { level5Puzzles } from './puzzles/pack1/puzzles_pack_1_level_5';
 import { level1Puzzles as pack2Level1Puzzles } from './puzzles/pack2/puzzles_pack_2_level_1';
 import { level2Puzzles as pack2Level2Puzzles } from './puzzles/pack2/puzzles_pack_2_level_2';
+import { level3Puzzles as pack2Level3Puzzles } from './puzzles/pack2/puzzles_pack_2_level_3';
+import { level4Puzzles as pack2Level4Puzzles } from './puzzles/pack2/puzzles_pack_2_level_4';
+import { level5Puzzles as pack2Level5Puzzles } from './puzzles/pack2/puzzles_pack_2_level_5';
+import { level1Puzzles as pack3Level1Puzzles } from './puzzles/pack3/puzzles_pack_3_level_1';
+import { level2Puzzles as pack3Level2Puzzles } from './puzzles/pack3/puzzles_pack_3_level_2';
+import { level3Puzzles as pack3Level3Puzzles } from './puzzles/pack3/puzzles_pack_3_level_3';
+import { level4Puzzles as pack3Level4Puzzles } from './puzzles/pack3/puzzles_pack_3_level_4';
+import { level5Puzzles as pack3Level5Puzzles } from './puzzles/pack3/puzzles_pack_3_level_5';
+
 export class LevelManager {
   private currentPackIndex: number = 0;
   private currentLevelIndex: number = 0;
@@ -66,6 +75,60 @@ export class LevelManager {
             packId: 2,
             shapes: shapes[1],
             puzzles: pack2Level2Puzzles,
+          },
+          {
+            id: 3,
+            packId: 2,
+            shapes: shapes[2],
+            puzzles: pack2Level3Puzzles,
+          },
+          {
+            id: 4,
+            packId: 2,
+            shapes: shapes[3],
+            puzzles: pack2Level4Puzzles,
+          },
+          {
+            id: 5,
+            packId: 2,
+            shapes: shapes[4],
+            puzzles: pack2Level5Puzzles,
+          }
+        ]
+      },
+      {
+        id: 3,
+        name: 'Pack 3',
+        levels: [
+          {
+            id: 1,
+            packId: 3,
+            shapes: shapes[0],
+            puzzles: pack3Level1Puzzles,
+          },
+          {
+            id: 2,
+            packId: 3,
+            shapes: shapes[1],
+            puzzles: pack3Level2Puzzles,
+          },
+          {
+            id: 3,
+            packId: 3,
+            shapes: shapes[2],
+            puzzles: pack3Level3Puzzles,
+          },
+          {
+            id: 4,
+            packId: 3,
+            shapes: shapes[3],
+            puzzles: pack3Level4Puzzles,
+          },
+          {
+            id: 5,
+            packId: 3,
+            shapes: shapes[4],
+            puzzles: pack3Level5Puzzles,
           }
         ]
       }
