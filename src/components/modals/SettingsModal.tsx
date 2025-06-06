@@ -115,7 +115,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
                         )}
                       </Svg>
                     </View>
-                    <Text style={styles.buttonText}>{soundEnabled ? 'Disable Sound' : 'Enable Sound'}</Text>
+                    <Text style={styles.buttonText}>{soundEnabled ? 'Disable Sound' : 'Sound is Off'}</Text>
                   </View>
                 </TouchableOpacity>
 

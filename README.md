@@ -69,7 +69,11 @@ ca-app-pub-3940256099942544/5224354917
 ca-app-pub-7569267138426237/3683292773
 
 
+Symbic is a pattern-matching puzzle game that challenges your brain and sharpens your problem-solving skills. Every level is a test of logic and intuition as you place shapes to complete each grid.
 
+Symbic is a pattern-matching puzzle game that tests your logic and intuition. Each level offers a fresh challenge for your brain — simple to start, endlessly satisfying to solve.
+
+Train your brain with Symbic — a pattern-matching puzzle game where every level is a test of logic and problem-solving. Place shapes, crack the rules, and master the grid!
 
 # Trios Key
 Key alias ... trioskey

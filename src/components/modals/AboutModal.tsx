@@ -42,8 +42,11 @@ const AboutModal: React.FC<AboutModalProps> = ({ isVisible, onClose }) => {
             >
               <View style={styles.contentBox}>
                 <Text style={styles.sectionTitle}>About SYMBIC</Text>
+                <Text style={[styles.paragraph, { fontWeight: 'bold', color: '#3498db' }]}>
+                Test your logic. Sharpen your intuition. Master the grid!
+                </Text>
                 <Text style={styles.paragraph}>
-                  SYMBIC is a pattern matching puzzle game that challenges your spatial reasoning and problem-solving skills.
+                Symbic is a logic-based pattern-matching puzzle game that challenges your brain and tests your problem-solving skills. 
                 </Text>
                 <Text style={styles.versionText}>Version: 1.0.0</Text>
                 <Text style={styles.paragraph}>
