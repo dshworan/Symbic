@@ -75,30 +75,6 @@ export const level1Puzzles: Puzzle[] = [
   },
   {
     grid: [
-        [null,null,1,1,null,0,null,null],
-        [0,1,null,null,null,1,null,null],
-        [0,null,0,null,null,null,null,null],
-        [null,null,null,1,null,1,null,null],
-        [null,null,null,null,null,null,null,null],
-        [null,null,0,null,0,0,null,0],
-        [1,null,null,null,null,1,null,null],
-        [null,1,null,null,0,null,1,null],
-      ],
-      solution: [
-        [1,0,1,1,0,0,1,0],
-        [0,1,0,0,1,1,0,1],
-        [0,1,0,0,1,0,1,1],
-        [1,0,1,1,0,1,0,0],
-        [0,0,1,0,1,1,0,1],
-        [1,1,0,1,0,0,1,0],
-        [1,0,1,0,1,1,0,0],
-        [0,1,0,1,0,0,1,1],
-      ],
-    difficulty: 2.41
-    
-  },
-  {
-    grid: [
         [0,1,null,null,null,1,null,null],
         [0,null,0,1,null,null,null,null],
         [null,null,null,null,0,null,null,null],
@@ -119,6 +95,30 @@ export const level1Puzzles: Puzzle[] = [
         [0,0,1,1,0,0,1,1],
       ],
     difficulty: 2.47
+    
+  },
+  {
+    grid: [
+        [null,null,null,null,null,null,null,0],
+        [0,null,null,1,1,null,null,null],
+        [null,0,0,null,null,null,null,0],
+        [null,null,null,null,null,1,null,null],
+        [null,null,1,1,null,1,null,null],
+        [0,null,null,null,null,null,null,null],
+        [1,null,null,0,null,1,null,null],
+        [null,null,1,null,null,null,null,null],
+      ],
+      solution: [
+        [1,0,1,0,0,1,1,0],
+        [0,1,0,1,1,0,0,1],
+        [1,0,0,1,1,0,1,0],
+        [0,1,1,0,0,1,0,1],
+        [1,0,1,1,0,1,0,0],
+        [0,1,0,0,1,0,1,1],
+        [1,1,0,0,1,1,0,0],
+        [0,0,1,1,0,0,1,1],
+      ],
+    difficulty: 2.5
     
   },
 ]; 

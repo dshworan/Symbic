@@ -4,17 +4,14 @@ import { level1Puzzles } from './puzzles/pack1/puzzles_pack_1_level_1';
 import { level2Puzzles } from './puzzles/pack1/puzzles_pack_1_level_2';
 import { level3Puzzles } from './puzzles/pack1/puzzles_pack_1_level_3';
 import { level4Puzzles } from './puzzles/pack1/puzzles_pack_1_level_4';
-import { level5Puzzles } from './puzzles/pack1/puzzles_pack_1_level_5';
 import { level1Puzzles as pack2Level1Puzzles } from './puzzles/pack2/puzzles_pack_2_level_1';
 import { level2Puzzles as pack2Level2Puzzles } from './puzzles/pack2/puzzles_pack_2_level_2';
 import { level3Puzzles as pack2Level3Puzzles } from './puzzles/pack2/puzzles_pack_2_level_3';
 import { level4Puzzles as pack2Level4Puzzles } from './puzzles/pack2/puzzles_pack_2_level_4';
-import { level5Puzzles as pack2Level5Puzzles } from './puzzles/pack2/puzzles_pack_2_level_5';
 import { level1Puzzles as pack3Level1Puzzles } from './puzzles/pack3/puzzles_pack_3_level_1';
 import { level2Puzzles as pack3Level2Puzzles } from './puzzles/pack3/puzzles_pack_3_level_2';
 import { level3Puzzles as pack3Level3Puzzles } from './puzzles/pack3/puzzles_pack_3_level_3';
 import { level4Puzzles as pack3Level4Puzzles } from './puzzles/pack3/puzzles_pack_3_level_4';
-import { level5Puzzles as pack3Level5Puzzles } from './puzzles/pack3/puzzles_pack_3_level_5';
 
 export class LevelManager {
   private currentPackIndex: number = 0;
@@ -51,12 +48,6 @@ export class LevelManager {
             packId: 1,
             shapes: shapes[3],
             puzzles: level4Puzzles,
-          },
-          {
-            id: 5,
-            packId: 1,
-            shapes: shapes[4],
-            puzzles: level5Puzzles,
           }
         ]
       },
@@ -87,12 +78,6 @@ export class LevelManager {
             packId: 2,
             shapes: shapes[3],
             puzzles: pack2Level4Puzzles,
-          },
-          {
-            id: 5,
-            packId: 2,
-            shapes: shapes[4],
-            puzzles: pack2Level5Puzzles,
           }
         ]
       },
@@ -123,12 +108,6 @@ export class LevelManager {
             packId: 3,
             shapes: shapes[3],
             puzzles: pack3Level4Puzzles,
-          },
-          {
-            id: 5,
-            packId: 3,
-            shapes: shapes[4],
-            puzzles: pack3Level5Puzzles,
           }
         ]
       }

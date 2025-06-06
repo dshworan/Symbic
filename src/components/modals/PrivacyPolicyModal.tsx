@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E1E1E',
     borderRadius: 10,
     width: '90%',
-    height: '90%',
+    height: '95%',
     padding: 20,
     overflow: 'hidden',
   },

@@ -27,6 +27,20 @@ interface PackInfo {
 const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose }) => {
   const [selectedPack, setSelectedPack] = useState<PackInfo | null>(null);
 
+  const getDifficultyColor = (difficulty: number) => {
+    if (difficulty < 3) return '#4CAF50'; // Easy - Green
+    if (difficulty < 7) return '#2196F3'; // Medium - Blue
+    if (difficulty < 11) return '#c426df'; // Hard - Purple
+    return '#F44336'; // Expert - Red
+  };
+
+  const getDifficultyText = (difficulty: number) => {
+    if (difficulty < 3) return 'Easy';
+    if (difficulty < 7) return 'Medium';
+    if (difficulty < 11) return 'Hard';
+    return 'Expert';
+  };
+
   // Mock data - replace with actual data from your game
   const packs: PackInfo[] = [
     {
@@ -34,53 +48,99 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose 
       name: "Pack 1",
       isPlayable: true,
       levels: [
-        { id: 1, gridSize: 4, difficulty: 1, puzzleCount: 5, completedCount: 2 },
-        { id: 2, gridSize: 5, difficulty: 2, puzzleCount: 5, completedCount: 1 },
-        { id: 3, gridSize: 6, difficulty: 3, puzzleCount: 5, completedCount: 0 },
-        { id: 4, gridSize: 7, difficulty: 4, puzzleCount: 5, completedCount: 0 },
+        { id: 1, gridSize: 4, difficulty: 1.9, puzzleCount: 5, completedCount: 2 },
+        { id: 2, gridSize: 6, difficulty: 2.2, puzzleCount: 5, completedCount: 1 },
+        { id: 3, gridSize: 6, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
+        { id: 4, gridSize: 6, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
+      ]
+    },
+    {
+      id: 2,
+      name: "Pack 2",
+      isPlayable: true,
+      levels: [
+        { id: 1, gridSize: 6, difficulty: 2.3, puzzleCount: 5, completedCount: 0 },
+        { id: 2, gridSize: 6, difficulty: 2.8, puzzleCount: 5, completedCount: 0 },
+        { id: 3, gridSize: 8, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
+        { id: 4, gridSize: 8, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
+      ]
+    },
+    {
+      id: 3,
+      name: "Pack 3",
+      isPlayable: false,
+      levels: [
+        { id: 1, gridSize: 8, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
+        { id: 2, gridSize: 8, difficulty: 2.7, puzzleCount: 5, completedCount: 0 },
+        { id: 3, gridSize: 10, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
+        { id: 4, gridSize: 10, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
+      ]
+    },
+    {
+      id: 4,
+      name: "Pack 4",
+      isPlayable: false,
+      levels: [
+        { id: 1, gridSize: 8, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
+        { id: 2, gridSize: 8, difficulty: 2.7, puzzleCount: 5, completedCount: 0 },
+        { id: 3, gridSize: 10, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
+        { id: 4, gridSize: 10, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
+      ]
+    },
+    {
+      id: 5,
+      name: "Pack 5",
+      isPlayable: false,
+      levels: [
+        { id: 1, gridSize: 8, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
+        { id: 2, gridSize: 8, difficulty: 2.7, puzzleCount: 5, completedCount: 0 },
+        { id: 3, gridSize: 10, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
+        { id: 4, gridSize: 10, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
       ]
     }
+    
   ];
 
-  const getDifficultyColor = (difficulty: number) => {
-    switch (difficulty) {
-      case 1: return '#4CAF50'; // Easy - Green
-      case 2: return '#2196F3'; // Medium - Blue
-      case 3: return '#c426df'; // Hard - Purple
-      case 4: return '#F44336'; // Expert - Red
-      default: return '#9E9E9E'; // Default - Grey
-    }
+  const renderPackHeader = (pack: PackInfo) => {
+    // Calculate total completed puzzles for this pack
+    const totalCompleted = pack.levels.reduce((sum, level) => sum + level.completedCount, 0);
+    const totalPuzzles = pack.levels.reduce((sum, level) => sum + level.puzzleCount, 0);
+
+    return (
+      <TouchableOpacity 
+        style={styles.packHeader}
+        onPress={() => setSelectedPack(pack)}
+      >
+        <View style={styles.completionCountContainer}>
+          <Text style={styles.completionCount}>{totalCompleted}/{totalPuzzles}</Text>
+        </View>
+        <View style={styles.packTitleContainer}>
+          <Text style={styles.packTitle}>{pack.name}</Text>
+        </View>
+        <View style={styles.packIconContainer}>
+          {pack.isPlayable ? (
+            <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+          ) : (
+            <TouchableOpacity onPress={() => console.log('Watch ad to unlock')}>
+              <Ionicons name="play-circle" size={24} color="#2196F3" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
   };
 
-  const renderPackHeader = (pack: PackInfo) => (
-    <TouchableOpacity 
-      style={styles.packHeader}
-      onPress={() => setSelectedPack(pack)}
-    >
-      <Text style={styles.packTitle}>{pack.name}</Text>
-      {pack.isPlayable ? (
-        <Ionicons name="checkmark-circle" size={24} color="#4CAF50" style={styles.packIcon} />
-      ) : (
-        <TouchableOpacity onPress={() => console.log('Watch ad to unlock')}>
-          <Ionicons name="play-circle" size={24} color="#2196F3" style={styles.packIcon} />
-        </TouchableOpacity>
-      )}
-    </TouchableOpacity>
-  );
-
-  const renderLevelTile = (level: LevelInfo) => (
+  const renderLevelTile = (level: LevelInfo, pack: PackInfo) => (
     <TouchableOpacity 
       key={level.id}
       style={styles.levelTile}
-      onPress={() => setSelectedPack(packs[0])} // For now, just using the first pack
+      onPress={() => setSelectedPack(pack)}
     >
       <View style={styles.levelTileContent}>
         <Text style={styles.gridSizeText}>{level.gridSize}x{level.gridSize}</Text>
         <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(level.difficulty) }]}>
           <Text style={styles.difficultyText}>
-            {level.difficulty === 1 ? 'Easy' : 
-             level.difficulty === 2 ? 'Medium' : 
-             level.difficulty === 3 ? 'Hard' : 'Expert'}
+            {getDifficultyText(level.difficulty)}
           </Text>
         </View>
         <Text style={styles.completionText}>{level.completedCount}/{level.puzzleCount}</Text>
@@ -113,7 +173,7 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose 
               <View key={pack.id} style={styles.packContainer}>
                 {renderPackHeader(pack)}
                 <View style={styles.levelsRow}>
-                  {pack.levels.map(level => renderLevelTile(level))}
+                  {pack.levels.map(level => renderLevelTile(level, pack))}
                 </View>
               </View>
             ))}
@@ -126,6 +186,7 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose 
           isVisible={!!selectedPack}
           onClose={() => setSelectedPack(null)}
           packName={selectedPack.name}
+          isPlayable={selectedPack.isPlayable}
           levels={selectedPack.levels}
         />
       )}
@@ -154,7 +215,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
-    height: '90%'
+    height: '95%'
   },
   header: {
     flexDirection: 'row',
@@ -195,19 +256,25 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#404040',
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  completionCountContainer: {
+    flex: 1,
+    alignItems: 'flex-start',
+  },
+  packTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  packIconContainer: {
+    flex: 1,
+    alignItems: 'flex-end',
   },
   packTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#e0e0e0',
-    textAlign: 'center',
-  },
-  packIcon: {
-    position: 'absolute',
-    right: 12,
-    top: 7,
   },
   levelsRow: {
     flexDirection: 'row',
@@ -249,6 +316,10 @@ const styles = StyleSheet.create({
     color: '#bbbbbb',
     fontSize: 12,
     marginTop: 2,
+  },
+  completionCount: {
+    fontSize: 14,
+    color: '#bbbbbb',
   },
 });
 

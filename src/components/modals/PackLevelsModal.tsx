@@ -6,6 +6,7 @@ interface PackLevelsModalProps {
   isVisible: boolean;
   onClose: () => void;
   packName: string;
+  isPlayable: boolean;
   levels: {
     id: number;
     gridSize: number;
@@ -15,15 +16,19 @@ interface PackLevelsModalProps {
   }[];
 }
 
-const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, packName, levels }) => {
+const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, packName, isPlayable, levels }) => {
   const getDifficultyColor = (difficulty: number) => {
-    switch (difficulty) {
-      case 1: return '#4CAF50'; // Easy - Green
-      case 2: return '#2196F3'; // Medium - Blue
-      case 3: return '#c426df'; // Hard - Purple
-      case 4: return '#F44336'; // Expert - Red
-      default: return '#9E9E9E'; // Default - Grey
-    }
+    if (difficulty < 3) return '#4CAF50'; // Easy - Green
+    if (difficulty < 7) return '#2196F3'; // Medium - Blue
+    if (difficulty < 11) return '#c426df'; // Hard - Purple
+    return '#F44336'; // Expert - Red
+  };
+
+  const getDifficultyText = (difficulty: number) => {
+    if (difficulty < 3) return 'Easy';
+    if (difficulty < 7) return 'Medium';
+    if (difficulty < 11) return 'Hard';
+    return 'Expert';
   };
 
   const renderPuzzleSquare = (isCompleted: boolean, index: number) => (
@@ -31,12 +36,16 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
       key={index}
       style={[
         styles.puzzleSquare,
-        isCompleted && styles.completedPuzzle
+        isCompleted && styles.completedPuzzle,
+        !isPlayable && styles.lockedPuzzle
       ]}
       onPress={() => console.log('Start puzzle', index + 1)}
     >
       {isCompleted && (
         <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+      )}
+      {!isPlayable && (
+        <Ionicons name="lock-closed" size={24} color="#aaaaaa" />
       )}
     </TouchableOpacity>
   );
@@ -49,9 +58,7 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
             <Text style={styles.levelTitle}>{level.gridSize}x{level.gridSize}</Text>
             <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(level.difficulty) }]}>
               <Text style={styles.difficultyText}>
-                {level.difficulty === 1 ? 'Easy' : 
-                 level.difficulty === 2 ? 'Medium' : 
-                 level.difficulty === 3 ? 'Hard' : 'Expert'}
+                {getDifficultyText(level.difficulty)}
               </Text>
             </View>
           </View>
@@ -75,11 +82,19 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
           <View style={styles.header}>
-            <TouchableOpacity onPress={onClose} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={24} color="#e0e0e0" />
-            </TouchableOpacity>
+            <View style={styles.headerLeft}>
+              <TouchableOpacity onPress={onClose} style={styles.backButton}>
+                <Ionicons name="arrow-back" size={24} color="#e0e0e0" />
+              </TouchableOpacity>
+            </View>
             <Text style={styles.headerText}>{packName}</Text>
-            <View style={styles.placeholder} />
+            <View style={styles.headerRight}>
+              {!isPlayable && (
+                <TouchableOpacity onPress={() => console.log('Watch ad to unlock')}>
+                  <Ionicons name="play-circle" size={32} color="#2196F3" />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
 
           <ScrollView 
@@ -116,7 +131,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
-    height: '90%'
+    height: '95%'
   },
   header: {
     flexDirection: 'row',
@@ -127,16 +142,23 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#333333',
   },
+  headerLeft: {
+    width: 34, // Same width as back button for centering
+    alignItems: 'flex-start',
+  },
+  headerRight: {
+    width: 34, // Same width as play button for centering
+    alignItems: 'flex-end',
+  },
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#e0e0e0',
+    flex: 1,
+    textAlign: 'center',
   },
   backButton: {
     padding: 5,
-  },
-  placeholder: {
-    width: 34, // Same width as back button for centering
   },
   scrollView: {
     flex: 1,
@@ -202,6 +224,11 @@ const styles = StyleSheet.create({
   completedPuzzle: {
     backgroundColor: '#4CAF50',
     borderColor: '#4CAF50',
+  },
+  lockedPuzzle: {
+    backgroundColor: '#2a2a2a',
+    borderColor: '#404040',
+    opacity: 0.8,
   },
 });
 

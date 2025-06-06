@@ -82,7 +82,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Puzzle Packs</Text>
                 <TouchableOpacity 
-                  style={[styles.button, styles.tutorialButton]}
+                  style={[styles.button, styles.packsButton]}
                   onPress={() => setShowPuzzlePacks(true)}
                 >
                   <View style={styles.buttonContent}>
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
-    height: '90%'
+    height: '95%'
   },
   header: {
     flexDirection: 'row',
@@ -333,11 +333,11 @@ const styles = StyleSheet.create({
   resetButton: {
     backgroundColor: '#e74c3c',
   },
-  tutorialButton: {
-    backgroundColor: '#3498db',
+  packsButton: {
+    backgroundColor: '#23b360',
   },
   aboutButton: {
-    backgroundColor: '#23b360',
+    backgroundColor: '#3498db',
   },
   adminButtons: {
     gap: 10,
