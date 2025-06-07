@@ -11,13 +11,27 @@ export class SandwichRule extends MoveValidator {
   }
 
   findStep(puzzle: (number | null)[][], size: number, shapes?: Shape[]): HintStep | null {
-    if (!shapes) return null;
+    // Early validation of input parameters
+    if (!puzzle || !Array.isArray(puzzle) || puzzle.length !== size) {
+      return null;
+    }
+
+    if (!shapes || !Array.isArray(shapes) || shapes.length < 2) {
+      return null;
+    }
 
     // Check for sandwich patterns in rows
     for (let row = 0; row < size; row++) {
+      // Validate row data
+      if (!Array.isArray(puzzle[row]) || puzzle[row].length !== size) {
+        continue;
+      }
+
       for (let col = 0; col < size - 2; col++) {
-        // Skip if end cells are empty or middle is filled
-        if (puzzle[row][col] === null || puzzle[row][col + 2] === null || puzzle[row][col + 1] !== null) {
+        // Skip if end cells are empty or undefined, or middle is filled
+        if (puzzle[row][col] === null || puzzle[row][col] === undefined || 
+            puzzle[row][col + 2] === null || puzzle[row][col + 2] === undefined || 
+            puzzle[row][col + 1] !== null) {
           continue;
         }
         
@@ -42,9 +56,17 @@ export class SandwichRule extends MoveValidator {
     
     // Check for sandwich patterns in columns
     for (let col = 0; col < size; col++) {
+      // Validate column data
+      const colValues = puzzle.map(row => row?.[col]).filter(val => val !== undefined);
+      if (colValues.length !== size) {
+        continue;
+      }
+
       for (let row = 0; row < size - 2; row++) {
-        // Skip if end cells are empty or middle is filled
-        if (puzzle[row][col] === null || puzzle[row + 2][col] === null || puzzle[row + 1][col] !== null) {
+        // Skip if end cells are empty or undefined, or middle is filled
+        if (puzzle[row][col] === null || puzzle[row][col] === undefined || 
+            puzzle[row + 2][col] === null || puzzle[row + 2][col] === undefined || 
+            puzzle[row + 1][col] !== null) {
           continue;
         }
         
@@ -71,6 +93,12 @@ export class SandwichRule extends MoveValidator {
   }
 
   private _isValidMove(puzzle: (number | null)[][], row: number, col: number, value: number, size: number): boolean {
+    // Validate input parameters
+    if (!puzzle || !Array.isArray(puzzle) || puzzle.length !== size || 
+        row < 0 || row >= size || col < 0 || col >= size) {
+      return false;
+    }
+
     // Check for three consecutive same values in row
     if (col >= 2 && puzzle[row][col-1] === value && puzzle[row][col-2] === value) {
       return false;

@@ -11,6 +11,8 @@ import { useAudio } from '../../context/AudioContext';
 import { puzzleManager } from '../../utils/puzzleManager';
 import { levelManager } from '../../data/levels/levelManager';
 import ColorTestModal from './ColorTestModal';
+import PackDataManager from '../../data/packDataManager';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type RootStackParamList = {
   TestInterstitialAd: undefined;
@@ -43,11 +45,25 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
     setShowResetConfirm(true);
   };
 
-  const confirmReset = () => {
+  const confirmReset = async () => {
     // Reset the game state
     puzzleManager.resetToFirstPuzzle();
     levelManager.resetToFirstLevel();
+    
+    // Clear completion data
+    const packDataManager = PackDataManager.getInstance();
+    await packDataManager.clearCompletionData();
+    
+    // Reset score in AsyncStorage
+    try {
+      await AsyncStorage.removeItem('@game_score');
+    } catch (error) {
+      console.error('Error resetting score:', error);
+    }
+    
+    // Reset score in parent component
     onReset();
+    
     setShowResetConfirm(false);
     onClose();
   };
@@ -207,6 +223,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
       <PuzzlePacksModal
         isVisible={showPuzzlePacks}
         onClose={() => setShowPuzzlePacks(false)}
+        onCloseSettings={onClose}
       />
 
       <ColorTestModal 

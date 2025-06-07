@@ -3,7 +3,7 @@ import { LastCellRule } from './lastCellRule';
 import { PairsRule } from './pairsRule';
 import { SandwichRule } from './sandwichRule';
 import { EqualNumberRule } from './equalNumberRule';
-import { SpreadAntiTripletRule } from './spreadAntiTripletRule';
+import { CloseAntiTripletRule } from './closeAntiTripletRule';
 import { QuadAntiTripleRule } from './quadAntiTripleRule';
 import { Clustered4EmptyCellsRule } from './clustered4EmptyCellsRule';
 import { Clustered5EmptyCellsRule } from './clustered5EmptyCellsRule';
@@ -22,7 +22,7 @@ export class RuleManager {
       new PairsRule(),
       new SandwichRule(),
       new EqualNumberRule(),
-      new SpreadAntiTripletRule(),
+      new CloseAntiTripletRule(),
       new QuadAntiTripleRule(),
       new Clustered4EmptyCellsRule(),
       new Clustered5EmptyCellsRule(),

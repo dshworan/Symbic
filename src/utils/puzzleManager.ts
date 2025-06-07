@@ -1,13 +1,30 @@
 import { CellValue } from '../types/puzzle';
 import { Puzzle } from '../data/types/levelTypes';
 import { levelManager } from '../data/levels/levelManager';
+import PackDataManager from '../data/packDataManager';
 
 class PuzzleManager {
   private currentPuzzleIndex: number = 0;
 
   getCurrentPuzzle(): Puzzle {
     const currentLevel = levelManager.getCurrentLevel();
-    return currentLevel.puzzles[this.currentPuzzleIndex];
+    if (!currentLevel || !currentLevel.puzzles) {
+      console.error('Invalid level or puzzles data:', currentLevel);
+      return levelManager.getCurrentPack().levels[0].puzzles[0]; // Fallback to first puzzle
+    }
+    const puzzle = currentLevel.puzzles[this.currentPuzzleIndex];
+    if (!puzzle) {
+      console.error('Invalid puzzle index:', this.currentPuzzleIndex);
+      return currentLevel.puzzles[0]; // Fallback to first puzzle of current level
+    }
+    //console.log('Loading puzzle:', {
+    //  pack: levelManager.getCurrentPackNumber(),
+    //  level: levelManager.getCurrentLevelNumber(),
+    //  puzzleIndex: this.currentPuzzleIndex,
+    //  gridSize: puzzle.grid.length,
+    //  puzzleData: puzzle
+    //});
+    return puzzle;
   }
 
   getCurrentPuzzleIndex(): number {
@@ -24,22 +41,27 @@ class PuzzleManager {
 
   nextPuzzle(): boolean {
     const currentLevel = levelManager.getCurrentLevel();
+    const packDataManager = PackDataManager.getInstance();
+    const packId = levelManager.getCurrentPackNumber();
+    const levelId = levelManager.getCurrentLevelNumber();
     
-    // If we're at the last puzzle of the current level
-    if (this.currentPuzzleIndex >= currentLevel.puzzles.length - 1) {
-      // Try to move to the next level
-      if (levelManager.nextLevel()) {
-        // Reset puzzle index for the new level
-        this.currentPuzzleIndex = 0;
+    // Find the next uncompleted puzzle in the current level
+    for (let i = 0; i < currentLevel.puzzles.length; i++) {
+      if (!packDataManager.isPuzzleCompleted(packId, levelId, i)) {
+        this.currentPuzzleIndex = i;
+        return true;
+      }
+    }
+    
+    // If all puzzles in current level are completed, try to move to next level
+    if (levelManager.nextLevel()) {
+      // Reset puzzle index for the new level
+      this.currentPuzzleIndex = 0;
       return true;
     }
-      // If we can't move to next level (we're at the last level), stay at current puzzle
-    return false;
-    }
     
-    // Move to next puzzle in current level
-    this.currentPuzzleIndex++;
-    return true;
+    // If we can't move to next level (we're at the last level), stay at current puzzle
+    return false;
   }
 
   previousPuzzle(): boolean {
@@ -51,6 +73,17 @@ class PuzzleManager {
   }
 
   resetToFirstPuzzle(): void {
+    this.currentPuzzleIndex = 0;
+  }
+
+  setCurrentPuzzleIndex(index: number): void {
+    this.currentPuzzleIndex = index;
+    //console.log('Set current puzzle index:', index);
+  }
+
+  // Add method to sync with LevelManager
+  syncWithLevelManager(): void {
+    // Reset puzzle index when level changes
     this.currentPuzzleIndex = 0;
   }
 }

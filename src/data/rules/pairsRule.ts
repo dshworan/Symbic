@@ -11,13 +11,26 @@ export class PairsRule extends MoveValidator {
   }
 
   findStep(puzzle: (number | null)[][], size: number, shapes?: Shape[]): HintStep | null {
-    if (!shapes) return null;
+    // Early validation of input parameters
+    if (!puzzle || !Array.isArray(puzzle) || puzzle.length !== size) {
+      return null;
+    }
+
+    if (!shapes || !Array.isArray(shapes) || shapes.length < 2) {
+      return null;
+    }
 
     // Check for adjacent pairs (00 or 11) in rows
     for (let row = 0; row < size; row++) {
+      // Validate row data
+      if (!Array.isArray(puzzle[row]) || puzzle[row].length !== size) {
+        continue;
+      }
+
       for (let col = 0; col < size - 1; col++) {
-        // Skip if either cell is empty
-        if (puzzle[row][col] === null || puzzle[row][col + 1] === null) {
+        // Skip if either cell is empty or undefined
+        if (puzzle[row][col] === null || puzzle[row][col] === undefined || 
+            puzzle[row][col + 1] === null || puzzle[row][col + 1] === undefined) {
           continue;
         }
         
@@ -66,9 +79,16 @@ export class PairsRule extends MoveValidator {
     
     // Check for adjacent pairs (00 or 11) in columns
     for (let col = 0; col < size; col++) {
+      // Validate column data
+      const colValues = puzzle.map(row => row?.[col]).filter(val => val !== undefined);
+      if (colValues.length !== size) {
+        continue;
+      }
+
       for (let row = 0; row < size - 1; row++) {
-        // Skip if either cell is empty
-        if (puzzle[row][col] === null || puzzle[row + 1][col] === null) {
+        // Skip if either cell is empty or undefined
+        if (puzzle[row][col] === null || puzzle[row][col] === undefined || 
+            puzzle[row + 1][col] === null || puzzle[row + 1][col] === undefined) {
           continue;
         }
         
@@ -128,6 +148,12 @@ export class PairsRule extends MoveValidator {
    * @returns Whether the move is valid
    */
   private _isValidMove(puzzle: (number | null)[][], row: number, col: number, value: number, size: number): boolean {
+    // Validate input parameters
+    if (!puzzle || !Array.isArray(puzzle) || puzzle.length !== size || 
+        row < 0 || row >= size || col < 0 || col >= size) {
+      return false;
+    }
+
     // Check for three consecutive same values in row
     if (col >= 2 && puzzle[row][col-1] === value && puzzle[row][col-2] === value) {
       return false;

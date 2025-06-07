@@ -1,4 +1,4 @@
-import { Puzzle } from '../../../types/levelTypes';
+import { Puzzle } from '../../../../types/levelTypes';
 
 export const level4Puzzles: Puzzle[] = [
   {

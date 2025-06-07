@@ -11,20 +11,34 @@ export class LastCellRule extends MoveValidator {
   }
 
   findStep(puzzle: (number | null)[][], size: number, shapes?: Shape[]): HintStep | null {
-    if (!shapes) return null;
+    // Early validation of input parameters
+    if (!puzzle || !Array.isArray(puzzle) || puzzle.length !== size) {
+      return null;
+    }
+
+    if (!shapes || !Array.isArray(shapes) || shapes.length < 2) {
+      return null;
+    }
 
     // Check rows
     for (let row = 0; row < size; row++) {
+      // Validate row data
+      if (!Array.isArray(puzzle[row]) || puzzle[row].length !== size) {
+        continue;
+      }
+
       const rowValues = puzzle[row];
       const emptyCells = rowValues.reduce((count, cell) => count + (cell === null ? 1 : 0), 0);
       
       if (emptyCells === 1) {
         const col = rowValues.indexOf(null);
+        if (col === -1) continue; // Safety check
+
         const count0 = rowValues.filter(cell => cell === 0).length;
         const count1 = rowValues.filter(cell => cell === 1).length;
         const neededDigit = count0 > count1 ? 1 : 0;
         
-        if (this.isValidMove(puzzle, row, col, neededDigit, size)) {
+        if (this._isValidMove(puzzle, row, col, neededDigit, size)) {
           return {
             row,
             col,
@@ -41,16 +55,23 @@ export class LastCellRule extends MoveValidator {
     
     // Check columns
     for (let col = 0; col < size; col++) {
-      const colValues = puzzle.map(row => row[col]);
+      // Validate column data
+      const colValues = puzzle.map(row => row?.[col]).filter(val => val !== undefined);
+      if (colValues.length !== size) {
+        continue;
+      }
+
       const emptyCells = colValues.reduce((count, cell) => count + (cell === null ? 1 : 0), 0);
       
       if (emptyCells === 1) {
         const row = colValues.indexOf(null);
+        if (row === -1) continue; // Safety check
+
         const count0 = colValues.filter(cell => cell === 0).length;
         const count1 = colValues.filter(cell => cell === 1).length;
         const neededDigit = count0 > count1 ? 1 : 0;
         
-        if (this.isValidMove(puzzle, row, col, neededDigit, size)) {
+        if (this._isValidMove(puzzle, row, col, neededDigit, size)) {
           return {
             row,
             col,
@@ -68,29 +89,13 @@ export class LastCellRule extends MoveValidator {
     return null;
   }
 
-  private findEmptyCells(line: (number | null)[]): number[] {
-    return line.reduce((acc: number[], val, idx) => {
-      if (val === null) acc.push(idx);
-      return acc;
-    }, []);
-  }
-
-  private determineValue(line: (number | null)[]): number {
-    const count0 = line.filter(val => val === 0).length;
-    const count1 = line.filter(val => val === 1).length;
-    return count0 <= count1 ? 0 : 1;
-  }
-
-  /**
-   * Check if the move would be valid considering balance constraints
-   * @param puzzle - The current puzzle state
-   * @param row - Row index
-   * @param col - Column index
-   * @param value - Value to check (0 or 1)
-   * @param size - Size of the puzzle
-   * @returns Whether the move is valid
-   */
   private _isValidMove(puzzle: (number | null)[][], row: number, col: number, value: number, size: number): boolean {
+    // Validate input parameters
+    if (!puzzle || !Array.isArray(puzzle) || puzzle.length !== size || 
+        row < 0 || row >= size || col < 0 || col >= size) {
+      return false;
+    }
+
     // Check for three consecutive same values in row
     if (col >= 2 && puzzle[row][col-1] === value && puzzle[row][col-2] === value) {
       return false;

@@ -6,41 +6,38 @@ export class FarAntiTripletRule extends MoveValidator {
   constructor() {
     super(
       'farantitriplet',
-      'When two cells of the same value are separated by two cells, the middle cell must be the opposite value'
+      'Prevents triplets when a digit appears between or adjacent to empty cells'
     );
   }
 
   findStep(puzzle: (number | null)[][], size: number, shapes?: Shape[]): HintStep | null {
-    if (!shapes) return null;
-
-    // First check rows
-    const rowStep = this._checkRows(puzzle, size);
-    if (rowStep) {
-      return {
-        ...rowStep,
-        message: rowStep.message.replace(/\d/g, (match) => {
-          const value = parseInt(match);
-          return `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg>`;
-        })
-      };
+    // Early validation of input parameters
+    if (!puzzle || !Array.isArray(puzzle) || puzzle.length !== size) {
+      return null;
     }
-    
-    // Then check columns by transposing the puzzle
+
+    if (!shapes || !Array.isArray(shapes) || shapes.length < 2) {
+      return null;
+    }
+
+    let result = this._checkRows(puzzle, size, shapes);
+    if (result !== null) {
+      return result;
+    }
+   
+    // transpose puzzle to check columns
     const transposed = this._transposeGrid(puzzle, size);
-    const colStep = this._checkRows(transposed, size);
-    
-    // Translate column step back to original coordinates
-    if (colStep) {
-      return {
-        row: colStep.col,
-        col: colStep.row,
-        value: colStep.value,
-        rule: colStep.rule,
-        message: colStep.message.replace('row', 'column').replace('Column', 'Row').replace(/\d/g, (match) => {
-          const value = parseInt(match);
-          return `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg>`;
-        }),
-        hintCellSets: colStep.hintCellSets?.map(cell => ({ row: cell.col, col: cell.row }))
+    result = this._checkRows(transposed, size, shapes);
+    if (result !== null) {
+      // swap row/col in result because we transposed the puzzle
+      const { row, col, value, rule, message, hintCellSets } = result;
+      return { 
+        row: col, 
+        col: row, 
+        value, 
+        rule,
+        message: message.replace('row', 'column'),
+        hintCellSets: hintCellSets?.map(cell => ({ row: cell.col, col: cell.row }))
       };
     }
     
@@ -48,72 +45,121 @@ export class FarAntiTripletRule extends MoveValidator {
   }
 
   private _transposeGrid(grid: (number | null)[][], size: number): (number | null)[][] {
-    const transposed = Array(size).fill(null).map(() => Array(size).fill(null));
-    for (let row = 0; row < size; row++) {
-      for (let col = 0; col < size; col++) {
-        transposed[col][row] = grid[row][col];
+    const transposed: (number | null)[][] = [];
+    
+    for (let col = 0; col < size; col++) {
+      const newRow: (number | null)[] = [];
+      for (let row = 0; row < size; row++) {
+        newRow.push(grid[row][col]);
       }
+      transposed.push(newRow);
     }
+    
     return transposed;
   }
 
-  private _checkRows(puzzle: (number | null)[][], size: number): HintStep | null {
-    for (let row = 0; row < size; row++) {
+  private _checkRows(puzzle: (number | null)[][], size: number, shapes: Shape[]): HintStep | null {
+    for (let row = 0; row < puzzle.length; row++) {
       const currentRow = puzzle[row];
-      const nullIndices: number[] = [];
-      const counts: { [key: number]: number } = { 0: 0, 1: 0 };
-
-      // Gather null positions and digit counts
-      for (let col = 0; col < size; col++) {
-        const val = currentRow[col];
-        if (val === null) nullIndices.push(col);
-        else counts[val]++;
+      
+      // Validate row data
+      if (!Array.isArray(currentRow) || currentRow.length !== size) {
+        continue;
       }
-
-      if (nullIndices.length !== 3) continue;
-
-      const half = size / 2;
-      const need0 = half - counts[0];
-      const need1 = half - counts[1];
-
-      let targetDigit: number | null = null;
-      if (need0 === 2) targetDigit = 0;
-      else if (need1 === 2) targetDigit = 1;
-      else continue;
-
-      // Try to find a pair of adjacent nulls that sit next to a digit of targetDigit
-      for (let i = 0; i < nullIndices.length; i++) {
-        for (let j = i + 1; j < nullIndices.length; j++) {
-          const a = nullIndices[i];
-          const b = nullIndices[j];
-
-          if (Math.abs(a - b) === 1) { // They're adjacent
-            const left = Math.min(a, b);
-            const right = Math.max(a, b);
-
-            // Check if adjacent to targetDigit on either side
-            const leftNeighbor = left - 1 >= 0 ? currentRow[left - 1] : null;
-            const rightNeighbor = right + 1 < size ? currentRow[right + 1] : null;
-
-            if (leftNeighbor === targetDigit || rightNeighbor === targetDigit) {
-              // Find the third null (the "far" one)
-              const farNull = nullIndices.find(idx => idx !== a && idx !== b);
-
+      
+      // Find empty cells and count digits
+      const emptyIndices: number[] = [];
+      let zeroCount = 0;
+      let oneCount = 0;
+      
+      for (let col = 0; col < currentRow.length; col++) {
+        if (currentRow[col] === null) {
+          emptyIndices.push(col);
+        } else if (currentRow[col] === 0) {
+          zeroCount++;
+        } else if (currentRow[col] === 1) {
+          oneCount++;
+        }
+      }
+      
+      // We need exactly 3 empty cells
+      if (emptyIndices.length !== 3) {
+        continue;
+      }
+      
+      // Sort empty indices to help with pattern detection
+      emptyIndices.sort((a, b) => a - b);
+      
+      // Determine which digit is needed twice
+      const neededZeros = (size / 2) - zeroCount;
+      const neededOnes = (size / 2) - oneCount;
+      
+      // We're looking for the digit that needs to be placed twice
+      let neededDigit: number | null = null;
+      if (neededZeros === 2) {
+        neededDigit = 0;
+      } else if (neededOnes === 2) {
+        neededDigit = 1;
+      } else {
+        continue;
+      }
+      
+      // Now check for the pattern where two empty cells are adjacent to the needed digit
+      for (let i = 0; i < currentRow.length; i++) {
+        if (currentRow[i] === neededDigit) {
+          // Check for pattern --0
+          if (i >= 2 && currentRow[i-1] === null && currentRow[i-2] === null) {
+            const thirdEmptyCell = emptyIndices.find(idx => idx !== i-1 && idx !== i-2);
+            if (thirdEmptyCell !== undefined) {
               return {
-                row,
-                col: farNull!,
-                value: targetDigit,
+                row: row,
+                col: thirdEmptyCell,
+                value: neededDigit,
                 rule: 'farantitriplet',
-                message: `In row ${row+1}, placing ${targetDigit} at column ${farNull!+1} to avoid potential triplet with adjacent nulls at columns ${a+1} and ${b+1}.`,
+                message: `To prevent three <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[neededDigit].path}" fill="${shapes[neededDigit].fill}"/></svg> together, this cell must be a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[neededDigit].path}" fill="${shapes[neededDigit].fill}"/></svg>`,
                 hintCellSets: [
-                  // The far null cell (target)
-                  { row, col: farNull! },
-                  // The adjacent null cells
-                  { row, col: a },
-                  { row, col: b },
-                  // The target digit cell that's adjacent to the nulls
-                  ...(leftNeighbor === targetDigit ? [{ row, col: left - 1 }] : []),
-                  ...(rightNeighbor === targetDigit ? [{ row, col: right + 1 }] : [])
+                  { row: row, col: thirdEmptyCell }, // Primary highlight - where to place the digit
+                  { row: row, col: i-2 }, // Secondary highlight - pattern cells
+                  { row: row, col: i-1 },
+                  { row: row, col: i }
+                ]
+              };
+            }
+          }
+          // Check for pattern -0-
+          if (i > 0 && i < currentRow.length - 1 && currentRow[i-1] === null && currentRow[i+1] === null) {
+            const thirdEmptyCell = emptyIndices.find(idx => idx !== i-1 && idx !== i+1);
+            if (thirdEmptyCell !== undefined) {
+              return {
+                row: row,
+                col: thirdEmptyCell,
+                value: neededDigit,
+                rule: 'farantitriplet',
+                message: `To prevent three <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[neededDigit].path}" fill="${shapes[neededDigit].fill}"/></svg> together, this cell must be a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[neededDigit].path}" fill="${shapes[neededDigit].fill}"/></svg>`,
+                hintCellSets: [
+                  { row: row, col: thirdEmptyCell }, // Primary highlight - where to place the digit
+                  { row: row, col: i-1 }, // Secondary highlight - pattern cells
+                  { row: row, col: i },
+                  { row: row, col: i+1 }
+                ]
+              };
+            }
+          }
+          // Check for pattern 0--
+          if (i <= currentRow.length - 3 && currentRow[i+1] === null && currentRow[i+2] === null) {
+            const thirdEmptyCell = emptyIndices.find(idx => idx !== i+1 && idx !== i+2);
+            if (thirdEmptyCell !== undefined) {
+              return {
+                row: row,
+                col: thirdEmptyCell,
+                value: neededDigit,
+                rule: 'farantitriplet',
+                message: `To prevent three <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[neededDigit].path}" fill="${shapes[neededDigit].fill}"/></svg> together, this cell must be a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[neededDigit].path}" fill="${shapes[neededDigit].fill}"/></svg>`,
+                hintCellSets: [
+                  { row: row, col: thirdEmptyCell }, // Primary highlight - where to place the digit
+                  { row: row, col: i }, // Secondary highlight - pattern cells
+                  { row: row, col: i+1 },
+                  { row: row, col: i+2 }
                 ]
               };
             }
@@ -121,7 +167,7 @@ export class FarAntiTripletRule extends MoveValidator {
         }
       }
     }
-
+    
     return null;
   }
 } 

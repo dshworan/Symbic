@@ -11,7 +11,14 @@ export class DuplicateRow2Rule extends MoveValidator {
   }
 
   findStep(puzzle: (number | null)[][], size: number, shapes?: Shape[]): HintStep | null {
-    if (!shapes) return null;
+    // Early validation of input parameters
+    if (!puzzle || !Array.isArray(puzzle) || puzzle.length !== size) {
+      return null;
+    }
+
+    if (!shapes || !Array.isArray(shapes) || shapes.length < 2) {
+      return null;
+    }
 
     // First check rows
     const rowStep = this._findStepInRows(puzzle, size);
@@ -47,20 +54,20 @@ export class DuplicateRow2Rule extends MoveValidator {
     
     return null;
   }
-  
-  private _findEmptyCells(line: (number | null)[]): number[] {
-    const emptyCells: number[] = [];
-    for (let i = 0; i < line.length; i++) {
-      if (line[i] === null) {
-        emptyCells.push(i);
-      }
-    }
-    return emptyCells;
-  }
-  
+
   private _findStepInRows(puzzle: (number | null)[][], size: number): HintStep | null {
+    // Validate input parameters
+    if (!puzzle || !Array.isArray(puzzle) || puzzle.length !== size) {
+      return null;
+    }
+
     // Check each row with exactly 2 empty cells
     for (let row1 = 0; row1 < size; row1++) {
+      // Validate row data
+      if (!Array.isArray(puzzle[row1]) || puzzle[row1].length !== size) {
+        continue;
+      }
+
       const emptyCells = this._findEmptyCells(puzzle[row1]);
       
       // Skip if not exactly 2 empty cells
@@ -72,6 +79,11 @@ export class DuplicateRow2Rule extends MoveValidator {
       for (let row2 = 0; row2 < size; row2++) {
         if (row1 === row2) {
           continue; // Skip same row
+        }
+
+        // Validate row2 data
+        if (!Array.isArray(puzzle[row2]) || puzzle[row2].length !== size) {
+          continue;
         }
         
         // Skip if row2 has any empty cells (must be completed)
@@ -99,6 +111,11 @@ export class DuplicateRow2Rule extends MoveValidator {
         if (patternMatch) {
           // For 2 empty cells, make one different
           for (const emptyCol of emptyCells) {
+            // Validate emptyCol is within bounds
+            if (emptyCol < 0 || emptyCol >= size) {
+              continue;
+            }
+
             // Place the opposite value to avoid duplication
             const value = puzzle[row2][emptyCol] === 0 ? 1 : 0;
             
@@ -107,7 +124,7 @@ export class DuplicateRow2Rule extends MoveValidator {
               col: emptyCol,
               value: value,
               rule: 'duplicaterow2',
-              message: `No two rows can be identical. This cell must be different.`,
+              message: `No two rows can be identical. This cell must be different from the other row.`,
               hintCellSets: [
                 // Highlight the row being filled
                 ...Array.from({ length: size }, (_, i) => ({ row: row1, col: i })),
@@ -124,14 +141,27 @@ export class DuplicateRow2Rule extends MoveValidator {
   }
   
   private _findStepInColumns(puzzle: (number | null)[][], size: number): HintStep | null {
+    // Validate input parameters
+    if (!puzzle || !Array.isArray(puzzle) || puzzle.length !== size) {
+      return null;
+    }
+
     // Check each column with exactly 2 empty cells
     for (let col1 = 0; col1 < size; col1++) {
       // Extract column to find empty cells
       const column: (number | null)[] = [];
       for (let row = 0; row < size; row++) {
+        if (!Array.isArray(puzzle[row]) || puzzle[row].length !== size) {
+          continue;
+        }
         column.push(puzzle[row][col1]);
       }
       
+      // Skip if column is incomplete
+      if (column.length !== size) {
+        continue;
+      }
+
       const emptyCells = this._findEmptyCells(column);
       
       // Skip if not exactly 2 empty cells
@@ -148,7 +178,15 @@ export class DuplicateRow2Rule extends MoveValidator {
         // Extract second column for comparison
         const column2: (number | null)[] = [];
         for (let row = 0; row < size; row++) {
+          if (!Array.isArray(puzzle[row]) || puzzle[row].length !== size) {
+            continue;
+          }
           column2.push(puzzle[row][col2]);
+        }
+        
+        // Skip if column2 is incomplete
+        if (column2.length !== size) {
+          continue;
         }
         
         // Skip if col2 has any empty cells (must be completed)
@@ -177,6 +215,11 @@ export class DuplicateRow2Rule extends MoveValidator {
           // For 2 empty cells, we can fill both to make them different
           // Find the first empty cell that has a value in col2
           for (const emptyRow of emptyCells) {
+            // Validate emptyRow is within bounds
+            if (emptyRow < 0 || emptyRow >= size) {
+              continue;
+            }
+
             // Place the opposite value to avoid duplication
             const value = puzzle[emptyRow][col2] === 0 ? 1 : 0;
             
@@ -185,7 +228,7 @@ export class DuplicateRow2Rule extends MoveValidator {
               col: col1,
               value: value,
               rule: 'duplicaterow2',
-              message: `No two columns can be identical. This cell must be different.`,
+              message: `No two columns can be identical. This cell must be different from the other column.`,
               hintCellSets: [
                 // Highlight the column being filled
                 ...Array.from({ length: size }, (_, i) => ({ row: i, col: col1 })),
@@ -199,6 +242,20 @@ export class DuplicateRow2Rule extends MoveValidator {
     }
     
     return null;
+  }
+
+  private _findEmptyCells(line: (number | null)[]): number[] {
+    if (!Array.isArray(line)) {
+      return [];
+    }
+    
+    const emptyCells: number[] = [];
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === null) {
+        emptyCells.push(i);
+      }
+    }
+    return emptyCells;
   }
 
   private _transposeGrid(puzzle: (number | null)[][], size: number): (number | null)[][] {

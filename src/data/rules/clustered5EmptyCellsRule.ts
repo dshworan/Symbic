@@ -11,71 +11,33 @@ export class Clustered5EmptyCellsRule extends MoveValidator {
   }
 
   findStep(puzzle: (number | null)[][], size: number, shapes?: Shape[]): HintStep | null {
-    if (!shapes) return null;
-
-    // First check rows
-    const rowStep = this._checkRows(puzzle, size);
-    if (rowStep) {
-      return {
-        ...rowStep,
-        message: rowStep.message.replace(/\d/g, (match) => {
-          const value = parseInt(match);
-          return `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg>`;
-        })
-      };
+    // Early validation of input parameters
+    if (!puzzle || !Array.isArray(puzzle) || puzzle.length !== size) {
+      return null;
     }
-    
-    // Then check columns by transposing the puzzle
-    const transposed = this._transposeGrid(puzzle, size);
-    const colStep = this._checkRows(transposed, size);
-    
-    // Translate column step back to original coordinates
-    if (colStep) {
-      return {
-        row: colStep.col,
-        col: colStep.row,
-        value: colStep.value,
-        rule: colStep.rule,
-        message: colStep.message.replace('row', 'column').replace('Column', 'Row').replace(/\d/g, (match) => {
-          const value = parseInt(match);
-          return `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg>`;
-        }),
-        hintCellSets: colStep.hintCellSets?.map(cell => ({ row: cell.col, col: cell.row }))
-      };
-    }
-    
-    return null;
-  }
 
-  private _transposeGrid(grid: (number | null)[][], size: number): (number | null)[][] {
-    const transposed: (number | null)[][] = [];
-    
-    for (let col = 0; col < size; col++) {
-      const newRow: (number | null)[] = [];
-      for (let row = 0; row < size; row++) {
-        newRow.push(grid[row][col]);
+    if (!shapes || !Array.isArray(shapes) || shapes.length < 2) {
+      return null;
+    }
+
+    // Check rows
+    for (let row = 0; row < size; row++) {
+      // Validate row data
+      if (!Array.isArray(puzzle[row]) || puzzle[row].length !== size) {
+        continue;
       }
-      transposed.push(newRow);
-    }
-    
-    return transposed;
-  }
 
-  private _checkRows(puzzle: (number | null)[][], size: number): HintStep | null {
-    for (let row = 0; row < puzzle.length; row++) {
-      const currentRow = puzzle[row];
-      
-      // Find empty cells 
+      // Find empty cells and count digits
       const emptyCells: number[] = [];
       let zeroCount = 0;
       let oneCount = 0;
       
-      for (let col = 0; col < currentRow.length; col++) {
-        if (currentRow[col] === null) {
+      for (let col = 0; col < size; col++) {
+        if (puzzle[row][col] === null) {
           emptyCells.push(col);
-        } else if (currentRow[col] === 0) {
+        } else if (puzzle[row][col] === 0) {
           zeroCount++;
-        } else if (currentRow[col] === 1) {
+        } else if (puzzle[row][col] === 1) {
           oneCount++;
         }
       }
@@ -85,7 +47,7 @@ export class Clustered5EmptyCellsRule extends MoveValidator {
         continue;
       }
       
-      // Determine which digit needs to be placed 4 times (when one has reached or exceeded half)
+      // Determine which digit needs to be placed 4 times
       const neededZeros = (size / 2) - zeroCount;
       const neededOnes = (size / 2) - oneCount;
       
@@ -112,20 +74,85 @@ export class Clustered5EmptyCellsRule extends MoveValidator {
         // Find the isolated empty cell
         const isolatedCell = clusters[0].length === 1 ? clusters[0][0] : clusters[1][0];
         
-        // Get the cluster of 4
-        const clusterOf4 = clusters[0].length === 4 ? clusters[0] : clusters[1];
-        
         return {
           row: row,
           col: isolatedCell,
           value: targetDigit,
           rule: 'clustered5emptycells',
-          message: `Found 5 empty cells in row ${row+1} with 4 clustered together. Placing ${targetDigit} in the isolated cell.`,
+          message: `We need 4 <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[targetDigit].path}" fill="${shapes[targetDigit].fill}"/></svg> in these 5 cells. One <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[targetDigit].path}" fill="${shapes[targetDigit].fill}"/></svg> must be in the isolated cell.`,
           hintCellSets: [
-            // The isolated cell (target)
-            { row, col: isolatedCell },
-            // The cluster of 4 empty cells
-            ...clusterOf4.map(col => ({ row, col }))
+            // Highlight the clustered empty cells
+            ...clusters[0].length === 4 ? clusters[0].map(col => ({ row, col })) : clusters[1].map(col => ({ row, col })),
+            // Highlight the isolated cell
+            { row, col: isolatedCell }
+          ]
+        };
+      }
+    }
+    
+    // Check columns
+    for (let col = 0; col < size; col++) {
+      // Find empty cells and count digits
+      const emptyCells: number[] = [];
+      let zeroCount = 0;
+      let oneCount = 0;
+      
+      for (let row = 0; row < size; row++) {
+        if (!Array.isArray(puzzle[row]) || puzzle[row].length !== size) {
+          continue;
+        }
+        if (puzzle[row][col] === null) {
+          emptyCells.push(row);
+        } else if (puzzle[row][col] === 0) {
+          zeroCount++;
+        } else if (puzzle[row][col] === 1) {
+          oneCount++;
+        }
+      }
+      
+      // We need exactly 5 empty cells
+      if (emptyCells.length !== 5) {
+        continue;
+      }
+      
+      // Determine which digit needs to be placed 4 times
+      const neededZeros = (size / 2) - zeroCount;
+      const neededOnes = (size / 2) - oneCount;
+      
+      let targetDigit: number | null = null;
+      if (neededZeros === 4) {
+        targetDigit = 0;
+      } else if (neededOnes === 4) {
+        targetDigit = 1;
+      } else {
+        continue; // We don't need exactly 4 of one digit
+      }
+      
+      // Sort empty indices to help with pattern detection
+      emptyCells.sort((a, b) => a - b);
+      
+      // Check if 4 empty cells are clustered together
+      const clusters = this._findClusters(emptyCells);
+      
+      // We need exactly one cluster of 4 and one isolated cell
+      if (clusters.length === 2 && 
+          ((clusters[0].length === 4 && clusters[1].length === 1) || 
+           (clusters[0].length === 1 && clusters[1].length === 4))) {
+        
+        // Find the isolated empty cell
+        const isolatedCell = clusters[0].length === 1 ? clusters[0][0] : clusters[1][0];
+        
+        return {
+          row: isolatedCell,
+          col: col,
+          value: targetDigit,
+          rule: 'clustered5emptycells',
+          message: `We need 4 <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[targetDigit].path}" fill="${shapes[targetDigit].fill}"/></svg> in these 5 cells. One <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[targetDigit].path}" fill="${shapes[targetDigit].fill}"/></svg> must be in the isolated cell.`,
+          hintCellSets: [
+            // Highlight the clustered empty cells
+            ...clusters[0].length === 4 ? clusters[0].map(row => ({ row, col })) : clusters[1].map(row => ({ row, col })),
+            // Highlight the isolated cell
+            { row: isolatedCell, col }
           ]
         };
       }
@@ -133,7 +160,12 @@ export class Clustered5EmptyCellsRule extends MoveValidator {
     
     return null;
   }
-  
+
+  /**
+   * Find clusters of adjacent cells in a sorted array of indices
+   * @param indices - Sorted array of cell indices
+   * @returns Array of clusters, where each cluster is an array of adjacent indices
+   */
   private _findClusters(indices: number[]): number[][] {
     const clusters: number[][] = [];
     let currentCluster = [indices[0]];

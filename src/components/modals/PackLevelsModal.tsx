@@ -1,22 +1,33 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LevelInfo } from '../../data/packDataManager';
+import PackDataManager from '../../data/packDataManager';
+import { useNavigation } from '@react-navigation/native';
+import { levelManager } from '../../data/levels/levelManager';
+import { puzzleManager } from '../../utils/puzzleManager';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type RootStackParamList = {
+  Game: undefined;
+};
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Game'>;
 
 interface PackLevelsModalProps {
   isVisible: boolean;
   onClose: () => void;
   packName: string;
   isPlayable: boolean;
-  levels: {
-    id: number;
-    gridSize: number;
-    difficulty: number;
-    puzzleCount: number;
-    completedCount: number;
-  }[];
+  levels: LevelInfo[];
+  onCloseSettings?: () => void;
 }
 
-const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, packName, isPlayable, levels }) => {
+const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, packName, isPlayable, levels, onCloseSettings }) => {
+  const packDataManager = PackDataManager.getInstance();
+  const packId = parseInt(packName.split(' ')[1]);
+  const navigation = useNavigation<NavigationProp>();
+
   const getDifficultyColor = (difficulty: number) => {
     if (difficulty < 3) return '#4CAF50'; // Easy - Green
     if (difficulty < 7) return '#2196F3'; // Medium - Blue
@@ -31,46 +42,108 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
     return 'Expert';
   };
 
-  const renderPuzzleSquare = (isCompleted: boolean, index: number) => (
-    <TouchableOpacity 
-      key={index}
-      style={[
-        styles.puzzleSquare,
-        isCompleted && styles.completedPuzzle,
-        !isPlayable && styles.lockedPuzzle
-      ]}
-      onPress={() => console.log('Start puzzle', index + 1)}
-    >
-      {isCompleted && (
-        <Ionicons name="checkmark" size={16} color="#FFFFFF" />
-      )}
-      {!isPlayable && (
-        <Ionicons name="lock-closed" size={24} color="#aaaaaa" />
-      )}
-    </TouchableOpacity>
-  );
+  const handlePuzzlePress = (level: LevelInfo, puzzleIndex: number) => {
+    if (!packDataManager.isPuzzlePlayable(packId, level.level, puzzleIndex)) {
+      console.log('Puzzle is locked');
+      return;
+    }
 
-  const renderLevelSection = (level: typeof levels[0]) => (
-    <View key={level.id} style={styles.levelSection}>
-      <View style={styles.levelContent}>
-        <View style={styles.levelInfo}>
-          <View style={styles.levelHeader}>
-            <Text style={styles.levelTitle}>{level.gridSize}x{level.gridSize}</Text>
-            <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(level.difficulty) }]}>
-              <Text style={styles.difficultyText}>
-                {getDifficultyText(level.difficulty)}
-              </Text>
-            </View>
+    console.log('Starting puzzle game:', { 
+      packId, 
+      level: level.level, 
+      puzzleIndex,
+      gridSize: level.size
+    });
+
+    // Set the current pack and level
+    levelManager.setCurrentPack(packId);
+    levelManager.setCurrentLevel(level.level);
+    puzzleManager.setCurrentPuzzleIndex(puzzleIndex);
+
+    // Ensure the puzzle is loaded
+    const puzzle = puzzleManager.getCurrentPuzzle();
+    if (!puzzle) {
+      console.error('Failed to load puzzle');
+      return;
+    }
+
+    // Close all modals
+    onClose(); // Close this modal
+    if (onCloseSettings) {
+      onCloseSettings(); // Close settings modal if it exists
+    }
+
+    // Navigate to the game screen
+    navigation.navigate('Game');
+  };
+
+  const handleUnlockWithAd = () => {
+    console.log('Unlocking pack', packId);
+    packDataManager.unlockPack(packId);
+    onClose();
+  };
+
+  const renderPuzzleSquare = (index: number, level: LevelInfo) => {
+    const isPuzzlePlayable = packDataManager.isPuzzlePlayable(packId, level.level, index);
+    const isCompleted = packDataManager.isPuzzleCompleted(packId, level.level, index);
+    const puzzleNumber = index + 1;
+
+    return (
+      <TouchableOpacity 
+        key={index}
+        style={[
+          styles.puzzleSquare,
+          isCompleted && styles.completedPuzzle,
+          !isPuzzlePlayable && styles.lockedPuzzle
+        ]}
+        onPress={() => handlePuzzlePress(level, index)}
+      >
+        <Text style={[
+          styles.puzzleNumber,
+          isCompleted && styles.completedPuzzleNumber,
+          !isPuzzlePlayable && styles.lockedPuzzleNumber
+        ]}>
+          {puzzleNumber}
+        </Text>
+        {isCompleted && (
+          <View style={styles.checkmarkContainer}>
+            <Ionicons name="checkmark" size={14} color="#FFFFFF" style={{ fontWeight: 'bold' }} />
           </View>
-          <View style={styles.puzzleGrid}>
-            {Array.from({ length: level.puzzleCount }).map((_, index) => 
-              renderPuzzleSquare(index < level.completedCount, index)
-            )}
+        )}
+        {!isPuzzlePlayable && (
+          <View style={styles.lockContainer}>
+            <Ionicons name="lock-closed" size={16} color="#aaaaaa" />
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  const renderLevelSection = (level: LevelInfo) => {
+    const completedCount = packDataManager.getCompletedPuzzleCount(packId, level.level);
+
+    return (
+      <View key={level.level} style={styles.levelSection}>
+        <View style={styles.levelContent}>
+          <View style={styles.levelInfo}>
+            <View style={styles.levelHeader}>
+              <Text style={styles.levelTitle}>{level.size}x{level.size}</Text>
+              <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(level.difficulty) }]}>
+                <Text style={styles.difficultyText}>
+                  {getDifficultyText(level.difficulty)}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.puzzleGrid}>
+              {Array.from({ length: level.puzzles }).map((_, index) => 
+                renderPuzzleSquare(index, level)
+              )}
+            </View>
           </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <Modal
@@ -90,7 +163,7 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
             <Text style={styles.headerText}>{packName}</Text>
             <View style={styles.headerRight}>
               {!isPlayable && (
-                <TouchableOpacity onPress={() => console.log('Watch ad to unlock')}>
+                <TouchableOpacity onPress={handleUnlockWithAd}>
                   <Ionicons name="play-circle" size={32} color="#2196F3" />
                 </TouchableOpacity>
               )}
@@ -214,12 +287,13 @@ const styles = StyleSheet.create({
   puzzleSquare: {
     width: 48,
     height: 48,
-    backgroundColor: '#333333',
+    backgroundColor: '#2196F3',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#404040',
+    borderColor: '#2196F3',
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
   },
   completedPuzzle: {
     backgroundColor: '#4CAF50',
@@ -229,6 +303,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#2a2a2a',
     borderColor: '#404040',
     opacity: 0.8,
+  },
+  puzzleNumber: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  completedPuzzleNumber: {
+    color: '#FFFFFF',
+  },
+  lockedPuzzleNumber: {
+    color: '#666666',
+  },
+  checkmarkContainer: {
+    position: 'absolute',
+    top: 3,
+    right: 3,
+  },
+  lockContainer: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
   },
 });
 

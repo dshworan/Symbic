@@ -11,116 +11,148 @@ export class Clustered4EmptyCellsRule extends MoveValidator {
   }
 
   findStep(puzzle: (number | null)[][], size: number, shapes?: Shape[]): HintStep | null {
-    if (!shapes) return null;
-
-    // First check rows
-    const rowStep = this._checkRows(puzzle, size);
-    if (rowStep) {
-      return {
-        ...rowStep,
-        message: rowStep.message.replace(/\d/g, (match) => {
-          const value = parseInt(match);
-          return `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg>`;
-        })
-      };
+    // Early validation of input parameters
+    if (!puzzle || !Array.isArray(puzzle) || puzzle.length !== size) {
+      return null;
     }
-    
-    // Then check columns by transposing the puzzle
-    const transposed = this._transposeGrid(puzzle, size);
-    const colStep = this._checkRows(transposed, size);
-    
-    // Translate column step back to original coordinates
-    if (colStep) {
-      return {
-        row: colStep.col,
-        col: colStep.row,
-        value: colStep.value,
-        rule: colStep.rule,
-        message: colStep.message.replace('row', 'column').replace('Column', 'Row').replace(/\d/g, (match) => {
-          const value = parseInt(match);
-          return `<svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[value].path}" fill="${shapes[value].fill}"/></svg>`;
-        }),
-        hintCellSets: colStep.hintCellSets?.map(cell => ({ row: cell.col, col: cell.row }))
-      };
-    }
-    
-    return null;
-  }
 
-  private _transposeGrid(grid: (number | null)[][], size: number): (number | null)[][] {
-    const transposed = Array(size).fill(null).map(() => Array(size).fill(null));
+    if (!shapes || !Array.isArray(shapes) || shapes.length < 2) {
+      return null;
+    }
+
+    // Check rows
     for (let row = 0; row < size; row++) {
-      for (let col = 0; col < size; col++) {
-        transposed[col][row] = grid[row][col];
+      // Validate row data
+      if (!Array.isArray(puzzle[row]) || puzzle[row].length !== size) {
+        continue;
       }
-    }
-    return transposed;
-  }
 
-  private _checkRows(puzzle: (number | null)[][], size: number): HintStep | null {
-    for (let row = 0; row < size; row++) {
-      const currentRow = puzzle[row];
+      // Find empty cells and count digits
+      const emptyCells: number[] = [];
+      let zeroCount = 0;
+      let oneCount = 0;
       
-      // Count nulls and track their positions
-      const nullIndices: number[] = [];
       for (let col = 0; col < size; col++) {
-        if (currentRow[col] === null) {
-          nullIndices.push(col);
+        if (puzzle[row][col] === null) {
+          emptyCells.push(col);
+        } else if (puzzle[row][col] === 0) {
+          zeroCount++;
+        } else if (puzzle[row][col] === 1) {
+          oneCount++;
         }
       }
       
-      // We only care about rows with exactly 4 nulls
-      if (nullIndices.length !== 4) {
+      // We need exactly 4 empty cells
+      if (emptyCells.length !== 4) {
         continue;
       }
       
-      // Check if the 4 nulls are adjacent
-      nullIndices.sort((a, b) => a - b);
-      const [a, b, c, d] = nullIndices;
+      // Determine which digit needs to be placed 3 times
+      const neededZeros = (size / 2) - zeroCount;
+      const neededOnes = (size / 2) - oneCount;
       
-      if (b === a + 1 && c === b + 1 && d === c + 1) {
-        // The 4 nulls are adjacent!
+      let targetDigit: number | null = null;
+      if (neededZeros === 3) {
+        targetDigit = 0;
+      } else if (neededOnes === 3) {
+        targetDigit = 1;
+      } else {
+        continue; // We don't need exactly 3 of one digit
+      }
+      
+      // Sort empty indices to help with pattern detection
+      emptyCells.sort((a, b) => a - b);
+      
+      // Check if 3 empty cells are clustered together
+      const clusters = this._findClusters(emptyCells);
+      
+      // We need exactly one cluster of 3 and one isolated cell
+      if (clusters.length === 2 && 
+          ((clusters[0].length === 3 && clusters[1].length === 1) || 
+           (clusters[0].length === 1 && clusters[1].length === 3))) {
         
-        // Count digits to determine what's needed
-        let zeros = 0;
-        let ones = 0;
+        // Find the isolated empty cell
+        const isolatedCell = clusters[0].length === 1 ? clusters[0][0] : clusters[1][0];
         
-        for (let col = 0; col < size; col++) {
-          if (currentRow[col] === 0) zeros++;
-          else if (currentRow[col] === 1) ones++;
-        }
-        
-        // Determine which digit we need 3 of
-        const half = size / 2;
-        const need0 = half - zeros;
-        const need1 = half - ones;
-        
-        let targetDigit: number | null = null;
-        let needCount: number | null = null;
-        if (need0 === 3) {
-          targetDigit = 0;
-          needCount = need0;
-        } else if (need1 === 3) {
-          targetDigit = 1;
-          needCount = need1;
-        } else {
-          // We only apply this rule when we need exactly 3 of one digit
-          continue;
-        }
-        
-        // Place the digit in one of the outermost cells
-        // We'll use the first outermost cell (at index a)
         return {
           row: row,
-          col: a,  // First cell in the cluster
+          col: isolatedCell,
           value: targetDigit,
           rule: 'clustered4emptycells',
-          message: `Found 4 adjacent empty cells in row ${row+1} where we need ${needCount} ${targetDigit}s. Placing ${targetDigit} at column ${a+1} to prevent triplets.`,
+          message: `In these 4 cells we need 3 <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[targetDigit].path}" fill="${shapes[targetDigit].fill}"/></svg>. So we place a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[targetDigit].path}" fill="${shapes[targetDigit].fill}"/></svg> to prevent a triplet.`,
           hintCellSets: [
-            { row, col: a },
-            { row, col: b },
-            { row, col: c },
-            { row, col: d }
+            // Highlight the clustered empty cells
+            ...clusters[0].length === 3 ? clusters[0].map(col => ({ row, col })) : clusters[1].map(col => ({ row, col })),
+            // Highlight the isolated cell
+            { row, col: isolatedCell }
+          ]
+        };
+      }
+    }
+    
+    // Check columns
+    for (let col = 0; col < size; col++) {
+      // Find empty cells and count digits
+      const emptyCells: number[] = [];
+      let zeroCount = 0;
+      let oneCount = 0;
+      
+      for (let row = 0; row < size; row++) {
+        if (!Array.isArray(puzzle[row]) || puzzle[row].length !== size) {
+          continue;
+        }
+        if (puzzle[row][col] === null) {
+          emptyCells.push(row);
+        } else if (puzzle[row][col] === 0) {
+          zeroCount++;
+        } else if (puzzle[row][col] === 1) {
+          oneCount++;
+        }
+      }
+      
+      // We need exactly 4 empty cells
+      if (emptyCells.length !== 4) {
+        continue;
+      }
+      
+      // Determine which digit needs to be placed 3 times
+      const neededZeros = (size / 2) - zeroCount;
+      const neededOnes = (size / 2) - oneCount;
+      
+      let targetDigit: number | null = null;
+      if (neededZeros === 3) {
+        targetDigit = 0;
+      } else if (neededOnes === 3) {
+        targetDigit = 1;
+      } else {
+        continue; // We don't need exactly 3 of one digit
+      }
+      
+      // Sort empty indices to help with pattern detection
+      emptyCells.sort((a, b) => a - b);
+      
+      // Check if 3 empty cells are clustered together
+      const clusters = this._findClusters(emptyCells);
+      
+      // We need exactly one cluster of 3 and one isolated cell
+      if (clusters.length === 2 && 
+          ((clusters[0].length === 3 && clusters[1].length === 1) || 
+           (clusters[0].length === 1 && clusters[1].length === 3))) {
+        
+        // Find the isolated empty cell
+        const isolatedCell = clusters[0].length === 1 ? clusters[0][0] : clusters[1][0];
+        
+        return {
+          row: isolatedCell,
+          col: col,
+          value: targetDigit,
+          rule: 'clustered4emptycells',
+          message: `In these 4 cells we need 3 <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[targetDigit].path}" fill="${shapes[targetDigit].fill}"/></svg>. So we place a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[targetDigit].path}" fill="${shapes[targetDigit].fill}"/></svg> to prevent a triplet.`,
+          hintCellSets: [
+            // Highlight the clustered empty cells
+            ...clusters[0].length === 3 ? clusters[0].map(row => ({ row, col })) : clusters[1].map(row => ({ row, col })),
+            // Highlight the isolated cell
+            { row: isolatedCell, col }
           ]
         };
       }
@@ -129,29 +161,29 @@ export class Clustered4EmptyCellsRule extends MoveValidator {
     return null;
   }
 
-  private _isValidMove(puzzle: (number | null)[][], row: number, col: number, value: number, size: number): boolean {
-    // Check for three consecutive same values in row
-    if (col >= 2 && puzzle[row][col-1] === value && puzzle[row][col-2] === value) {
-      return false;
-    }
-    if (col <= size-3 && puzzle[row][col+1] === value && puzzle[row][col+2] === value) {
-      return false;
-    }
-    if (col > 0 && col < size-1 && puzzle[row][col-1] === value && puzzle[row][col+1] === value) {
-      return false;
+  /**
+   * Find clusters of adjacent cells in a sorted array of indices
+   * @param indices - Sorted array of cell indices
+   * @returns Array of clusters, where each cluster is an array of adjacent indices
+   */
+  private _findClusters(indices: number[]): number[][] {
+    const clusters: number[][] = [];
+    let currentCluster = [indices[0]];
+    
+    for (let i = 1; i < indices.length; i++) {
+      // If this index is adjacent to the previous one, add to current cluster
+      if (indices[i] === indices[i-1] + 1) {
+        currentCluster.push(indices[i]);
+      } else {
+        // Start a new cluster
+        clusters.push(currentCluster);
+        currentCluster = [indices[i]];
+      }
     }
     
-    // Check for three consecutive same values in column
-    if (row >= 2 && puzzle[row-1][col] === value && puzzle[row-2][col] === value) {
-      return false;
-    }
-    if (row <= size-3 && puzzle[row+1][col] === value && puzzle[row+2][col] === value) {
-      return false;
-    }
-    if (row > 0 && row < size-1 && puzzle[row-1][col] === value && puzzle[row+1][col] === value) {
-      return false;
-    }
+    // Add the last cluster
+    clusters.push(currentCluster);
     
-    return true;
+    return clusters;
   }
 } 

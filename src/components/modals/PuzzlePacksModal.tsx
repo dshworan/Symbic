@@ -1,31 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Svg, Path, Circle } from 'react-native-svg';
 import PackLevelsModal from './PackLevelsModal';
+import PackDataManager from '../../data/packDataManager';
+import type { PackInfo } from '../../data/packDataManager';
 
 interface PuzzlePacksModalProps {
   isVisible: boolean;
   onClose: () => void;
+  onCloseSettings?: () => void;
 }
 
-interface LevelInfo {
-  id: number;
-  gridSize: number;
-  difficulty: number;
-  puzzleCount: number;
-  completedCount: number;
-}
-
-interface PackInfo {
-  id: number;
-  name: string;
-  levels: LevelInfo[];
-  isPlayable: boolean;
-}
-
-const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose }) => {
+const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose, onCloseSettings }) => {
   const [selectedPack, setSelectedPack] = useState<PackInfo | null>(null);
+  const [packs, setPacks] = useState<PackInfo[]>([]);
+  const packDataManager = PackDataManager.getInstance();
+
+  useEffect(() => {
+    if (isVisible) {
+      setPacks(packDataManager.getPacks());
+    }
+  }, [isVisible]);
 
   const getDifficultyColor = (difficulty: number) => {
     if (difficulty < 3) return '#4CAF50'; // Easy - Green
@@ -41,81 +37,17 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose 
     return 'Expert';
   };
 
-  // Mock data - replace with actual data from your game
-  const packs: PackInfo[] = [
-    {
-      id: 1,
-      name: "Pack 1",
-      isPlayable: true,
-      levels: [
-        { id: 1, gridSize: 4, difficulty: 1.9, puzzleCount: 5, completedCount: 2 },
-        { id: 2, gridSize: 6, difficulty: 2.2, puzzleCount: 5, completedCount: 1 },
-        { id: 3, gridSize: 6, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
-        { id: 4, gridSize: 6, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
-      ]
-    },
-    {
-      id: 2,
-      name: "Pack 2",
-      isPlayable: true,
-      levels: [
-        { id: 1, gridSize: 6, difficulty: 2.3, puzzleCount: 5, completedCount: 0 },
-        { id: 2, gridSize: 6, difficulty: 2.8, puzzleCount: 5, completedCount: 0 },
-        { id: 3, gridSize: 8, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
-        { id: 4, gridSize: 8, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
-      ]
-    },
-    {
-      id: 3,
-      name: "Pack 3",
-      isPlayable: false,
-      levels: [
-        { id: 1, gridSize: 8, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
-        { id: 2, gridSize: 8, difficulty: 2.7, puzzleCount: 5, completedCount: 0 },
-        { id: 3, gridSize: 10, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
-        { id: 4, gridSize: 10, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
-      ]
-    },
-    {
-      id: 4,
-      name: "Pack 4",
-      isPlayable: false,
-      levels: [
-        { id: 1, gridSize: 8, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
-        { id: 2, gridSize: 8, difficulty: 2.7, puzzleCount: 5, completedCount: 0 },
-        { id: 3, gridSize: 10, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
-        { id: 4, gridSize: 10, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
-      ]
-    },
-    {
-      id: 5,
-      name: "Pack 5",
-      isPlayable: false,
-      levels: [
-        { id: 1, gridSize: 8, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
-        { id: 2, gridSize: 8, difficulty: 2.7, puzzleCount: 5, completedCount: 0 },
-        { id: 3, gridSize: 10, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
-        { id: 4, gridSize: 10, difficulty: 2.4, puzzleCount: 5, completedCount: 0 },
-      ]
-    }
-    
-  ];
-
   const renderPackHeader = (pack: PackInfo) => {
-    // Calculate total completed puzzles for this pack
-    const totalCompleted = pack.levels.reduce((sum, level) => sum + level.completedCount, 0);
-    const totalPuzzles = pack.levels.reduce((sum, level) => sum + level.puzzleCount, 0);
-
     return (
       <TouchableOpacity 
         style={styles.packHeader}
         onPress={() => setSelectedPack(pack)}
       >
         <View style={styles.completionCountContainer}>
-          <Text style={styles.completionCount}>{totalCompleted}/{totalPuzzles}</Text>
+          <Text style={styles.completionCount}>{pack.completedPuzzles}/{pack.levels.reduce((sum, level) => sum + level.puzzles, 0)}</Text>
         </View>
         <View style={styles.packTitleContainer}>
-          <Text style={styles.packTitle}>{pack.name}</Text>
+          <Text style={styles.packTitle}>Pack {pack.id}</Text>
         </View>
         <View style={styles.packIconContainer}>
           {pack.isPlayable ? (
@@ -130,20 +62,22 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose 
     );
   };
 
-  const renderLevelTile = (level: LevelInfo, pack: PackInfo) => (
+  const renderLevelTile = (level: PackInfo['levels'][0], pack: PackInfo) => (
     <TouchableOpacity 
-      key={level.id}
+      key={level.level}
       style={styles.levelTile}
       onPress={() => setSelectedPack(pack)}
     >
       <View style={styles.levelTileContent}>
-        <Text style={styles.gridSizeText}>{level.gridSize}x{level.gridSize}</Text>
+        <Text style={styles.gridSizeText}>{level.size}x{level.size}</Text>
         <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(level.difficulty) }]}>
           <Text style={styles.difficultyText}>
             {getDifficultyText(level.difficulty)}
           </Text>
         </View>
-        <Text style={styles.completionText}>{level.completedCount}/{level.puzzleCount}</Text>
+        <Text style={styles.completionText}>
+          {packDataManager.getCompletedPuzzleCount(pack.id, level.level)}/{level.puzzles}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -159,7 +93,10 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose 
         <View style={styles.modalView}>
           <View style={styles.header}>
             <Text style={styles.headerText}>Puzzle Packs</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <TouchableOpacity onPress={() => {
+              setSelectedPack(null);
+              onClose();
+            }} style={styles.closeButton}>
               <Ionicons name="close" size={24} color="#e0e0e0" />
             </TouchableOpacity>
           </View>
@@ -184,10 +121,14 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose 
       {selectedPack && (
         <PackLevelsModal
           isVisible={!!selectedPack}
-          onClose={() => setSelectedPack(null)}
-          packName={selectedPack.name}
+          onClose={() => {
+            setSelectedPack(null);
+            onClose();
+          }}
+          packName={`Pack ${selectedPack.id}`}
           isPlayable={selectedPack.isPlayable}
           levels={selectedPack.levels}
+          onCloseSettings={onCloseSettings}
         />
       )}
     </Modal>
