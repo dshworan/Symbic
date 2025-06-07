@@ -10,7 +10,7 @@ import { useAudio } from '../context/AudioContext';
 import { RuleManager } from '../data/rules/ruleManager';
 import SettingsModal from './modals/SettingsModal';
 import { pack1Tutorials } from '../data/tutorials/pack1Tutorials';
-import PackDataManager from '../data/packDataManager';
+import { PackDataManager } from '../data/packDataManager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type CellValue = number | null;
@@ -176,6 +176,24 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
       });
     }
   }, [currentLevelId, currentGridSize]);
+
+  // Effect to handle puzzle changes
+  useEffect(() => {
+    const puzzle = puzzleManager.getCurrentPuzzle();
+    const currentLevel = levelManager.getCurrentLevel();
+    
+    if (puzzle && puzzle.grid) {
+      const gridSize = puzzle.grid.length;
+      const newCellSize = calculateCellSize(gridSize);
+      
+      // Update grid and size
+      setGrid(puzzle.grid as CellValue[][]);
+      setCurrentGridSize(gridSize);
+      setCellSize(newCellSize);
+      setCurrentLevelId(currentLevel.id);
+      setCurrentShapes(currentLevel.shapes);
+    }
+  }, [puzzleManager.getCurrentPuzzleIndex()]);
 
   // Effect to sync currentPuzzleIndex with puzzleManager
   useEffect(() => {
@@ -516,16 +534,16 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
       const packId = levelManager.getCurrentPackNumber();
       const levelId = levelManager.getCurrentLevelNumber();
       const puzzleIndex = puzzleManager.getCurrentPuzzleIndex();
-      console.log('Puzzle completed:', {
-        packId,
-        levelId,
-        puzzleIndex,
-        gridSize: puzzle.grid.length
-      });
+      //console.log('Puzzle completed:', {
+        //packId,
+        //levelId,
+        //puzzleIndex,
+        //gridSize: puzzle.grid.length
+      //});
 
       // Mark puzzle as completed in PackDataManager
       const packDataManager = PackDataManager.getInstance();
-      packDataManager.markPuzzleAsCompleted(packId, levelId, puzzleIndex);
+      packDataManager.completePuzzle(packId, levelId, puzzleIndex);
 
       // Show success message
       showSuccessMessage(getRandomSuccessMessage());

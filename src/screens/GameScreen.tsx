@@ -69,7 +69,7 @@ export const GameScreen: React.FC = () => {
     const checkLevel = () => {
       const newLevelId = levelManager.getCurrentLevel().id;
       if (newLevelId !== currentLevelId) {
-        console.log('Level changed in GameScreen:', newLevelId);
+        //console.log('Level changed in GameScreen:', newLevelId);
         setCurrentLevelId(newLevelId);
         // Force GameBoard to remount when level changes
         setResetKey(prev => prev + 1);

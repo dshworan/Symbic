@@ -21,14 +21,14 @@ export class QuadAntiTripleRule extends MoveValidator {
     }
 
     // First check rows
-    console.log('\nChecking ROWS:');
+    //console.log('\nChecking ROWS:');
     const rowStep = this._checkRows(puzzle, size, 'row', shapes);
     if (rowStep) {
       return rowStep;
     }
     
     // Then check columns by transposing the grid
-    console.log('\nChecking COLUMNS:');
+    //console.log('\nChecking COLUMNS:');
     const transposedPuzzle = this._transposeGrid(puzzle, size);
     const colStep = this._checkRows(transposedPuzzle, size, 'column', shapes);
     
@@ -83,11 +83,11 @@ export class QuadAntiTripleRule extends MoveValidator {
       }
       
       // Debug logging
-      console.log(`${direction.charAt(0).toUpperCase() + direction.slice(1)} ${row}: Total empty cells: ${totalEmptyCells}`);
+      //console.log(`${direction.charAt(0).toUpperCase() + direction.slice(1)} ${row}: Total empty cells: ${totalEmptyCells}`);
       
       // We only care about rows with exactly 4 empty cells total
       if (totalEmptyCells !== 4) {
-        console.log(`${direction.charAt(0).toUpperCase() + direction.slice(1)} ${row}: Skipping - has ${totalEmptyCells} empty cells, need exactly 4`);
+        //console.log(`${direction.charAt(0).toUpperCase() + direction.slice(1)} ${row}: Skipping - has ${totalEmptyCells} empty cells, need exactly 4`);
         continue;  // Skip this row entirely if not exactly 4 empty cells
       }
       
@@ -104,7 +104,7 @@ export class QuadAntiTripleRule extends MoveValidator {
       const [a, b, c, d] = nullIndices;
       
       if (b === a + 1 && c === b + 1 && d === c + 1) {
-        console.log(`${direction.charAt(0).toUpperCase() + direction.slice(1)} ${row}: Found 4 adjacent empty cells at positions:`, [a, b, c, d]);
+        //console.log(`${direction.charAt(0).toUpperCase() + direction.slice(1)} ${row}: Found 4 adjacent empty cells at positions:`, [a, b, c, d]);
         
         // Count digits to determine what's needed
         let zeros = 0;
@@ -115,14 +115,14 @@ export class QuadAntiTripleRule extends MoveValidator {
           else if (currentRow[col] === 1) ones++;
         }
         
-        console.log(`${direction.charAt(0).toUpperCase() + direction.slice(1)} ${row}: Found ${zeros} zeros and ${ones} ones`);
+        //console.log(`${direction.charAt(0).toUpperCase() + direction.slice(1)} ${row}: Found ${zeros} zeros and ${ones} ones`);
         
         // Determine which digit we need 3 of
         const half = size / 2;
         const need0 = half - zeros;
         const need1 = half - ones;
         
-        console.log(`${direction.charAt(0).toUpperCase() + direction.slice(1)} ${row}: Need ${need0} zeros and ${need1} ones`);
+        //console.log(`${direction.charAt(0).toUpperCase() + direction.slice(1)} ${row}: Need ${need0} zeros and ${need1} ones`);
         
         let targetDigit: number | null = null;
         
@@ -131,7 +131,7 @@ export class QuadAntiTripleRule extends MoveValidator {
         } else if (need1 === 3) {
           targetDigit = 1;
         } else {
-          console.log(`${direction.charAt(0).toUpperCase() + direction.slice(1)} ${row}: Skipping - don't need exactly 3 of either digit`);
+          //console.log(`${direction.charAt(0).toUpperCase() + direction.slice(1)} ${row}: Skipping - don't need exactly 3 of either digit`);
           continue;
         }
         
@@ -151,7 +151,7 @@ export class QuadAntiTripleRule extends MoveValidator {
           ]
         };
       } else {
-        console.log(`${direction.charAt(0).toUpperCase() + direction.slice(1)} ${row}: Empty cells are not adjacent`);
+        //console.log(`${direction.charAt(0).toUpperCase() + direction.slice(1)} ${row}: Empty cells are not adjacent`);
       }
     }
     

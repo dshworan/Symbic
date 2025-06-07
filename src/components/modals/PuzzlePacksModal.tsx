@@ -23,6 +23,22 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose,
     }
   }, [isVisible]);
 
+  const handleNavigatePack = (direction: 'prev' | 'next') => {
+    if (!selectedPack) return;
+    
+    const currentIndex = packs.findIndex(pack => pack.id === selectedPack.id);
+    if (currentIndex === -1) return;
+
+    let newIndex;
+    if (direction === 'prev') {
+      newIndex = currentIndex > 0 ? currentIndex - 1 : packs.length - 1;
+    } else {
+      newIndex = currentIndex < packs.length - 1 ? currentIndex + 1 : 0;
+    }
+
+    setSelectedPack(packs[newIndex]);
+  };
+
   const getDifficultyColor = (difficulty: number) => {
     if (difficulty < 3) return '#4CAF50'; // Easy - Green
     if (difficulty < 7) return '#2196F3'; // Medium - Blue
@@ -38,49 +54,59 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose,
   };
 
   const renderPackHeader = (pack: PackInfo) => {
+    const totalPuzzles = pack.levels.reduce((sum, level) => sum + level.puzzles, 0);
+    const isPackCompleted = pack.completedPuzzles === totalPuzzles;
+
     return (
       <TouchableOpacity 
         style={styles.packHeader}
         onPress={() => setSelectedPack(pack)}
       >
         <View style={styles.completionCountContainer}>
-          <Text style={styles.completionCount}>{pack.completedPuzzles}/{pack.levels.reduce((sum, level) => sum + level.puzzles, 0)}</Text>
+          <Text style={styles.completionCount}>{pack.completedPuzzles}/{totalPuzzles}</Text>
         </View>
         <View style={styles.packTitleContainer}>
           <Text style={styles.packTitle}>Pack {pack.id}</Text>
         </View>
         <View style={styles.packIconContainer}>
-          {pack.isPlayable ? (
-            <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-          ) : (
-            <TouchableOpacity onPress={() => console.log('Watch ad to unlock')}>
-              <Ionicons name="play-circle" size={24} color="#2196F3" />
-            </TouchableOpacity>
-          )}
         </View>
       </TouchableOpacity>
     );
   };
 
-  const renderLevelTile = (level: PackInfo['levels'][0], pack: PackInfo) => (
-    <TouchableOpacity 
-      key={level.level}
-      style={styles.levelTile}
-      onPress={() => setSelectedPack(pack)}
-    >
-      <View style={styles.levelTileContent}>
-        <Text style={styles.gridSizeText}>{level.size}x{level.size}</Text>
-        <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(level.difficulty) }]}>
-          <Text style={styles.difficultyText}>
-            {getDifficultyText(level.difficulty)}
+  const renderLevelTile = (level: PackInfo['levels'][0], pack: PackInfo) => {
+    const completedCount = packDataManager.getCompletedPuzzleCount(pack.id, level.level);
+    const isCompleted = completedCount === level.puzzles;
+    const isPartiallyCompleted = completedCount > 0 && !isCompleted;
+
+    return (
+      <TouchableOpacity 
+        key={level.level}
+        style={styles.levelTile}
+        onPress={() => setSelectedPack(pack)}
+      >
+        {isCompleted && (
+          <View style={styles.levelCheckmarkContainer}>
+            <Ionicons name="checkmark-sharp" size={16} color="#4CAF50" />
+          </View>
+        )}
+        <View style={styles.levelTileContent}>
+          <Text style={styles.gridSizeText}>{level.size}x{level.size}</Text>
+          <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(level.difficulty) }]}>
+            <Text style={styles.difficultyText}>
+              {getDifficultyText(level.difficulty)}
+            </Text>
+          </View>
+          <Text style={[
+            styles.completionText,
+            isPartiallyCompleted && styles.partialCompletionText
+          ]}>
+            {completedCount}/{level.puzzles}
           </Text>
         </View>
-        <Text style={styles.completionText}>
-          {packDataManager.getCompletedPuzzleCount(pack.id, level.level)}/{level.puzzles}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <Modal
@@ -123,12 +149,19 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose,
           isVisible={!!selectedPack}
           onClose={() => {
             setSelectedPack(null);
-            onClose();
           }}
           packName={`Pack ${selectedPack.id}`}
           isPlayable={selectedPack.isPlayable}
           levels={selectedPack.levels}
           onCloseSettings={onCloseSettings}
+          onNavigatePack={handleNavigatePack}
+          onStartGame={() => {
+            setSelectedPack(null);
+            onClose();
+            if (onCloseSettings) {
+              onCloseSettings();
+            }
+          }}
         />
       )}
     </Modal>
@@ -254,13 +287,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   completionText: {
-    color: '#bbbbbb',
     fontSize: 12,
-    marginTop: 2,
+    color: '#bbbbbb',
+  },
+  partialCompletionText: {
+    color: '#ffb700',
   },
   completionCount: {
     fontSize: 14,
     color: '#bbbbbb',
+  },
+  levelCheckmarkContainer: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    zIndex: 1,
   },
 });
 

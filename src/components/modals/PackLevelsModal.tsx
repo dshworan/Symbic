@@ -21,9 +21,11 @@ interface PackLevelsModalProps {
   isPlayable: boolean;
   levels: LevelInfo[];
   onCloseSettings?: () => void;
+  onNavigatePack?: (direction: 'prev' | 'next') => void;
+  onStartGame?: () => void;
 }
 
-const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, packName, isPlayable, levels, onCloseSettings }) => {
+const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, packName, isPlayable, levels, onCloseSettings, onNavigatePack, onStartGame }) => {
   const packDataManager = PackDataManager.getInstance();
   const packId = parseInt(packName.split(' ')[1]);
   const navigation = useNavigation<NavigationProp>();
@@ -67,10 +69,9 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
       return;
     }
 
-    // Close all modals
-    onClose(); // Close this modal
-    if (onCloseSettings) {
-      onCloseSettings(); // Close settings modal if it exists
+    // Close all modals and start game
+    if (onStartGame) {
+      onStartGame();
     }
 
     // Navigate to the game screen
@@ -154,20 +155,28 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
     >
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={onClose} style={styles.backButton}>
-                <Ionicons name="arrow-back" size={24} color="#e0e0e0" />
-              </TouchableOpacity>
-            </View>
+          <View style={styles.closeButtonContainer}>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color="#e0e0e0" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.navigationContainer}>
+            <TouchableOpacity 
+              onPress={() => onNavigatePack?.('prev')} 
+              style={styles.navButton}
+            >
+              <Ionicons name="chevron-back" size={32} color="#e0e0e0" />
+            </TouchableOpacity>
+            
             <Text style={styles.headerText}>{packName}</Text>
-            <View style={styles.headerRight}>
-              {!isPlayable && (
-                <TouchableOpacity onPress={handleUnlockWithAd}>
-                  <Ionicons name="play-circle" size={32} color="#2196F3" />
-                </TouchableOpacity>
-              )}
-            </View>
+            
+            <TouchableOpacity 
+              onPress={() => onNavigatePack?.('next')} 
+              style={styles.navButton}
+            >
+              <Ionicons name="chevron-forward" size={32} color="#e0e0e0" />
+            </TouchableOpacity>
           </View>
 
           <ScrollView 
@@ -206,22 +215,30 @@ const styles = StyleSheet.create({
     elevation: 5,
     height: '95%'
   },
-  header: {
+  closeButtonContainer: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 1,
+  },
+  closeButton: {
+    padding: 10,
+  },
+  navigationContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 15,
+    paddingVertical: 5,
+    paddingHorizontal: 15,
     backgroundColor: '#292929',
     borderBottomWidth: 1,
     borderBottomColor: '#333333',
+    marginTop: 60,
   },
-  headerLeft: {
-    width: 34, // Same width as back button for centering
-    alignItems: 'flex-start',
-  },
-  headerRight: {
-    width: 34, // Same width as play button for centering
-    alignItems: 'flex-end',
+  navButton: {
+    padding: 8,
+    width: 48,
+    alignItems: 'center',
   },
   headerText: {
     fontSize: 24,
@@ -229,9 +246,6 @@ const styles = StyleSheet.create({
     color: '#e0e0e0',
     flex: 1,
     textAlign: 'center',
-  },
-  backButton: {
-    padding: 5,
   },
   scrollView: {
     flex: 1,
@@ -254,6 +268,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   levelInfo: {
+    width: 284,
+    alignSelf: 'center',
     flexDirection: 'column',
     gap: 8,
   },
