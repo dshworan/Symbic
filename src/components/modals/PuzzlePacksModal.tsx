@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Svg, Path, Circle } from 'react-native-svg';
 import PackLevelsModal from './PackLevelsModal';
 import PackDataManager from '../../data/packDataManager';
+import { adManager } from '../../utils/adManager';
 import type { PackInfo } from '../../data/packDataManager';
 
 interface PuzzlePacksModalProps {
@@ -69,6 +70,20 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose,
           <Text style={styles.packTitle}>Pack {pack.id}</Text>
         </View>
         <View style={styles.packIconContainer}>
+          {!pack.isPlayable && (
+            <TouchableOpacity 
+              style={styles.playIconContainer}
+              onPress={async (e) => {
+                e.stopPropagation();
+                const success = await adManager.showAdAndUnlockPack(pack.id);
+                if (success) {
+                  setPacks(packDataManager.getPacks());
+                }
+              }}
+            >
+              <Ionicons name="play-circle" size={24} color="#4CAF50" />
+            </TouchableOpacity>
+          )}
         </View>
       </TouchableOpacity>
     );
@@ -225,16 +240,16 @@ const styles = StyleSheet.create({
     borderColor: '#404040',
   },
   packHeader: {
-    backgroundColor: '#333333',
-    padding: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#404040',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingRight: 10,
+    paddingLeft: 10,
+    backgroundColor: '#292929',
+    borderRadius: 8,
+    height: 50,
   },
   completionCountContainer: {
-    flex: 1,
+    width: 60,
     alignItems: 'flex-start',
   },
   packTitleContainer: {
@@ -242,8 +257,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   packIconContainer: {
-    flex: 1,
+    width: 60,
     alignItems: 'flex-end',
+  },
+  playIconContainer: {
+    padding: 4,
   },
   packTitle: {
     fontSize: 16,
@@ -252,7 +270,8 @@ const styles = StyleSheet.create({
   },
   levelsRow: {
     flexDirection: 'row',
-    padding: 8,
+    paddingHorizontal: 8,
+    paddingBottom: 8,
     gap: 8,
   },
   levelTile: {
@@ -292,6 +311,7 @@ const styles = StyleSheet.create({
   },
   partialCompletionText: {
     color: '#ffb700',
+    fontWeight: 'bold',
   },
   completionCount: {
     fontSize: 14,

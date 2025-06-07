@@ -99,19 +99,21 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
         ]}
         onPress={() => handlePuzzlePress(level, index)}
       >
-        <Text style={[
-          styles.puzzleNumber,
-          isCompleted && styles.completedPuzzleNumber,
-          !isPuzzlePlayable && styles.lockedPuzzleNumber
-        ]}>
-          {puzzleNumber}
-        </Text>
-        {isCompleted && (
-          <View style={styles.checkmarkContainer}>
-            <Ionicons name="checkmark" size={14} color="#FFFFFF" style={{ fontWeight: 'bold' }} />
-          </View>
-        )}
-        {!isPuzzlePlayable && (
+        {isPuzzlePlayable ? (
+          <>
+            <Text style={[
+              styles.puzzleNumber,
+              isCompleted && styles.completedPuzzleNumber
+            ]}>
+              {puzzleNumber}
+            </Text>
+            {isCompleted && (
+              <View style={styles.checkmarkContainer}>
+                <Ionicons name="checkmark" size={14} color="#FFFFFF" style={{ fontWeight: 'bold' }} />
+              </View>
+            )}
+          </>
+        ) : (
           <View style={styles.lockContainer}>
             <Ionicons name="lock-closed" size={16} color="#aaaaaa" />
           </View>
@@ -169,7 +171,17 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
               <Ionicons name="chevron-back" size={32} color="#e0e0e0" />
             </TouchableOpacity>
             
-            <Text style={styles.headerText}>{packName}</Text>
+            <View style={styles.titleContainer}>
+              <Text style={styles.headerText}>{packName}</Text>
+              {!isPlayable && (
+                <TouchableOpacity 
+                  style={styles.playIconContainer}
+                  onPress={handleUnlockWithAd}
+                >
+                  <Ionicons name="play-circle" size={28} color="#4caf50" />
+                </TouchableOpacity>
+              )}
+            </View>
             
             <TouchableOpacity 
               onPress={() => onNavigatePack?.('next')} 
@@ -186,6 +198,17 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
           >
             {levels.map(level => renderLevelSection(level))}
           </ScrollView>
+
+          {!isPlayable && (
+            <View style={styles.unlockButtonContainer}>
+              <TouchableOpacity 
+                style={styles.unlockButton}
+                onPress={handleUnlockWithAd}
+              >
+                <Text style={styles.unlockButtonText}>Unlock {packName}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     </Modal>
@@ -316,9 +339,8 @@ const styles = StyleSheet.create({
     borderColor: '#4CAF50',
   },
   lockedPuzzle: {
-    backgroundColor: '#2a2a2a',
-    borderColor: '#404040',
-    opacity: 0.8,
+    backgroundColor: '#363636',
+    borderColor: '#474747',
   },
   puzzleNumber: {
     fontSize: 20,
@@ -328,18 +350,43 @@ const styles = StyleSheet.create({
   completedPuzzleNumber: {
     color: '#FFFFFF',
   },
-  lockedPuzzleNumber: {
-    color: '#666666',
-  },
   checkmarkContainer: {
     position: 'absolute',
     top: 3,
     right: 3,
   },
   lockContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  titleContainer: {
+    position: 'relative',
+    alignItems: 'center',
+  },
+  playIconContainer: {
     position: 'absolute',
-    top: 4,
-    right: 4,
+    right: -42,
+    top: '50%',
+    transform: [{ translateY: -17 }],
+    padding: 4,
+  },
+  unlockButtonContainer: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#404040',
+  },
+  unlockButton: {
+    backgroundColor: '#4caf50',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  unlockButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

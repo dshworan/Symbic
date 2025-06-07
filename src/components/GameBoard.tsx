@@ -790,7 +790,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
 
-    if (isAutoplay && !isSolved) {
+    if (isAutoplay && !isSolved && grid.length > 0) {  // Add check for grid initialization
       interval = setInterval(() => {
         // If there's already a hint showing, apply it
         if (hint && hint.row !== -1) {
@@ -835,7 +835,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
         clearInterval(interval);
       }
     };
-  }, [isAutoplay, isSolved, hint]);
+  }, [isAutoplay, isSolved, hint, grid]);  // Add grid to dependencies
 
   useEffect(() => {
     // Hide status bar
