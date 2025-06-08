@@ -1,5 +1,5 @@
-import React from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LevelInfo } from '../../data/packDataManager';
 import PackDataManager from '../../data/packDataManager';
@@ -7,6 +7,8 @@ import { useNavigation } from '@react-navigation/native';
 import { levelManager } from '../../data/levels/levelManager';
 import { puzzleManager } from '../../utils/puzzleManager';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { showRewardedAd } from '../../utils/rewardAd';
+import { MaterialIcons } from '@expo/vector-icons';
 
 type RootStackParamList = {
   Game: undefined;
@@ -23,12 +25,18 @@ interface PackLevelsModalProps {
   onCloseSettings?: () => void;
   onNavigatePack?: (direction: 'prev' | 'next') => void;
   onStartGame?: () => void;
+  onPackUnlocked?: () => void;
 }
 
-const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, packName, isPlayable, levels, onCloseSettings, onNavigatePack, onStartGame }) => {
+const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, packName, isPlayable, levels, onCloseSettings, onNavigatePack, onStartGame, onPackUnlocked }) => {
   const packDataManager = PackDataManager.getInstance();
   const packId = parseInt(packName.split(' ')[1]);
   const navigation = useNavigation<NavigationProp>();
+  const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
+  const [unlockButtonScale] = useState(new Animated.Value(1));
+  const [contentOpacity] = useState(new Animated.Value(1));
+  const [contentTranslateX] = useState(new Animated.Value(0));
+  const isAnimating = useRef(false);
 
   const getDifficultyColor = (difficulty: number) => {
     if (difficulty < 3) return '#4CAF50'; // Easy - Green
@@ -78,10 +86,82 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
     navigation.navigate('Game');
   };
 
-  const handleUnlockWithAd = () => {
-    console.log('Unlocking pack', packId);
-    packDataManager.unlockPack(packId);
-    onClose();
+  const handleUnlockWithAd = async () => {
+    try {
+      await showRewardedAd(() => {
+        // Unlock the pack after watching the ad
+        packDataManager.unlockPack(packId);
+        // Call the callback to notify parent component
+        if (onPackUnlocked) {
+          onPackUnlocked();
+        }
+        onClose();
+      });
+    } catch (error) {
+      console.error('Error showing reward ad:', error);
+      Alert.alert(
+        'Error',
+        'Failed to show ad. Please try again later.',
+        [{ text: 'OK', style: 'cancel' }]
+      );
+    }
+  };
+
+  const handleLockedPuzzlePress = () => {
+    // Pulse animation sequence
+    Animated.sequence([
+      Animated.timing(unlockButtonScale, {
+        toValue: 1.1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(unlockButtonScale, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const handleNavigatePack = (direction: 'prev' | 'next') => {
+    if (isAnimating.current) return;
+    isAnimating.current = true;
+
+    // Start exit animation
+    Animated.parallel([
+      Animated.timing(contentOpacity, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(contentTranslateX, {
+        toValue: direction === 'next' ? -50 : 50,
+        duration: 150,
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      // Call the navigation callback
+      onNavigatePack?.(direction);
+      
+      // Reset position for next animation
+      contentTranslateX.setValue(direction === 'next' ? 50 : -50);
+      
+      // Start enter animation
+      Animated.parallel([
+        Animated.timing(contentOpacity, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(contentTranslateX, {
+          toValue: 0,
+          duration: 150,
+          useNativeDriver: true,
+        })
+      ]).start(() => {
+        isAnimating.current = false;
+      });
+    });
   };
 
   const renderPuzzleSquare = (index: number, level: LevelInfo) => {
@@ -97,7 +177,13 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
           isCompleted && styles.completedPuzzle,
           !isPuzzlePlayable && styles.lockedPuzzle
         ]}
-        onPress={() => handlePuzzlePress(level, index)}
+        onPress={() => {
+          if (!isPuzzlePlayable) {
+            handleLockedPuzzlePress();
+            return;
+          }
+          handlePuzzlePress(level, index);
+        }}
       >
         {isPuzzlePlayable ? (
           <>
@@ -164,49 +250,53 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
           </View>
 
           <View style={styles.navigationContainer}>
-            <TouchableOpacity 
-              onPress={() => onNavigatePack?.('prev')} 
-              style={styles.navButton}
-            >
-              <Ionicons name="chevron-back" size={32} color="#e0e0e0" />
-            </TouchableOpacity>
+            <View style={styles.navButton}>
+              <TouchableOpacity 
+                onPress={() => handleNavigatePack('prev')} 
+              >
+                <Ionicons name="chevron-back" size={32} color="#e0e0e0" />
+              </TouchableOpacity>
+            </View>
             
             <View style={styles.titleContainer}>
               <Text style={styles.headerText}>{packName}</Text>
-              {!isPlayable && (
-                <TouchableOpacity 
-                  style={styles.playIconContainer}
-                  onPress={handleUnlockWithAd}
-                >
-                  <Ionicons name="play-circle" size={28} color="#4caf50" />
-                </TouchableOpacity>
-              )}
             </View>
             
-            <TouchableOpacity 
-              onPress={() => onNavigatePack?.('next')} 
-              style={styles.navButton}
-            >
-              <Ionicons name="chevron-forward" size={32} color="#e0e0e0" />
-            </TouchableOpacity>
+            <View style={styles.navButton}>
+              <TouchableOpacity 
+                onPress={() => handleNavigatePack('next')} 
+              >
+                <Ionicons name="chevron-forward" size={32} color="#e0e0e0" />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          <ScrollView 
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollViewContent}
-            showsVerticalScrollIndicator={true}
-          >
-            {levels.map(level => renderLevelSection(level))}
-          </ScrollView>
+          <Animated.View style={[
+            styles.scrollView,
+            {
+              opacity: contentOpacity,
+              transform: [{ translateX: contentTranslateX }]
+            }
+          ]}>
+            <ScrollView 
+              contentContainerStyle={styles.scrollViewContent}
+              showsVerticalScrollIndicator={true}
+            >
+              {levels.map(level => renderLevelSection(level))}
+            </ScrollView>
+          </Animated.View>
 
           {!isPlayable && (
             <View style={styles.unlockButtonContainer}>
-              <TouchableOpacity 
-                style={styles.unlockButton}
-                onPress={handleUnlockWithAd}
-              >
-                <Text style={styles.unlockButtonText}>Unlock {packName}</Text>
-              </TouchableOpacity>
+              <Animated.View style={{ transform: [{ scale: unlockButtonScale }] }}>
+                <TouchableOpacity 
+                  style={styles.unlockButton} 
+                  onPress={handleUnlockWithAd}
+                >
+                  <Text style={styles.unlockButtonText}>Unlock Pack {packId}</Text>
+                  <MaterialIcons name="play-arrow" size={24} color="#ffffff" />
+                </TouchableOpacity>
+              </Animated.View>
             </View>
           )}
         </View>
@@ -257,17 +347,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#333333',
     marginTop: 60,
+    height: 60,
   },
   navButton: {
-    padding: 8,
     width: 48,
+    height: 48,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#e0e0e0',
-    flex: 1,
     textAlign: 'center',
   },
   scrollView: {
@@ -361,30 +452,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   titleContainer: {
-    position: 'relative',
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  playIconContainer: {
-    position: 'absolute',
-    right: -42,
-    top: '50%',
-    transform: [{ translateY: -17 }],
-    padding: 4,
   },
   unlockButtonContainer: {
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: '#292929',
     borderTopWidth: 1,
-    borderTopColor: '#404040',
+    borderTopColor: '#333333',
   },
   unlockButton: {
-    backgroundColor: '#4caf50',
+    backgroundColor: '#4CAF50',
     paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     borderRadius: 8,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
   },
   unlockButtonText: {
-    color: '#FFFFFF',
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: 'bold',
   },

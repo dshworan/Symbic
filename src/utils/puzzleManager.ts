@@ -83,8 +83,10 @@ class PuzzleManager {
 
   // Add method to sync with LevelManager
   syncWithLevelManager(): void {
-    // Reset puzzle index when level changes
-    this.currentPuzzleIndex = 0;
+    // Only reset puzzle index when level changes, not when pack changes
+    if (this.getLevel() !== levelManager.getCurrentLevelNumber()) {
+      this.currentPuzzleIndex = 0;
+    }
   }
 }
 

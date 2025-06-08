@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, Switch, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, Switch, Platform, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Svg, Path, Circle } from 'react-native-svg';
 import AboutModal from './AboutModal';
@@ -13,6 +13,8 @@ import { levelManager } from '../../data/levels/levelManager';
 import ColorTestModal from './ColorTestModal';
 import PackDataManager from '../../data/packDataManager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { hintManager } from '../../utils/hintManager';
+import packList from '../../data/packList';
 
 type RootStackParamList = {
   TestInterstitialAd: undefined;
@@ -36,6 +38,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showPuzzlePacks, setShowPuzzlePacks] = useState(false);
   const [showColorTest, setShowColorTest] = useState(false);
+  const [showClearStorageConfirm, setShowClearStorageConfirm] = useState(false);
+  const [showUnlockAllConfirm, setShowUnlockAllConfirm] = useState(false);
 
   const handleSoundToggle = async () => {
     await toggleSound();
@@ -54,6 +58,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
     const packDataManager = PackDataManager.getInstance();
     await packDataManager.clearCompletionData();
     
+    // Reset hints
+    await hintManager.resetHints();
+    
     // Reset score in AsyncStorage
     try {
       await AsyncStorage.removeItem('@game_score');
@@ -71,6 +78,50 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
   const openAdScreen = (screenName: keyof RootStackParamList) => {
     onClose();
     navigation.navigate(screenName);
+  };
+
+  const handleClearAllStorage = async () => {
+    try {
+      // Clear all AsyncStorage data
+      await AsyncStorage.clear();
+      
+      // Reset all managers
+      const packDataManager = PackDataManager.getInstance();
+      await packDataManager.clearAllStorage();
+      await hintManager.resetHints();
+      
+      // Show success message
+      Alert.alert(
+        'Success',
+        'All local storage has been cleared. The app will now behave like a fresh install.',
+        [{ text: 'OK', onPress: onClose }]
+      );
+    } catch (error) {
+      console.error('Error clearing storage:', error);
+      Alert.alert(
+        'Error',
+        'Failed to clear storage. Please try again.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  const handleUnlockAllPacks = async () => {
+    try {
+      const packDataManager = PackDataManager.getInstance();
+      // Get all packs from packList
+      const allPacks = packList.map(pack => pack.pack);
+      // Unlock each pack
+      allPacks.forEach(packId => {
+        packDataManager.unlockPack(packId);
+      });
+      Alert.alert('Success', 'All packs have been unlocked!');
+    } catch (error) {
+      console.error('Error unlocking packs:', error);
+      Alert.alert('Error', 'Failed to unlock packs. Please try again.');
+    } finally {
+      setShowUnlockAllConfirm(false);
+    }
   };
 
   return (
@@ -196,11 +247,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
                   </TouchableOpacity>
                   <View style={styles.spacerLine} />
                   <TouchableOpacity 
-                  style={styles.adminButton}
-                  onPress={() => setShowColorTest(true)}
-                >
-                  <Text style={styles.adminButtonText}>Color Test</Text>
-                </TouchableOpacity>
+                    style={styles.adminButton}
+                    onPress={() => setShowColorTest(true)}
+                  >
+                    <Text style={styles.adminButtonText}>Color Test</Text>
+                  </TouchableOpacity>
+                  <View style={styles.spacerLine} />
+                  <TouchableOpacity 
+                    style={[styles.adminButton, styles.dangerButton]}
+                    onPress={() => setShowClearStorageConfirm(true)}
+                  >
+                    <Text style={styles.adminButtonText}>Clear All Storage</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.adminButton, styles.successButton]}
+                    onPress={() => setShowUnlockAllConfirm(true)}
+                  >
+                    <Text style={styles.adminButtonText}>Unlock All Packs</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
 
@@ -230,6 +294,70 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
         visible={showColorTest}
         onClose={() => setShowColorTest(false)}
       />
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showClearStorageConfirm}
+        onRequestClose={() => setShowClearStorageConfirm(false)}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.confirmModalView}>
+            <Text style={styles.confirmTitle}>Clear All Storage?</Text>
+            <Text style={styles.confirmText}>
+              This will delete all saved progress, settings, and data. This action cannot be undone.
+            </Text>
+            <View style={styles.confirmButtons}>
+              <TouchableOpacity
+                style={[styles.confirmButton, styles.cancelButton]}
+                onPress={() => setShowClearStorageConfirm(false)}
+              >
+                <Text style={styles.confirmButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.confirmButton, styles.dangerButton]}
+                onPress={() => {
+                  setShowClearStorageConfirm(false);
+                  handleClearAllStorage();
+                }}
+              >
+                <Text style={styles.confirmButtonText}>Clear All</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Unlock All Packs Confirmation Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showUnlockAllConfirm}
+        onRequestClose={() => setShowUnlockAllConfirm(false)}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.confirmModalView}>
+            <Text style={styles.confirmTitle}>Unlock All Packs</Text>
+            <Text style={styles.confirmText}>
+              This will unlock all packs in the game. This action cannot be undone.
+            </Text>
+            <View style={styles.confirmButtons}>
+              <TouchableOpacity
+                style={[styles.confirmButton, styles.cancelButton]}
+                onPress={() => setShowUnlockAllConfirm(false)}
+              >
+                <Text style={styles.confirmButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.confirmButton, styles.successButton]}
+                onPress={handleUnlockAllPacks}
+              >
+                <Text style={styles.confirmButtonText}>Unlock All</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 };
@@ -389,6 +517,60 @@ const styles = StyleSheet.create({
     backgroundColor: '#555', 
     marginVertical: 10,     
     width: '100%',          
+  },
+  dangerButton: {
+    backgroundColor: '#e74c3c',
+  },
+  successButton: {
+    backgroundColor: '#2ecc71',
+  },
+  confirmModalView: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 12,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  confirmTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#e0e0e0',
+    marginBottom: 15,
+  },
+  confirmText: {
+    fontSize: 16,
+    color: '#bbbbbb',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  confirmButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    gap: 10,
+  },
+  confirmButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#404040',
+  },
+  confirmButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Svg, Path, Circle } from 'react-native-svg';
 import PackLevelsModal from './PackLevelsModal';
 import PackDataManager from '../../data/packDataManager';
-import { adManager } from '../../utils/adManager';
+import { showRewardedAd } from '../../utils/rewardAd';
 import type { PackInfo } from '../../data/packDataManager';
 
 interface PuzzlePacksModalProps {
@@ -18,9 +18,13 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose,
   const [packs, setPacks] = useState<PackInfo[]>([]);
   const packDataManager = PackDataManager.getInstance();
 
+  const refreshPacks = () => {
+    setPacks(packDataManager.getPacks());
+  };
+
   useEffect(() => {
     if (isVisible) {
-      setPacks(packDataManager.getPacks());
+      refreshPacks();
     }
   }, [isVisible]);
 
@@ -75,9 +79,20 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose,
               style={styles.playIconContainer}
               onPress={async (e) => {
                 e.stopPropagation();
-                const success = await adManager.showAdAndUnlockPack(pack.id);
-                if (success) {
-                  setPacks(packDataManager.getPacks());
+                try {
+                  await showRewardedAd(() => {
+                    // Unlock the pack after watching the ad
+                    packDataManager.unlockPack(pack.id);
+                    // Refresh the packs list
+                    refreshPacks();
+                  });
+                } catch (error) {
+                  console.error('Error showing reward ad:', error);
+                  Alert.alert(
+                    'Error',
+                    'Failed to show ad. Please try again later.',
+                    [{ text: 'OK', style: 'cancel' }]
+                  );
                 }
               }}
             >
@@ -177,6 +192,7 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose,
               onCloseSettings();
             }
           }}
+          onPackUnlocked={refreshPacks}
         />
       )}
     </Modal>

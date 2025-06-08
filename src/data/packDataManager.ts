@@ -130,7 +130,8 @@ export class PackDataManager {
   }
 
   public getPacks(): PackInfo[] {
-    return packList.map(packData => {
+    // Get all packs from packList
+    const allPacks = packList.map(packData => {
       const levels = packData.levels.map(levelData => ({
         level: levelData.level,
         size: parseInt(levelData.size),
@@ -146,6 +147,11 @@ export class PackDataManager {
         completedPuzzles: this.getPackCompletedPuzzleCount(packData.pack)
       };
     });
+
+    // Log for debugging
+    console.log('All packs loaded:', allPacks.map(p => p.id));
+
+    return allPacks;
   }
 
   public getPack(packId: number): PackInfo {
@@ -194,11 +200,32 @@ export class PackDataManager {
 
   public async clearCompletionData() {
     try {
+      // Clear completion data
       this.completionData = {};
       await AsyncStorage.removeItem(COMPLETED_PUZZLES_KEY);
-      console.log('Cleared all completion data');
+      
+      // Save the current unlocked packs to preserve them
+      await AsyncStorage.setItem('unlockedPacks', JSON.stringify(Array.from(this.unlockedPacks)));
+      
+      console.log('Cleared completion data while preserving unlocked packs');
     } catch (error) {
       console.error('Error clearing completion data:', error);
+    }
+  }
+
+  public async clearAllStorage() {
+    try {
+      // Clear completion data
+      this.completionData = {};
+      await AsyncStorage.removeItem(COMPLETED_PUZZLES_KEY);
+      
+      // Clear unlocked packs
+      this.unlockedPacks = new Set();
+      await AsyncStorage.removeItem('unlockedPacks');
+      
+      console.log('Cleared all storage including unlocked packs');
+    } catch (error) {
+      console.error('Error clearing all storage:', error);
     }
   }
 }
