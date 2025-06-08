@@ -15,7 +15,7 @@ import { hintManager } from '../utils/hintManager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showRewardedAd, preloadRewardedAd } from '../utils/rewardAd';
 import HintRewardModal from './modals/HintRewardModal';
-import { showInterstitialAd } from '../utils/interstitialAd';
+import { showInterstitialAd, preloadInterstitialAd } from '../utils/interstitialAd';
 
 type CellValue = number | null;
 
@@ -113,6 +113,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
   const [hasStartedGame, setHasStartedGame] = useState(false);
   const [hintCount, setHintCount] = useState(5);
   const [showHintReward, setShowHintReward] = useState(false);
+  const [hintBadgeScale] = useState(new Animated.Value(1));
   const ruleManager = new RuleManager();
 
   // Initialize the game board only once on mount
@@ -141,6 +142,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
     const puzzle = puzzleManager.getCurrentPuzzle();
     
     // If level or grid size changed, update the board
+    /* UNUSED LEVEL TRANSITION CODE - Keeping for reference
     if (currentLevel.id !== currentLevelId || puzzle.grid.length !== currentGridSize) {
       // Pause autoplay during transition
       if (isAutoplay) {
@@ -181,6 +183,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
         });
       });
     }
+    */
   }, [currentLevelId, currentGridSize]);
 
   // Effect to handle puzzle changes
@@ -702,16 +705,23 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
       return;
     }
 
-    // Check if we have hints available (only when showing a new hint)
-    const canUseHint = await hintManager.useHint();
-    if (!canUseHint) {
-      // Show the hint reward modal
-      setShowHintReward(true);
-      return;
+    // Only check and decrement hint count if not in autoplay mode
+    if (!isAutoplay) {
+      const canUseHint = await hintManager.useHint();
+      if (!canUseHint) {
+        // Show the hint reward modal
+        setShowHintReward(true);
+        return;
+      }
+      // Update hint count
+      const newHintCount = hintManager.getHints();
+      setHintCount(newHintCount);
+      
+      // If this was the last hint, show the reward modal
+      if (newHintCount === 0) {
+        setShowHintReward(true);
+      }
     }
-
-    // Update hint count
-    setHintCount(hintManager.getHints());
 
     // Play hint sound only when showing a new hint
     playSound('hint');
@@ -806,7 +816,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
       onAutoplayChange(true);
       const interval = setInterval(() => {
         handleHint();
-      }, 500);
+      }, 400); // timing to start autoplay
       setAutoplayInterval(interval);
     }
   };
@@ -872,7 +882,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
           // Get a new hint
           handleHint();
         }
-      }, 500);
+      }, 400); // continuous hint usage interval
     }
 
     return () => {
@@ -1238,12 +1248,54 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
 
   // Add this useEffect after other useEffects
   useEffect(() => {
-    // Show interstitial ad at every multiple of 10
-    if (score > 0 && score % 10 === 0) {
+    // Preload interstitial ad when starting puzzles that are one less than ad trigger points
+    if (!isAutoplay && (currentPuzzleIndex + 1) % 10 === 9) {
+      console.log(`Preloading interstitial ad for puzzle ${currentPuzzleIndex + 1}`);
+      preloadInterstitialAd();
+    }
+  }, [currentPuzzleIndex, isAutoplay]);
+
+  // Existing score-based ad useEffect
+  useEffect(() => {
+    // Show interstitial ad at every multiple of 10, but not in autoplay mode
+    if (!isAutoplay && score > 0 && score % 10 === 0) {
       console.log(`Score reached ${score}, showing interstitial ad...`);
       showInterstitialAd();
     }
+    //test ad at score 1
+    if (!isAutoplay && score > 0 && score === 1) {
+      showInterstitialAd();
+    }
   }, [score]);
+
+  // Add effect to handle hint badge pulse animation
+  useEffect(() => {
+    if (hintCount === 5) {
+      // Create pulse animation sequence
+      Animated.sequence([
+        Animated.timing(hintBadgeScale, {
+          toValue: 1.3,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(hintBadgeScale, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(hintBadgeScale, {
+          toValue: 1.3,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(hintBadgeScale, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [hintCount]);
 
   return (
     <View style={styles.container}>
@@ -1506,9 +1558,13 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
           <TouchableOpacity style={styles.button} onPress={handleHint}>
             <MaterialIcons name="lightbulb-outline" size={24} color="#e0e0e0" />
             <Text style={styles.buttonText}>Hint</Text>
-            <View style={styles.hintBadge}>
-              <Text style={styles.hintBadgeText}>{hintCount}</Text>
-            </View>
+            <Animated.View style={[styles.hintBadge, { transform: [{ scale: hintBadgeScale }] }]}>
+              {hintCount > 0 ? (
+                <Text style={styles.hintBadgeText}>{hintCount}</Text>
+              ) : (
+                <MaterialIcons name="play-arrow" size={20} color="#ffffff" />
+              )}
+            </Animated.View>
           </TouchableOpacity>
         </View>
       </View>

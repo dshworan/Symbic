@@ -138,19 +138,29 @@ const showInterstitialAd = async () => {
     
     // Show the ad if it's loaded
     if (interstitialAdRef.loaded) {
-      // Add a small delay before showing to ensure the ad is ready
+      // Add a longer delay before showing to ensure the ad is ready
       setTimeout(() => {
-        interstitialAdRef.show();
-      }, 100);
+        if (interstitialAdRef.loaded) {
+          interstitialAdRef.show();
+        } else {
+          console.log('Ad was loaded but is no longer available, reloading...');
+          interstitialAdRef.load();
+        }
+      }, 500); // Increased delay to 500ms
     } else {
       // If not loaded, wait for load before showing
       const unsubscribeLoaded = interstitialAdRef.addAdEventListener(AdEventType.LOADED, () => {
         console.log('Interstitial ad loaded, showing now');
-        // Add a small delay before showing to ensure the ad is ready
+        // Add a longer delay before showing to ensure the ad is ready
         setTimeout(() => {
-          interstitialAdRef.show();
-        }, 100);
-        unsubscribeLoaded();
+          if (interstitialAdRef.loaded) {
+            interstitialAdRef.show();
+          } else {
+            console.log('Ad was loaded but is no longer available, reloading...');
+            interstitialAdRef.load();
+          }
+          unsubscribeLoaded();
+        }, 500); // Increased delay to 500ms
       });
       
       // Set error handler just for this attempt

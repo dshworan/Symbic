@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AudioProvider } from './src/context/AudioContext';
+import { adManager } from './src/utils/adManager'; // adjust path if needed
 import { GameScreen } from './src/screens/GameScreen';
 import TestInterstitialAdScreen from './src/screens/TestInterstitialAdScreen';
 import TestRewardAdScreen from './src/screens/TestRewardAdScreen';
@@ -11,6 +12,15 @@ import LiveRewardAdScreen from './src/screens/LiveRewardAdScreen';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+  // ✅ Initialize AdManager once when app starts
+  useEffect(() => {
+    const initAdManager = async () => {
+      await adManager.init();
+    };
+
+    initAdManager();
+  }, []);
+
   return (
     <NavigationContainer>
       <AudioProvider>
@@ -54,4 +64,4 @@ export default function App() {
       </AudioProvider>
     </NavigationContainer>
   );
-} 
+}
