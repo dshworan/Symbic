@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, useWindowDimensions, Animated, StatusBar } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, useWindowDimensions, Animated, StatusBar, Alert } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { Puzzle } from '../data/types/levelTypes';
@@ -11,7 +11,11 @@ import { RuleManager } from '../data/rules/ruleManager';
 import SettingsModal from './modals/SettingsModal';
 import { pack1Tutorials } from '../data/tutorials/pack1Tutorials';
 import { PackDataManager } from '../data/packDataManager';
+import { hintManager } from '../utils/hintManager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { showRewardedAd, preloadRewardedAd } from '../utils/rewardAd';
+import HintRewardModal from './modals/HintRewardModal';
+import { showInterstitialAd } from '../utils/interstitialAd';
 
 type CellValue = number | null;
 
@@ -107,6 +111,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
   const [showWelcome, setShowWelcome] = useState(true);
   const [tutorialOpacity] = useState(new Animated.Value(1));
   const [hasStartedGame, setHasStartedGame] = useState(false);
+  const [hintCount, setHintCount] = useState(5);
+  const [showHintReward, setShowHintReward] = useState(false);
   const ruleManager = new RuleManager();
 
   // Initialize the game board only once on mount
@@ -649,7 +655,15 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
     }
   };
 
-  const handleHint = () => {
+  // Add effect to preload reward ad when hints reach 0
+  useEffect(() => {
+    if (hintCount === 0) {
+      console.log('Preloading reward ad for hints');
+      preloadRewardedAd();
+    }
+  }, [hintCount]);
+
+  const handleHint = async () => {
     // Don't show hints if the board is solved
     if (isSolved) return;
 
@@ -687,6 +701,17 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
       
       return;
     }
+
+    // Check if we have hints available (only when showing a new hint)
+    const canUseHint = await hintManager.useHint();
+    if (!canUseHint) {
+      // Show the hint reward modal
+      setShowHintReward(true);
+      return;
+    }
+
+    // Update hint count
+    setHintCount(hintManager.getHints());
 
     // Play hint sound only when showing a new hint
     playSound('hint');
@@ -726,7 +751,6 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
           return;
         }
       } catch (error) {
-        //console.log('Error in rule:', rule.getName(), error);
         continue; // Skip this rule if it errors and try the next one
       }
     }
@@ -746,6 +770,27 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
       duration: 300,
       useNativeDriver: true,
     }).start();
+  };
+
+  const handleWatchAd = async () => {
+    try {
+      await showRewardedAd((reward) => {
+        // Add 5 hints after watching the ad
+        hintManager.addHints(5);
+        setHintCount(hintManager.getHints());
+        // Preload the next ad
+        preloadRewardedAd();
+      });
+    } catch (error) {
+      console.error('Error showing reward ad:', error);
+      Alert.alert(
+        'Error',
+        'Failed to show ad. Please try again later.',
+        [{ text: 'OK', style: 'cancel' }]
+      );
+    } finally {
+      setShowHintReward(false);
+    }
   };
 
   const toggleAutoplay = () => {
@@ -1161,13 +1206,44 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
 
   const resetScore = async () => {
     try {
+      console.log('GameBoard - resetting score and hints');
+      // First clear the score
       await AsyncStorage.removeItem(SCORE_STORAGE_KEY);
       setScore(0);
-      setHasStartedGame(false);
+      
+      // Then reset hints and wait for it to complete
+      await hintManager.resetHints();
+      
+      // Now set the hint count directly to 5
+      setHintCount(5);
     } catch (error) {
       console.error('Error resetting score:', error);
     }
   };
+
+  // Load hint count on mount
+  useEffect(() => {
+    const initializeHints = async () => {
+      console.log('GameBoard - initializing hints');
+      // Reset hints first
+      await hintManager.resetHints();
+      // Then initialize
+      await hintManager.initialize();
+      const hints = hintManager.getHints();
+      console.log('GameBoard - setting initial hint count:', hints);
+      setHintCount(hints);
+    };
+    initializeHints();
+  }, []);
+
+  // Add this useEffect after other useEffects
+  useEffect(() => {
+    // Show interstitial ad at every multiple of 10
+    if (score > 0 && score % 10 === 0) {
+      console.log(`Score reached ${score}, showing interstitial ad...`);
+      showInterstitialAd();
+    }
+  }, [score]);
 
   return (
     <View style={styles.container}>
@@ -1430,6 +1506,9 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
           <TouchableOpacity style={styles.button} onPress={handleHint}>
             <MaterialIcons name="lightbulb-outline" size={24} color="#e0e0e0" />
             <Text style={styles.buttonText}>Hint</Text>
+            <View style={styles.hintBadge}>
+              <Text style={styles.hintBadgeText}>{hintCount}</Text>
+            </View>
           </TouchableOpacity>
         </View>
       </View>
@@ -1437,6 +1516,11 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
         isVisible={showSettings}
         onClose={() => setShowSettings(false)}
         onReset={resetScore}
+      />
+      <HintRewardModal
+        isVisible={showHintReward}
+        onClose={() => setShowHintReward(false)}
+        onWatchAd={handleWatchAd}
       />
     </View>
   );
@@ -1513,6 +1597,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     gap: 10,
+    paddingHorizontal: 0,
   },
   button: {
     backgroundColor: '#333',
@@ -1521,6 +1606,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     gap: 4,
+    minWidth: 50,
   },
   buttonText: {
     color: '#e0e0e0',
@@ -1669,5 +1755,23 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 4,
     right: 4
+  },
+  hintBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: '#4CAF50',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#292929',
+  },
+  hintBadgeText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 }); 
