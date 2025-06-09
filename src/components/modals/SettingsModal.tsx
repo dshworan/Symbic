@@ -307,10 +307,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
         onClose={() => setShowColorTest(false)}
       />
 
-      <ShapesAndColorsTestModal
-        visible={showShapesAndColorsTest}
-        onClose={() => setShowShapesAndColorsTest(false)}
-      />
+      {showShapesAndColorsTest && (
+        <ShapesAndColorsTestModal
+          visible={showShapesAndColorsTest}
+          onClose={() => setShowShapesAndColorsTest(false)}
+          onCloseSettings={onClose}
+        />
+      )}
 
       <Modal
         animationType="fade"

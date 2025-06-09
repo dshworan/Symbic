@@ -3,14 +3,26 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { Svg, Path } from 'react-native-svg';
 import { AssetManager } from '../../data/assets/assetManager';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { levelManager } from '../../data/levels/levelManager';
+import { puzzleManager } from '../../utils/puzzleManager';
+
+type RootStackParamList = {
+  Game: undefined;
+};
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 interface ShapesAndColorsTestModalProps {
   visible: boolean;
   onClose: () => void;
+  onCloseSettings?: () => void;
 }
 
-const ShapesAndColorsTestModal: React.FC<ShapesAndColorsTestModalProps> = ({ visible, onClose }) => {
+const ShapesAndColorsTestModal: React.FC<ShapesAndColorsTestModalProps> = ({ visible, onClose, onCloseSettings }) => {
   const assetManager = AssetManager.getInstance();
+  const navigation = useNavigation<NavigationProp>();
 
   // Helper function to render a shape
   const renderShape = (shape: any) => {
@@ -19,6 +31,22 @@ const ShapesAndColorsTestModal: React.FC<ShapesAndColorsTestModalProps> = ({ vis
         <Path d={shape.path} fill={shape.fill} />
       </Svg>
     );
+  };
+
+  const handleLevelPress = (packIndex: number, levelIndex: number) => {
+    // Set the current pack and level (both are 1-based in LevelManager)
+    levelManager.setCurrentPack(packIndex + 1);
+    levelManager.setCurrentLevel(levelIndex + 1);
+    puzzleManager.setCurrentPuzzleIndex(0);
+
+    // Close both modals
+    onClose();
+    if (onCloseSettings) {
+      onCloseSettings();
+    }
+
+    // Navigate to the game screen
+    navigation.navigate('Game');
   };
 
   // Helper function to render a pack
@@ -31,7 +59,11 @@ const ShapesAndColorsTestModal: React.FC<ShapesAndColorsTestModalProps> = ({ vis
       console.log(`Pack ${packIndex + 1} Level ${levelIndex + 1}: ${shapes.map(s => s.id).join(',')} : ${colors.join(',')}`);
 
       levels.push(
-        <View key={levelIndex} style={styles.levelContainer}>
+        <TouchableOpacity 
+          key={levelIndex} 
+          style={styles.levelContainer}
+          onPress={() => handleLevelPress(packIndex, levelIndex)}
+        >
           <Text style={styles.levelText}>Level {levelIndex + 1}</Text>
           <View style={styles.shapesContainer}>
             {shapes.map((shape, index) => (
@@ -42,7 +74,7 @@ const ShapesAndColorsTestModal: React.FC<ShapesAndColorsTestModalProps> = ({ vis
               </View>
             ))}
           </View>
-        </View>
+        </TouchableOpacity>
       );
     }
     return (
@@ -137,7 +169,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#e0e0e0',
-   },
+  },
   shapesContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
