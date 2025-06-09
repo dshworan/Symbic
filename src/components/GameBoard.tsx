@@ -490,6 +490,9 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
   };
 
   const showFailureMessage = () => {
+    // Play incorrect sound
+    playSound('incorrect');
+    
     setFailureMessage("Sorry, that is not the solution.");
     Animated.sequence([
       Animated.timing(failureOpacity, {

@@ -48,6 +48,7 @@ export const AudioProvider = ({ children }: { children: React.ReactNode }) => {
           levelChange: require('../assets/sounds/level-change.mp3'),
           undoRedo: require('../assets/sounds/undo-redo.mp3'),
           hint: require('../assets/sounds/show-hint.mp3'),
+          incorrect: require('../assets/sounds/incorrect.mp3'),
         };
 
         const loadedSounds: Record<string, Audio.Sound> = {};
