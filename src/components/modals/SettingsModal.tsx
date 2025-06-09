@@ -11,6 +11,7 @@ import { useAudio } from '../../context/AudioContext';
 import { puzzleManager } from '../../utils/puzzleManager';
 import { levelManager } from '../../data/levels/levelManager';
 import ColorTestModal from './ColorTestModal';
+import ShapesAndColorsTestModal from './ShapesAndColorsTestModal';
 import PackDataManager from '../../data/packDataManager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { hintManager } from '../../utils/hintManager';
@@ -38,8 +39,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showPuzzlePacks, setShowPuzzlePacks] = useState(false);
   const [showColorTest, setShowColorTest] = useState(false);
+  const [showShapesAndColorsTest, setShowShapesAndColorsTest] = useState(false);
   const [showClearStorageConfirm, setShowClearStorageConfirm] = useState(false);
   const [showUnlockAllConfirm, setShowUnlockAllConfirm] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isMusicEnabled, setIsMusicEnabled] = useState(true);
+  const [isHapticEnabled, setIsHapticEnabled] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   const handleSoundToggle = async () => {
     await toggleSound();
@@ -252,6 +258,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
                   >
                     <Text style={styles.adminButtonText}>Color Test</Text>
                   </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.adminButton}
+                    onPress={() => setShowShapesAndColorsTest(true)}
+                  >
+                    <Text style={styles.adminButtonText}>Shapes & Colors Test</Text>
+                  </TouchableOpacity>
                   <View style={styles.spacerLine} />
                   <TouchableOpacity 
                     style={[styles.adminButton, styles.dangerButton]}
@@ -293,6 +305,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
       <ColorTestModal 
         visible={showColorTest}
         onClose={() => setShowColorTest(false)}
+      />
+
+      <ShapesAndColorsTestModal
+        visible={showShapesAndColorsTest}
+        onClose={() => setShowShapesAndColorsTest(false)}
       />
 
       <Modal

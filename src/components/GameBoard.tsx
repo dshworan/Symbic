@@ -1162,10 +1162,10 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
     for (let i = 0; i < totalPuzzles; i++) {
       let dotColor = '#404040'; // Default gray for remaining puzzles
       
-      if (packDataManager.isPuzzleCompleted(packId, levelId, i)) {
+      if (i === currentPuzzleIndex) {
+        dotColor = '#2196F3'; // Blue for current puzzle, regardless of completion
+      } else if (packDataManager.isPuzzleCompleted(packId, levelId, i)) {
         dotColor = '#4CAF50'; // Green for completed puzzles
-      } else if (i === currentPuzzleIndex) {
-        dotColor = '#2196F3'; // Blue for current puzzle
       }
       
       dots.push(

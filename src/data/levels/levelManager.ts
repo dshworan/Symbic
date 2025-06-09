@@ -1,6 +1,6 @@
 import { Level, LevelColors, Pack } from '../types/levelTypes';
-import { shapes } from './shapes_and_colors';
 import { puzzleManager } from '../../utils/puzzleManager';
+import { AssetManager } from '../assets/assetManager';
 
 // Pack 1
 import { level1Puzzles } from './puzzles/pack1/puzzles_pack_1_level_1';
@@ -187,8 +187,10 @@ export class LevelManager {
   private currentLevelIndex: number = 0;
   private packs: Pack[];
   private static instance: LevelManager;
+  private assetManager: AssetManager;
 
   private constructor() {
+    this.assetManager = AssetManager.getInstance();
     this.packs = [
       {
         id: 1,
@@ -197,25 +199,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 1,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(0, 0).shapes,
             puzzles: level1Puzzles,
           },
           {
             id: 2,
             packId: 1,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(0, 1).shapes,
             puzzles: level2Puzzles,
           },
           {
             id: 3,
             packId: 1,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(0, 2).shapes,
             puzzles: level3Puzzles,
           },
           {
             id: 4,
             packId: 1,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(0, 3).shapes,
             puzzles: level4Puzzles,
           }
         ]
@@ -227,25 +229,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 2,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(1, 0).shapes,
             puzzles: pack2Level1Puzzles,
           },
           {
             id: 2,
             packId: 2,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(1, 1).shapes,
             puzzles: pack2Level2Puzzles,
           },
           {
             id: 3,
             packId: 2,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(1, 2).shapes,
             puzzles: pack2Level3Puzzles,
           },
           {
             id: 4,
             packId: 2,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(1, 3).shapes,
             puzzles: pack2Level4Puzzles,
           }
         ]
@@ -257,25 +259,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 3,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(2, 0).shapes,
             puzzles: pack3Level1Puzzles,
           },
           {
             id: 2,
             packId: 3,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(2, 1).shapes,
             puzzles: pack3Level2Puzzles,
           },
           {
             id: 3,
             packId: 3,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(2, 2).shapes,
             puzzles: pack3Level3Puzzles,
           },
           {
             id: 4,
             packId: 3,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(2, 3).shapes,
             puzzles: pack3Level4Puzzles,
           }
         ]
@@ -287,25 +289,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 4,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(3, 0).shapes,
             puzzles: pack4Level1Puzzles,
           },
           {
             id: 2,
             packId: 4,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(3, 1).shapes,
             puzzles: pack4Level2Puzzles,
           },
           {
             id: 3,
             packId: 4,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(3, 2).shapes,
             puzzles: pack4Level3Puzzles,
           },
           {
             id: 4,
             packId: 4,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(3, 3).shapes,
             puzzles: pack4Level4Puzzles,
           }
         ]
@@ -317,25 +319,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 5,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(4, 0).shapes,
             puzzles: pack5Level1Puzzles,
           },
           {
             id: 2,
             packId: 5,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(4, 1).shapes,
             puzzles: pack5Level2Puzzles,
           },
           {
             id: 3,
             packId: 5,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(4, 2).shapes,
             puzzles: pack5Level3Puzzles,
           },
           {
             id: 4,
             packId: 5,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(4, 3).shapes,
             puzzles: pack5Level4Puzzles,
           }
         ]
@@ -347,25 +349,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 6,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(5, 0).shapes,
             puzzles: pack6Level1Puzzles,
           },
           {
             id: 2,
             packId: 6,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(5, 1).shapes,
             puzzles: pack6Level2Puzzles,
           },
           {
             id: 3,
             packId: 6,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(5, 2).shapes,
             puzzles: pack6Level3Puzzles,
           },
           {
             id: 4,
             packId: 6,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(5, 3).shapes,
             puzzles: pack6Level4Puzzles,
           }
         ]
@@ -377,25 +379,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 7,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(6, 0).shapes,
             puzzles: pack7Level1Puzzles,
           },
           {
             id: 2,
             packId: 7,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(6, 1).shapes,
             puzzles: pack7Level2Puzzles,
           },
           {
             id: 3,
             packId: 7,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(6, 2).shapes,
             puzzles: pack7Level3Puzzles,
           },
           {
             id: 4,
             packId: 7,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(6, 3).shapes,
             puzzles: pack7Level4Puzzles,
           }
         ]
@@ -407,25 +409,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 8,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(7, 0).shapes,
             puzzles: pack8Level1Puzzles,
           },
           {
             id: 2,
             packId: 8,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(7, 1).shapes,
             puzzles: pack8Level2Puzzles,
           },
           {
             id: 3,
             packId: 8,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(7, 2).shapes,
             puzzles: pack8Level3Puzzles,
           },
           {
             id: 4,
             packId: 8,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(7, 3).shapes,
             puzzles: pack8Level4Puzzles,
           }
         ]
@@ -437,25 +439,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 9,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(8, 0).shapes,
             puzzles: pack9Level1Puzzles,
           },
           {
             id: 2,
             packId: 9,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(8, 1).shapes,
             puzzles: pack9Level2Puzzles,
           },
           {
             id: 3,
             packId: 9,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(8, 2).shapes,
             puzzles: pack9Level3Puzzles,
           },
           {
             id: 4,
             packId: 9,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(8, 3).shapes,
             puzzles: pack9Level4Puzzles,
           }
         ]
@@ -467,25 +469,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 10,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(9, 0).shapes,
             puzzles: pack10Level1Puzzles,
           },
           {
             id: 2,
             packId: 10,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(9, 1).shapes,
             puzzles: pack10Level2Puzzles,
           },
           {
             id: 3,
             packId: 10,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(9, 2).shapes,
             puzzles: pack10Level3Puzzles,
           },
           {
             id: 4,
             packId: 10,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(9, 3).shapes,
             puzzles: pack10Level4Puzzles,
           }
         ]
@@ -497,25 +499,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 11,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(10, 0).shapes,
             puzzles: pack11Level1Puzzles,
           },
           {
             id: 2,
             packId: 11,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(10, 1).shapes,
             puzzles: pack11Level2Puzzles,
           },
           {
             id: 3,
             packId: 11,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(10, 2).shapes,
             puzzles: pack11Level3Puzzles,
           },
           {
             id: 4,
             packId: 11,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(10, 3).shapes,
             puzzles: pack11Level4Puzzles,
           }
         ]
@@ -527,25 +529,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 12,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(11, 0).shapes,
             puzzles: pack12Level1Puzzles,
           },
           {
             id: 2,
             packId: 12,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(11, 1).shapes,
             puzzles: pack12Level2Puzzles,
           },
           {
             id: 3,
             packId: 12,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(11, 2).shapes,
             puzzles: pack12Level3Puzzles,
           },
           {
             id: 4,
             packId: 12,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(11, 3).shapes,
             puzzles: pack12Level4Puzzles,
           }
         ]
@@ -557,25 +559,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 13,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(12, 0).shapes,
             puzzles: pack13Level1Puzzles,
           },
           {
             id: 2,
             packId: 13,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(12, 1).shapes,
             puzzles: pack13Level2Puzzles,
           },
           {
             id: 3,
             packId: 13,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(12, 2).shapes,
             puzzles: pack13Level3Puzzles,
           },
           {
             id: 4,
             packId: 13,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(12, 3).shapes,
             puzzles: pack13Level4Puzzles,
           }
         ]
@@ -587,25 +589,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 14,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(13, 0).shapes,
             puzzles: pack14Level1Puzzles,
           },
           {
             id: 2,
             packId: 14,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(13, 1).shapes,
             puzzles: pack14Level2Puzzles,
           },
           {
             id: 3,
             packId: 14,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(13, 2).shapes,
             puzzles: pack14Level3Puzzles,
           },
           {
             id: 4,
             packId: 14,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(13, 3).shapes,
             puzzles: pack14Level4Puzzles,
           }
         ]
@@ -617,25 +619,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 15,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(14, 0).shapes,
             puzzles: pack15Level1Puzzles,
           },
           {
             id: 2,
             packId: 15,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(14, 1).shapes,
             puzzles: pack15Level2Puzzles,
           },
           {
             id: 3,
             packId: 15,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(14, 2).shapes,
             puzzles: pack15Level3Puzzles,
           },
           {
             id: 4,
             packId: 15,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(14, 3).shapes,
             puzzles: pack15Level4Puzzles,
           }
         ]
@@ -647,25 +649,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 16,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(15, 0).shapes,
             puzzles: pack16Level1Puzzles,
           },
           {
             id: 2,
             packId: 16,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(15, 1).shapes,
             puzzles: pack16Level2Puzzles,
           },
           {
             id: 3,
             packId: 16,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(15, 2).shapes,
             puzzles: pack16Level3Puzzles,
           },
           {
             id: 4,
             packId: 16,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(15, 3).shapes,
             puzzles: pack16Level4Puzzles,
           }
         ]
@@ -677,25 +679,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 17,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(16, 0).shapes,
             puzzles: pack17Level1Puzzles,
           },
           {
             id: 2,
             packId: 17,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(16, 1).shapes,
             puzzles: pack17Level2Puzzles,
           },
           {
             id: 3,
             packId: 17,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(16, 2).shapes,
             puzzles: pack17Level3Puzzles,
           },
           {
             id: 4,
             packId: 17,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(16, 3).shapes,
             puzzles: pack17Level4Puzzles,
           }
         ]
@@ -707,25 +709,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 18,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(17, 0).shapes,
             puzzles: pack18Level1Puzzles,
           },
           {
             id: 2,
             packId: 18,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(17, 1).shapes,
             puzzles: pack18Level2Puzzles,
           },
           {
             id: 3,
             packId: 18,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(17, 2).shapes,
             puzzles: pack18Level3Puzzles,
           },
           {
             id: 4,
             packId: 18,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(17, 3).shapes,
             puzzles: pack18Level4Puzzles,
           }
         ]
@@ -737,25 +739,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 19,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(18, 0).shapes,
             puzzles: pack19Level1Puzzles,
           },
           {
             id: 2,
             packId: 19,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(18, 1).shapes,
             puzzles: pack19Level2Puzzles,
           },
           {
             id: 3,
             packId: 19,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(18, 2).shapes,
             puzzles: pack19Level3Puzzles,
           },
           {
             id: 4,
             packId: 19,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(18, 3).shapes,
             puzzles: pack19Level4Puzzles,
           }
         ]
@@ -767,25 +769,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 20,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(19, 0).shapes,
             puzzles: pack20Level1Puzzles,
           },
           {
             id: 2,
             packId: 20,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(19, 1).shapes,
             puzzles: pack20Level2Puzzles,
           },
           {
             id: 3,
             packId: 20,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(19, 2).shapes,
             puzzles: pack20Level3Puzzles,
           },
           {
             id: 4,
             packId: 20,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(19, 3).shapes,
             puzzles: pack20Level4Puzzles,
           }
         ]
@@ -797,25 +799,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 21,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(20, 0).shapes,
             puzzles: pack21Level1Puzzles,
           },
           {
             id: 2,
             packId: 21,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(20, 1).shapes,
             puzzles: pack21Level2Puzzles,
           },
           {
             id: 3,
             packId: 21,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(20, 2).shapes,
             puzzles: pack21Level3Puzzles,
           },
           {
             id: 4,
             packId: 21,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(20, 3).shapes,
             puzzles: pack21Level4Puzzles,
           }
         ]
@@ -827,25 +829,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 22,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(21, 0).shapes,
             puzzles: pack22Level1Puzzles,
           },
           {
             id: 2,
             packId: 22,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(21, 1).shapes,
             puzzles: pack22Level2Puzzles,
           },
           {
             id: 3,
             packId: 22,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(21, 2).shapes,
             puzzles: pack22Level3Puzzles,
           },
           {
             id: 4,
             packId: 22,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(21, 3).shapes,
             puzzles: pack22Level4Puzzles,
           }
         ]
@@ -857,25 +859,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 23,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(22, 0).shapes,
             puzzles: pack23Level1Puzzles,
           },
           {
             id: 2,
             packId: 23,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(22, 1).shapes,
             puzzles: pack23Level2Puzzles,
           },
           {
             id: 3,
             packId: 23,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(22, 2).shapes,
             puzzles: pack23Level3Puzzles,
           },
           {
             id: 4,
             packId: 23,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(22, 3).shapes,
             puzzles: pack23Level4Puzzles,
           }
         ]
@@ -887,25 +889,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 24,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(23, 0).shapes,
             puzzles: pack24Level1Puzzles,
           },
           {
             id: 2,
             packId: 24,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(23, 1).shapes,
             puzzles: pack24Level2Puzzles,
           },
           {
             id: 3,
             packId: 24,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(23, 2).shapes,
             puzzles: pack24Level3Puzzles,
           },
           {
             id: 4,
             packId: 24,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(23, 3).shapes,
             puzzles: pack24Level4Puzzles,
           }
         ]
@@ -917,25 +919,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 25,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(24, 0).shapes,
             puzzles: pack25Level1Puzzles,
           },
           {
             id: 2,
             packId: 25,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(24, 1).shapes,
             puzzles: pack25Level2Puzzles,
           },
           {
             id: 3,
             packId: 25,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(24, 2).shapes,
             puzzles: pack25Level3Puzzles,
           },
           {
             id: 4,
             packId: 25,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(24, 3).shapes,
             puzzles: pack25Level4Puzzles,
           }
         ]
@@ -947,25 +949,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 26,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(25, 0).shapes,
             puzzles: pack26Level1Puzzles,
           },
           {
             id: 2,
             packId: 26,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(25, 1).shapes,
             puzzles: pack26Level2Puzzles,
           },
           {
             id: 3,
             packId: 26,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(25, 2).shapes,
             puzzles: pack26Level3Puzzles,
           },
           {
             id: 4,
             packId: 26,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(25, 3).shapes,
             puzzles: pack26Level4Puzzles,
           }
         ]
@@ -977,25 +979,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 27,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(26, 0).shapes,
             puzzles: pack27Level1Puzzles,
           },
           {
             id: 2,
             packId: 27,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(26, 1).shapes,
             puzzles: pack27Level2Puzzles,
           },
           {
             id: 3,
             packId: 27,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(26, 2).shapes,
             puzzles: pack27Level3Puzzles,
           },
           {
             id: 4,
             packId: 27,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(26, 3).shapes,
             puzzles: pack27Level4Puzzles,
           }
         ]
@@ -1007,25 +1009,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 28,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(27, 0).shapes,
             puzzles: pack28Level1Puzzles,
           },
           {
             id: 2,
             packId: 28,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(27, 1).shapes,
             puzzles: pack28Level2Puzzles,
           },
           {
             id: 3,
             packId: 28,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(27, 2).shapes,
             puzzles: pack28Level3Puzzles,
           },
           {
             id: 4,
             packId: 28,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(27, 3).shapes,
             puzzles: pack28Level4Puzzles,
           }
         ]
@@ -1037,25 +1039,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 29,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(28, 0).shapes,
             puzzles: pack29Level1Puzzles,
           },
           {
             id: 2,
             packId: 29,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(28, 1).shapes,
             puzzles: pack29Level2Puzzles,
           },
           {
             id: 3,
             packId: 29,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(28, 2).shapes,
             puzzles: pack29Level3Puzzles,
           },
           {
             id: 4,
             packId: 29,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(28, 3).shapes,
             puzzles: pack29Level4Puzzles,
           }
         ]
@@ -1067,25 +1069,25 @@ export class LevelManager {
           {
             id: 1,
             packId: 30,
-            shapes: shapes[0],
+            shapes: this.assetManager.getLevelAssets(29, 0).shapes,
             puzzles: pack30Level1Puzzles,
           },
           {
             id: 2,
             packId: 30,
-            shapes: shapes[1],
+            shapes: this.assetManager.getLevelAssets(29, 1).shapes,
             puzzles: pack30Level2Puzzles,
           },
           {
             id: 3,
             packId: 30,
-            shapes: shapes[2],
+            shapes: this.assetManager.getLevelAssets(29, 2).shapes,
             puzzles: pack30Level3Puzzles,
           },
           {
             id: 4,
             packId: 30,
-            shapes: shapes[3],
+            shapes: this.assetManager.getLevelAssets(29, 3).shapes,
             puzzles: pack30Level4Puzzles,
           }
         ]

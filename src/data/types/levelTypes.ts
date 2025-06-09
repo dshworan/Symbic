@@ -1,7 +1,7 @@
 export interface Shape {
   id: string;
   path: string;
-  fill: string;
+  fill?: string;
 }
 
 export interface LevelColors {
