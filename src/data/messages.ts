@@ -8,22 +8,20 @@ const successMessages = [
   "Brilliant!",
   "Fantastic!",
   "Outstanding!",
-  "Superb!"
-];
-
-const successColors = [
-  "#4CAF50", // Green
-  "#FF9800", // Orange
-  "#E91E63", // Pink
-  "#00BCD4", // Cyan
-  "#FF5722", // Deep Orange
-  "#3F51B5" // Indigo
+  "Superb!",
+  "You're on Fire!",
+  "Crushed It!",
+  "Nailed It!",
+  "On a Roll!",
+  "Nicely Done!",
+  "Onward!",
+  "You're a Pro!",
+  "Genius!"
 ];
 
 export const getRandomSuccessMessage = () => {
   const randomIndex = Math.floor(Math.random() * successMessages.length);
   return {
-    message: successMessages[randomIndex],
-    color: successColors[randomIndex]
+    message: successMessages[randomIndex]
   };
 }; 

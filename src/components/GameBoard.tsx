@@ -465,7 +465,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
     }
   };
 
-  const showSuccessMessage = (messageData: { message: string; color: string }) => {
+  const showSuccessMessage = (messageData: { message: string }) => {
     const currentLevel = levelManager.getCurrentLevel();
     setSuccessMessage({
       message: messageData.message,
@@ -1382,6 +1382,16 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
     if (hintCount === 5) {
       // Create pulse animation sequence
       Animated.sequence([
+        Animated.timing(hintBadgeScale, {
+          toValue: 1.3,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(hintBadgeScale, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
         Animated.timing(hintBadgeScale, {
           toValue: 1.3,
           duration: 200,
