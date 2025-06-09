@@ -56,7 +56,7 @@ const ShapesAndColorsTestModal: React.FC<ShapesAndColorsTestModalProps> = ({ vis
       const { shapes, colors } = assetManager.getLevelAssets(packIndex, levelIndex);
       
       // Log the data for this level
-      console.log(`Pack ${packIndex + 1} Level ${levelIndex + 1}: ${shapes.map(s => s.id).join(',')} : ${colors.join(',')}`);
+      //console.log(`Pack ${packIndex + 1} Level ${levelIndex + 1}: ${shapes.map(s => s.id).join(',')} : ${colors.join(',')}`);
 
       levels.push(
         <TouchableOpacity 
@@ -95,7 +95,7 @@ const ShapesAndColorsTestModal: React.FC<ShapesAndColorsTestModalProps> = ({ vis
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.header}>
-            <Text style={styles.title}>Shapes & Colors Test</Text>
+            <Text style={styles.title}>Level Shapes & Colors</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={24} color="#e0e0e0" />
             </TouchableOpacity>
