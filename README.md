@@ -18,7 +18,7 @@ npx expo-doctor ...  15/15 checks passed. No issues detected!
 `full app`
 eas build:configure
 npx expo prebuild    --- if we add native stuff
-eas build -p android --profile preview      ...uploads your project to Expo server, builds .apk or .aab
+eas build -p android --profile preview      ...uploads your project to Expo server, builds .apk
 eas build -p android --profile production   ...for release builds.
 
 `git`

@@ -65,8 +65,9 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
       gridSize: level.size
     });
 
-    // Set the current pack and level
+    // Set the current pack and level (both are 1-based in LevelManager)
     levelManager.setCurrentPack(packId);
+    // Convert level.level (1-based) to 0-based index for LevelManager
     levelManager.setCurrentLevel(level.level);
     puzzleManager.setCurrentPuzzleIndex(puzzleIndex);
 

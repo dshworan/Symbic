@@ -1188,7 +1188,7 @@ export class LevelManager {
     this.currentLevelIndex = 0;
     // Sync puzzle manager
     puzzleManager.syncWithLevelManager();
-    console.log('Set current pack:', packId, 'pack index:', this.currentPackIndex);
+    //console.log('Set current pack:', packId, 'pack index:', this.currentPackIndex);
   }
 
   public setCurrentLevel(levelId: number): void {
@@ -1196,7 +1196,7 @@ export class LevelManager {
     this.currentLevelIndex = levelId - 1;
     // Sync puzzle manager
     puzzleManager.syncWithLevelManager();
-    console.log('Set current level:', levelId, 'level index:', this.currentLevelIndex);
+    //console.log('Set current level:', levelId, 'level index:', this.currentLevelIndex);
   }
 }
 
