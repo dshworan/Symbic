@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, Switch, Platform, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Svg, Path, Circle } from 'react-native-svg';
 import AboutModal from './AboutModal';
 import ResetConfirmationModal from './ResetConfirmationModal';
@@ -16,8 +16,13 @@ import PackDataManager from '../../data/packDataManager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { hintManager } from '../../utils/hintManager';
 import packList from '../../data/packList';
+import HintRewardModal from './HintRewardModal';
+import { showRewardedAd, preloadRewardedAd } from '../../utils/rewardAd';
 
 type RootStackParamList = {
+  Game: {
+    refreshHints?: number;
+  };
   TestInterstitialAd: undefined;
   TestRewardAd: undefined;
   LiveInterstitialAd: undefined;
@@ -46,9 +51,45 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
   const [isMusicEnabled, setIsMusicEnabled] = useState(true);
   const [isHapticEnabled, setIsHapticEnabled] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [showHintReward, setShowHintReward] = useState(false);
+  const [isSuccessView, setIsSuccessView] = useState(false);
 
   const handleSoundToggle = async () => {
     await toggleSound();
+  };
+
+  const handleGetMoreHints = () => {
+    setIsSuccessView(false);
+    setShowHintReward(true);
+  };
+
+  const handleWatchAd = async () => {
+    try {
+      // Show the ad
+      await showRewardedAd(async (reward) => {
+        // Add 5 hints after watching the ad
+        await hintManager.addHints(5);
+        // Preload the next ad
+        preloadRewardedAd();
+        // Force a refresh of the game page
+        navigation.setParams({ refreshHints: Date.now() });
+        
+        // Switch to success view
+        setIsSuccessView(true);
+      });
+    } catch (error) {
+      console.error('Error showing reward ad:', error);
+      Alert.alert(
+        'Error',
+        'Failed to show ad. Please try again later.',
+        [{ text: 'OK', style: 'cancel' }]
+      );
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowHintReward(false);
+    setIsSuccessView(false);
   };
 
   const handleReset = () => {
@@ -95,6 +136,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
       const packDataManager = PackDataManager.getInstance();
       await packDataManager.clearAllStorage();
       await hintManager.resetHints();
+      
+      // Force a refresh of the game page to update hint count
+      navigation.setParams({ refreshHints: Date.now() });
       
       // Show success message
       Alert.alert(
@@ -193,6 +237,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
                 </TouchableOpacity>
 
                 <TouchableOpacity 
+                  style={[styles.button, styles.hintsButton]}
+                  onPress={handleGetMoreHints}
+                >
+                  <View style={styles.buttonContent}>
+                    <View style={styles.buttonIcon}>
+                      <Svg width="24" height="24" viewBox="0 0 256 256">
+                        <Path d="M172.00244,196a12.0006,12.0006,0,0,1-12,12h-64a12,12,0,1,1,0-24h64A12.0006,12.0006,0,0,1,172.00244,196Zm-20,24h-48a12,12,0,1,0,0,24h48a12,12,0,0,0,0-24Zm-24-208A92.00118,92.00118,0,0,0,67.146,172.99805a11.9999,11.9999,0,0,0,15.88086-17.99414,68.00035,68.00035,0,1,1,89.94824.002A11.9999,11.9999,0,1,0,188.856,173,92.00075,92.00075,0,0,0,128.00244,12Z" fill="#FFFFFF" />
+                      </Svg>
+                    </View>
+                    <Text style={styles.buttonText}>Get More Hints</Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
                   style={[styles.button, styles.aboutButton]}
                   onPress={() => setShowAbout(true)}
                 >
@@ -207,7 +265,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
                     <Text style={styles.buttonText}>About</Text>
                   </View>
                 </TouchableOpacity>
-
+              </View>
+              <View style={styles.section}>
                 <TouchableOpacity 
                   style={[styles.button, styles.resetButton]}
                   onPress={handleReset}
@@ -378,6 +437,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
           </View>
         </View>
       </Modal>
+
+      <HintRewardModal
+        isVisible={showHintReward}
+        onClose={handleCloseModal}
+        onWatchAd={handleWatchAd}
+        isSuccessView={isSuccessView}
+      />
     </>
   );
 };
@@ -521,6 +587,9 @@ const styles = StyleSheet.create({
   helpButton: {
     backgroundColor: '#9b59b6',
   },
+  hintsButton: {
+    backgroundColor: '#dd8b09',
+  },
   adminSection: {
     marginTop: 20,
     paddingTop: 20,
@@ -591,6 +660,80 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 20,
+    paddingTop: 34,
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+    width: 330,
+    maxWidth: 500,
+    alignItems: 'center',
+    borderWidth: 5,
+    borderColor: '#666',
+  },
+  modalIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#252525',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#ffd700',
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 18,
+    color: '#ccc',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  modalReward: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#ffd700',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    width: '100%',
+    marginTop: 10,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  modalWatchButton: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#45a049',
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

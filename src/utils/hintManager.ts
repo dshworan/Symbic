@@ -31,12 +31,14 @@ class HintManager {
   private async loadHints() {
     try {
       const savedHints = await AsyncStorage.getItem(HINTS_STORAGE_KEY);
-      //console.log('HintManager loadHints - savedHints from storage:', savedHints);
-      
-      // Always set to 5 if we're loading for the first time
-      this.hints = 5;
-      await this.saveHints();
-      //console.log('HintManager loadHints - hints after load:', this.hints);
+      if (savedHints !== null) {
+        // If we have saved hints, use them
+        this.hints = parseInt(savedHints, 10);
+      } else {
+        // If no saved hints, set to default of 5
+        this.hints = 5;
+        await this.saveHints();
+      }
     } catch (error) {
       console.error('Error loading hints:', error);
       // On error, ensure we have the default value

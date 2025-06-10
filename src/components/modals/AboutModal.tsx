@@ -30,10 +30,10 @@ const AboutModal: React.FC<AboutModalProps> = ({ isVisible, onClose }) => {
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>About</Text>
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
                 <Ionicons name="close" size={24} color="#e0e0e0" />
               </TouchableOpacity>
-              <Text style={styles.modalTitle}>About</Text>
             </View>
             
             <ScrollView 
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   },
   modalView: {
     width: '90%',
-    maxWidth: 500,
+    maxWidth: 400,
     height: '95%',
     backgroundColor: '#1E1E1E',
     borderRadius: 12,
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   },
   modalHeader: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     padding: 15,
     backgroundColor: '#292929',
@@ -126,9 +126,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#333333',
   },
   closeButton: {
-    position: 'absolute',
-    right: 10,
-    top: 10,
     width: 40,
     height: 40,
     justifyContent: 'center',
@@ -138,6 +135,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: '#E0E0E0',
+    marginLeft: 10,
   },
   modalContent: {
     flex: 1,

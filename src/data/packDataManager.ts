@@ -149,7 +149,7 @@ export class PackDataManager {
     });
 
     // Log for debugging
-    console.log('All packs loaded:', allPacks.map(p => p.id));
+    //console.log('All packs loaded:', allPacks.map(p => p.id));
 
     return allPacks;
   }

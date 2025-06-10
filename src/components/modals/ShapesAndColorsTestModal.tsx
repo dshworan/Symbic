@@ -123,6 +123,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
     borderRadius: 20,
     width: '90%',
+    maxWidth: 500,
     height: '95%',
     padding: 15,
   },

@@ -202,7 +202,7 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
           </>
         ) : (
           <View style={styles.lockContainer}>
-            <Ionicons name="lock-closed" size={16} color="#aaaaaa" />
+            <Ionicons name="lock-closed" size={20} color="#777777" />
           </View>
         )}
       </TouchableOpacity>

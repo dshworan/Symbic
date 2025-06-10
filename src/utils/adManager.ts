@@ -10,7 +10,7 @@ class AdManager {
   private constructor() {
     this.packDataManager = PackDataManager.getInstance();
     this.adMob = Platform.OS === 'web' ? MockAdMob : require('react-native-google-mobile-ads').default;
-    this.initialize();
+    //this.initialize();
   }
 
   public static getInstance(): AdManager {
@@ -20,12 +20,16 @@ class AdManager {
     return AdManager.instance;
   }
 
-  private async initialize() {
+  public async init() {
     try {
-      await this.adMob.initialize();
-      console.log('AdMob initialized successfully');
+      if (this.adMob && typeof this.adMob.initialize === 'function') {
+        await this.adMob.initialize();
+        console.log('✅ AdMob initialized');
+      } else {
+        console.warn('⚠️ AdMob is not available or initialize() is missing');
+      }
     } catch (error) {
-      console.error('Error initializing AdMob:', error);
+      console.error('❌ Failed to initialize AdMob:', error);
     }
   }
 

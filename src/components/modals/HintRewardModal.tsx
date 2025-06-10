@@ -6,9 +6,10 @@ interface HintRewardModalProps {
   isVisible: boolean;
   onClose: () => void;
   onWatchAd: () => void;
+  isSuccessView: boolean;
 }
 
-const HintRewardModal: React.FC<HintRewardModalProps> = ({ isVisible, onClose, onWatchAd }) => {
+const HintRewardModal: React.FC<HintRewardModalProps> = ({ isVisible, onClose, onWatchAd, isSuccessView }) => {
   return (
     <Modal
       visible={isVisible}
@@ -22,26 +23,45 @@ const HintRewardModal: React.FC<HintRewardModalProps> = ({ isVisible, onClose, o
             <MaterialIcons name="lightbulb" size={48} color="#ffd700" />
           </View>
           
-          <Text style={styles.title}>Need more hints?</Text>
-          <Text style={styles.message}>Watch an ad for</Text>
-          <Text style={styles.reward}>5 FREE HINTS!</Text>
-          
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={[styles.button, styles.cancelButton]} 
-              onPress={onClose}
-            >
-              <Text style={styles.buttonText}>No Thanks</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.button, styles.watchButton]} 
-              onPress={onWatchAd}
-            >
-              <MaterialIcons name="play-circle-outline" size={24} color="#fff" style={styles.buttonIcon} />
-              <Text style={styles.buttonText}>Watch Ad</Text>
-            </TouchableOpacity>
-          </View>
+          {isSuccessView ? (
+            <>
+              <Text style={styles.title}>There you go!</Text>
+              <Text style={styles.message}>You have</Text>
+              <Text style={styles.reward}>5 MORE HINTS!</Text>
+              
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity 
+                  style={[styles.button, styles.watchButton]} 
+                  onPress={onClose}
+                >
+                  <Text style={styles.buttonText}>Close</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <>
+              <Text style={styles.title}>Need more hints?</Text>
+              <Text style={styles.message}>Watch an ad for</Text>
+              <Text style={styles.reward}>5 FREE HINTS!</Text>
+              
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity 
+                  style={[styles.button, styles.cancelButton]} 
+                  onPress={onClose}
+                >
+                  <Text style={styles.buttonText}>No Thanks</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.button, styles.watchButton]} 
+                  onPress={onWatchAd}
+                >
+                  <MaterialIcons name="play-circle-outline" size={24} color="#fff" style={styles.buttonIcon} />
+                  <Text style={styles.buttonText}>Watch Ad</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
         </View>
       </View>
     </Modal>

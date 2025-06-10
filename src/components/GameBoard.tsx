@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, useWindowDimensions, Animated, StatusBar, Alert } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { View, TouchableOpacity, Text, StyleSheet, useWindowDimensions, Animated, StatusBar, Alert, Platform, ScrollView, Modal, Image } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { Puzzle } from '../data/types/levelTypes';
@@ -16,6 +16,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showRewardedAd, preloadRewardedAd } from '../utils/rewardAd';
 import HintRewardModal from './modals/HintRewardModal';
 import { showInterstitialAd, preloadInterstitialAd } from '../utils/interstitialAd';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type RootStackParamList = {
+  Game: {
+    refreshHints?: number;
+  };
+};
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Game'>;
+type GameScreenRouteProp = RouteProp<RootStackParamList, 'Game'>;
 
 type CellValue = number | null;
 
@@ -36,7 +47,9 @@ interface Hint {
 }
 
 interface GameBoardProps {
-  isAutoplay: boolean;
+  onComplete: () => void;
+  onBack: () => void;
+  isAutoplay?: boolean;
   onAutoplayChange: (value: boolean) => void;
   onPackPress?: () => void;
 }
@@ -82,9 +95,11 @@ const Logo: React.FC = () => {
 
 const SCORE_STORAGE_KEY = '@game_score';
 
-const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onPackPress }) => {
+const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = false, onAutoplayChange, onPackPress }) => {
   const { width } = useWindowDimensions();
   const { playSound } = useAudio();
+  const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<GameScreenRouteProp>();
   const [cellSize, setCellSize] = useState(0);
   const [grid, setGrid] = useState<CellValue[][]>([]);
   const [score, setScore] = useState(0);
@@ -117,6 +132,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
   const [hintCount, setHintCount] = useState(5);
   const [showHintReward, setShowHintReward] = useState(false);
   const [hintBadgeScale] = useState(new Animated.Value(1));
+  const [hasLoadedInitialHints, setHasLoadedInitialHints] = useState(false);
+  const [hintsJustAdded, setHintsJustAdded] = useState(false);
   const ruleManager = new RuleManager();
 
   // Initialize the game board only once on mount
@@ -796,12 +813,17 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
 
   const handleWatchAd = async () => {
     try {
-      await showRewardedAd((reward) => {
+      // Show the ad
+      await showRewardedAd(async (reward) => {
         // Add 5 hints after watching the ad
-        hintManager.addHints(5);
-        setHintCount(hintManager.getHints());
+        await hintManager.addHints(5);
         // Preload the next ad
         preloadRewardedAd();
+        // Force a refresh of the game page
+        navigation.setParams({ refreshHints: Date.now() });
+        
+        // Set flag to trigger pulse animation
+        setHintsJustAdded(true);
       });
     } catch (error) {
       console.error('Error showing reward ad:', error);
@@ -1364,14 +1386,11 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
   // Load hint count on mount
   useEffect(() => {
     const initializeHints = async () => {
-      //console.log('GameBoard - initializing hints');
-      // Reset hints first
-      await hintManager.resetHints();
-      // Then initialize
+      // Initialize hints
       await hintManager.initialize();
       const hints = hintManager.getHints();
-      //console.log('GameBoard - setting initial hint count:', hints);
       setHintCount(hints);
+      setHasLoadedInitialHints(true);
     };
     initializeHints();
   }, []);
@@ -1387,7 +1406,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
 
   // Add effect to handle hint badge pulse animation
   useEffect(() => {
-    if (hintCount === 5) {
+    // Pulse if hints were just added through watching an ad
+    if (hintsJustAdded) {
       // Create pulse animation sequence
       Animated.sequence([
         Animated.timing(hintBadgeScale, {
@@ -1420,9 +1440,21 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
           duration: 200,
           useNativeDriver: true,
         }),
-      ]).start();
+      ]).start(() => {
+        // Reset the flag after animation completes
+        setHintsJustAdded(false);
+      });
     }
-  }, [hintCount]);
+  }, [hintsJustAdded]);
+
+  // Add effect to listen for hint count updates
+  useEffect(() => {
+    const refreshHints = async () => {
+      const hints = hintManager.getHints();
+      setHintCount(hints);
+    };
+    refreshHints();
+  }, [route.params?.refreshHints]);
 
   return (
     <View style={styles.container}>
@@ -1704,6 +1736,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
         isVisible={showHintReward}
         onClose={() => setShowHintReward(false)}
         onWatchAd={handleWatchAd}
+        isSuccessView={false}
       />
     </View>
   );
@@ -1952,8 +1985,8 @@ const styles = StyleSheet.create({
     right: -6,
     backgroundColor: '#4CAF50',
     borderRadius: 12,
-    width: 24,
-    height: 24,
+    width: 25,
+    height: 25,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
