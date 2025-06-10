@@ -88,6 +88,9 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
   const [cellSize, setCellSize] = useState(0);
   const [grid, setGrid] = useState<CellValue[][]>([]);
   const [score, setScore] = useState(0);
+  const [previousScore, setPreviousScore] = useState(0);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [hasLoadedInitialScore, setHasLoadedInitialScore] = useState(false);
   const [successMessage, setSuccessMessage] = useState<{ message: string; backgroundColor: string; borderColor: string } | null>(null);
   const [failureMessage, setFailureMessage] = useState<string | null>(null);
   const [messageOpacity] = useState(new Animated.Value(0));
@@ -1299,7 +1302,10 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
       try {
         const savedScore = await AsyncStorage.getItem(SCORE_STORAGE_KEY);
         if (savedScore !== null) {
-          setScore(parseInt(savedScore, 10));
+          const initialScore = parseInt(savedScore, 10);
+          setScore(initialScore);
+          setPreviousScore(initialScore);
+          setHasLoadedInitialScore(true);
           setHasStartedGame(true);
         }
       } catch (error) {
@@ -1322,6 +1328,21 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
       saveScore();
     }
   }, [score, hasStartedGame]);
+
+  // Existing score-based ad useEffect
+  useEffect(() => {
+    // Don't show ads until initial score is loaded
+    if (!hasLoadedInitialScore) {
+      return;
+    }
+
+    // Show interstitial ad when score changes to a multiple of 10, but not in autoplay mode
+    if (!isAutoplay && score > 0 && score % 10 === 0 && previousScore !== score) {
+      showInterstitialAd();
+    }
+    // Update previous score after checking
+    setPreviousScore(score);
+  }, [score, hasLoadedInitialScore]);
 
   const resetScore = async () => {
     try {
@@ -1363,19 +1384,6 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
       preloadInterstitialAd();
     }
   }, [currentPuzzleIndex, isAutoplay]);
-
-  // Existing score-based ad useEffect
-  useEffect(() => {
-    // Show interstitial ad at every multiple of 10, but not in autoplay mode
-    if (!isAutoplay && score > 0 && score % 10 === 0) {
-      //console.log(`Score reached ${score}, showing interstitial ad...`);
-      showInterstitialAd();
-    }
-    //test ad at score 1
-    if (!isAutoplay && score > 0 && score === 1) {
-      showInterstitialAd();
-    }
-  }, [score]);
 
   // Add effect to handle hint badge pulse animation
   useEffect(() => {
@@ -1798,6 +1806,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: 200,
     alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 1000,
     borderWidth: 3,
   },
@@ -1805,6 +1814,8 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
     fontSize: 24,
     fontWeight: 'bold',
+    textAlign: 'center',
+    width: '100%',
   },
   failureMessage: {
     position: 'absolute',
