@@ -1188,15 +1188,27 @@ export class LevelManager {
     this.currentLevelIndex = 0;
     // Sync puzzle manager
     puzzleManager.syncWithLevelManager();
-    //console.log('Set current pack:', packId, 'pack index:', this.currentPackIndex);
+    // Ensure we have valid indices
+    if (this.currentPackIndex < 0 || this.currentPackIndex >= this.packs.length) {
+      console.error('Invalid pack index:', this.currentPackIndex);
+      this.currentPackIndex = 0;
+    }
+    if (this.currentLevelIndex < 0 || this.currentLevelIndex >= this.packs[this.currentPackIndex].levels.length) {
+      console.error('Invalid level index:', this.currentLevelIndex);
+      this.currentLevelIndex = 0;
+    }
+    console.log('Set current pack:', packId, 'pack index:', this.currentPackIndex);
   }
 
   public setCurrentLevel(levelId: number): void {
     // Convert to 0-based index
     this.currentLevelIndex = levelId - 1;
-    // Sync puzzle manager
-    puzzleManager.syncWithLevelManager();
-    //console.log('Set current level:', levelId, 'level index:', this.currentLevelIndex);
+    // Ensure we have valid indices
+    if (this.currentLevelIndex < 0 || this.currentLevelIndex >= this.packs[this.currentPackIndex].levels.length) {
+      console.error('Invalid level index:', this.currentLevelIndex);
+      this.currentLevelIndex = 0;
+    }
+    console.log('Set current level:', levelId, 'level index:', this.currentLevelIndex);
   }
 }
 

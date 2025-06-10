@@ -22,14 +22,19 @@ export class AssetManager {
   }
 
   public getLevelAssets(packIndex: number, levelIndex: number): LevelAssets {
-    // Shapes: use both pack and level indices to determine the shape set
-    //const shapeSetIndex = (packIndex + levelIndex) % shapeSets.length;
-    const shapeSetIndex = (packIndex * this.SHAPE_PRIME + levelIndex) % shapeSets.length;
+    // Calculate total index for both shapes and colors
+    const totalShapeIndex = packIndex * 4 + levelIndex;
+    const totalColorIndex = packIndex * 4 + levelIndex;
 
-    // Colors: walk first, then formula
-    const colorSetIndex = levelIndex < colorSets.length
-      ? levelIndex
-      : ((packIndex * this.COLOR_PRIME + levelIndex) % colorSets.length + colorSets.length) % colorSets.length;
+    // Shapes: use direct index if within bounds, otherwise use prime formula
+    const shapeSetIndex = totalShapeIndex < shapeSets.length
+      ? totalShapeIndex
+      : ((packIndex * this.SHAPE_PRIME + levelIndex) % shapeSets.length + shapeSets.length) % shapeSets.length;
+
+    // Colors: use direct index if within bounds, otherwise use prime formula
+    const colorSetIndex = totalColorIndex < colorSets.length
+      ? totalColorIndex
+      : ((packIndex * this.COLOR_PRIME + levelIndex) % (colorSets.length * 2)) % colorSets.length;
 
     const [shape0, shape1] = shapeSets[shapeSetIndex];
     const [color0, color1] = colorSets[colorSetIndex];
