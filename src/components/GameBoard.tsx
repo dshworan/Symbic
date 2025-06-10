@@ -1119,8 +1119,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAutoplay, onAutoplayChange, onP
           {
             width: cellSize,
             height: cellSize,
-            backgroundColor: (isHintSetCell || isHintCell) ? '#1a1a1a' : (isInitial ? '#363636' : '#252525'),
-            borderColor: isErrorCell ? '#ff4444' : isHintCell ? '#ffd700' : isHintSetCell ? '#ccc' : '#404040',
+            backgroundColor: (isHintSetCell || isHintCell) ? '#1a1a1a' : (isInitial ? '#2c2c2c' : '#1f1f1f'),
+            borderColor: isErrorCell ? '#ff4444' : isHintCell ? '#ffd700' : isHintSetCell ? '#ccc' : '#3f3f3f',
             borderWidth: isErrorCell ? 2 : isHintCell ? 2 : (puzzle.grid.length <= 6 ? 1 : 0.5),
           }
         ]}
@@ -1749,6 +1749,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 20,
     position: 'relative',
+    borderWidth: 1,
+    borderColor: '#404040',
   },
   row: {
     flexDirection: 'row',
