@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
@@ -7,44 +7,57 @@ import { puzzleManager } from '../utils/puzzleManager';
 import SettingsModal from '../components/modals/SettingsModal';
 import { levelManager } from '../data/levels/levelManager';
 import PuzzlePacksModal from '../components/modals/PuzzlePacksModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRoute, RouteProp } from '@react-navigation/native';
 
-const Logo: React.FC = () => {
-  const size = 12;
-  const currentLevel = levelManager.getCurrentLevel();
-  const shapes = currentLevel.shapes;
+type RootStackParamList = {
+  Game: {
+    refreshAdmin?: number;
+  };
+};
+
+type GameScreenRouteProp = RouteProp<RootStackParamList, 'Game'>;
+
+const Logo: React.FC<{ isAutoplay: boolean; onAutoplayChange: (value: boolean) => void }> = ({ isAutoplay, onAutoplayChange }) => {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const route = useRoute<GameScreenRouteProp>();
+
+  // Check admin status every time the component renders
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const adminStatus = await AsyncStorage.getItem('@admin_status');
+        console.log('Logo checking admin status:', adminStatus);
+        const newAdminStatus = adminStatus === 'true';
+        console.log('Logo setting admin status to:', newAdminStatus);
+        setIsAdmin(newAdminStatus);
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      }
+    };
+    checkAdminStatus();
+  }); // Remove the dependency array to check on every render
+
+  const handleTitlePress = () => {
+    console.log('Logo clicked, admin status:', isAdmin);
+    if (isAdmin) {
+      console.log('Logo: toggling autoplay');
+      onAutoplayChange(!isAutoplay);
+    } else {
+      console.log('Logo: not in admin mode, ignoring click');
+    }
+  };
 
   return (
-    <View style={styles.logoContainer}>
-      <View style={styles.logoGrid}>
-        {/* Top Left - First Shape */}
-        <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-          <Path 
-            d={shapes[0].path}
-            fill={shapes[0].fill}
-          />
-        </Svg>
-        {/* Top Right - Second Shape */}
-        <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-          <Path 
-            d={shapes[1].path}
-            fill={shapes[1].fill}
-          />
-        </Svg>
-        {/* Bottom Left - Second Shape */}
-        <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-          <Path 
-            d={shapes[1].path}
-            fill={shapes[1].fill}
-          />
-        </Svg>
-        {/* Bottom Right - First Shape */}
-        <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-          <Path 
-            d={shapes[0].path}
-            fill={shapes[0].fill}
-          />
-        </Svg>
-      </View>
+    <View style={styles.headerCenter}>
+      {isAdmin ? (
+        <TouchableOpacity onPress={handleTitlePress}>
+          <Text style={[styles.title, isAutoplay && styles.titleActive]}>SYMBIC</Text>
+        </TouchableOpacity>
+      ) : (
+        <Text style={styles.title}>SYMBIC</Text>
+      )}
     </View>
   );
 };
@@ -55,9 +68,25 @@ export const GameScreen: React.FC = () => {
   const [isAutoplay, setIsAutoplay] = useState(false);
   const [currentLevelId, setCurrentLevelId] = useState(levelManager.getCurrentLevel().id);
   const [showPuzzlePacks, setShowPuzzlePacks] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const adminStatus = await AsyncStorage.getItem('@admin_status');
+        console.log('GameScreen checking admin status:', adminStatus);
+        setIsAdmin(adminStatus === 'true');
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+      }
+    };
+    checkAdminStatus();
+  }, []);
 
   const handleTitlePress = () => {
-    setIsAutoplay(!isAutoplay);
+    if (isAdmin) {
+      setIsAutoplay(!isAutoplay);
+    }
   };
 
   const handleReset = () => {
@@ -98,14 +127,7 @@ export const GameScreen: React.FC = () => {
             <Text style={styles.difficultyText}>{getDifficultyLabel(puzzleManager.getDifficulty())}</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.headerCenter}>
-          <View style={styles.titleContainer}>
-            <Logo />
-            <TouchableOpacity onPress={handleTitlePress}>
-              <Text style={[styles.title, isAutoplay && styles.titleActive]}>SYMBIC</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <Logo isAutoplay={isAutoplay} onAutoplayChange={setIsAutoplay} />
         <View style={styles.headerRight}>
           <TouchableOpacity 
             style={styles.settingsButton} 
@@ -120,11 +142,26 @@ export const GameScreen: React.FC = () => {
         isAutoplay={isAutoplay}
         onAutoplayChange={setIsAutoplay}
         onPackPress={() => setShowPuzzlePacks(true)}
+        onComplete={() => {
+          // Handle level completion
+          if (levelManager.nextLevel()) {
+            setCurrentLevelId(levelManager.getCurrentLevel().id);
+            setResetKey(prev => prev + 1);
+          }
+        }}
+        onBack={() => {
+          // Handle going back
+          if (levelManager.previousLevel()) {
+            setCurrentLevelId(levelManager.getCurrentLevel().id);
+            setResetKey(prev => prev + 1);
+          }
+        }}
       />
       <SettingsModal 
         isVisible={isSettingsVisible}
         onClose={() => setIsSettingsVisible(false)}
         onReset={handleReset}
+        score={0}
       />
       <PuzzlePacksModal
         isVisible={showPuzzlePacks}
@@ -155,23 +192,19 @@ const styles = StyleSheet.create({
   headerCenter: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   headerRight: {
     flex: 1,
     alignItems: 'flex-end',
   },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
   title: {
-    color: '#e0e0e0',
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#e0e0e0',
   },
   titleActive: {
-    color: '#ffd85d', // Yellow color to indicate autoplay is active
+    color: '#4CAF50',
   },
   settingsButton: {
     padding: 5,
@@ -180,21 +213,6 @@ const styles = StyleSheet.create({
     color: '#e0e0e0',
     fontSize: 13,
     fontWeight: '500',
-  },
-  logoContainer: {
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 3,
-    display: 'none',
-  },
-  logoGrid: {
-    width: 24,
-    height: 24,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 0,
   },
   difficultyContainer: {
     flexDirection: 'row',

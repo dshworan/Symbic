@@ -54,45 +54,6 @@ interface GameBoardProps {
   onPackPress?: () => void;
 }
 
-const Logo: React.FC = () => {
-  const size = 14; // Reduced from 20 to 14
-
-  return (
-    <View style={styles.logoContainer}>
-      <View style={styles.logoGrid}>
-        {/* Top Left - Diamond */}
-        <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-          <Path 
-            d="M50 5L95 50L50 95L5 50L50 5Z" 
-            fill="#FFD700" // Yellow diamond
-          />
-        </Svg>
-        {/* Top Right - Circle */}
-        <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-          <Path 
-            d="M91.5 50C91.5 72.9198 72.9198 91.5 50 91.5C27.0802 91.5 8.5 72.9198 8.5 50C8.5 27.0802 27.0802 8.5 50 8.5C72.9198 8.5 91.5 27.0802 91.5 50Z" 
-            fill="#2196F3" // Blue circle
-          />
-        </Svg>
-        {/* Bottom Left - Circle */}
-        <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-          <Path 
-            d="M91.5 50C91.5 72.9198 72.9198 91.5 50 91.5C27.0802 91.5 8.5 72.9198 8.5 50C8.5 27.0802 27.0802 8.5 50 8.5C72.9198 8.5 91.5 27.0802 91.5 50Z" 
-            fill="#2196F3" // Blue circle
-          />
-        </Svg>
-        {/* Bottom Right - Diamond */}
-        <Svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-          <Path 
-            d="M50 5L95 50L50 95L5 50L50 5Z" 
-            fill="#FFD700" // Yellow diamond
-          />
-        </Svg>
-      </View>
-    </View>
-  );
-};
-
 const SCORE_STORAGE_KEY = '@game_score';
 
 const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = false, onAutoplayChange, onPackPress }) => {
@@ -161,49 +122,6 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
     const currentLevel = levelManager.getCurrentLevel();
     const puzzle = puzzleManager.getCurrentPuzzle();
     
-    // If level or grid size changed, update the board
-    /* UNUSED LEVEL TRANSITION CODE - Keeping for reference
-    if (currentLevel.id !== currentLevelId || puzzle.grid.length !== currentGridSize) {
-      // Pause autoplay during transition
-      if (isAutoplay) {
-        onAutoplayChange(false);
-      }
-
-      // Fade out the board
-      Animated.timing(boardOpacity, {
-        toValue: 0,
-        duration: 150,
-        useNativeDriver: true,
-      }).start(() => {
-        // Reset solved state
-        setIsSolved(false);
-        
-        // Clear move history and redo stack
-        setMoveHistory([]);
-        setRedoStack([]);
-        
-        // Update grid data first
-        setGrid(puzzle.grid as CellValue[][]);
-        setCurrentPuzzleIndex(puzzleManager.getCurrentPuzzleIndex());
-        setCurrentLevelId(currentLevel.id);
-        setCurrentShapes(currentLevel.shapes);
-        
-        // Fade in the board
-        Animated.timing(boardOpacity, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }).start(() => {
-          // Restart autoplay after a delay if it was active
-          if (isAutoplay) {
-            setTimeout(() => {
-              onAutoplayChange(true);
-            }, 2000); // 2 second delay before restarting autoplay
-          }
-        });
-      });
-    }
-    */
   }, [currentLevelId, currentGridSize]);
 
   // Effect to handle puzzle changes
@@ -1626,10 +1544,10 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
         </Animated.View>
 
         <View style={styles.messageContainer}>
-          {levelManager.getCurrentPackNumber() === 1 && levelManager.getCurrentLevelNumber() === 1 && (
+          {levelManager.getCurrentPackNumber() === 1 && (
             <Animated.View style={[styles.tutorialMessage, { opacity: tutorialOpacity }]}>
               <Text style={styles.tutorialText}>
-                {pack1Tutorials.level1[puzzleManager.getCurrentPuzzleIndex()]}
+                {pack1Tutorials[`level${levelManager.getCurrentLevelNumber()}`]?.[puzzleManager.getCurrentPuzzleIndex()]}
               </Text>
             </Animated.View>
           )}
@@ -1731,6 +1649,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
         isVisible={showSettings}
         onClose={() => setShowSettings(false)}
         onReset={resetScore}
+        score={score}
       />
       <HintRewardModal
         isVisible={showHintReward}
@@ -1996,5 +1915,13 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  logo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#E0E0E0',
+  },
+  logoDisabled: {
+    color: '#666666',
   },
 }); 

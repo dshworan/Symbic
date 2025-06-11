@@ -34,21 +34,16 @@ const AboutModal: React.FC<AboutModalProps> = ({ isVisible, onClose }) => {
 
     if (newCount >= 3) {
       try {
+        console.log('Setting admin status to true');
         await AsyncStorage.setItem('@admin_status', 'true');
         // Close the modal first
         onClose();
         // Force a refresh of the settings modal
         navigation.setParams({ refreshAdmin: Date.now() } as any);
-        // Then show the alert
-        Alert.alert(
-          'Admin Access',
-          'Admin access has been activated.',
-          [{ text: 'OK' }]
-        );
-        setClickCount(0);
+         setClickCount(0);
       } catch (error) {
         console.error('Error setting admin status:', error);
-      }
+      } 
     }
   };
 

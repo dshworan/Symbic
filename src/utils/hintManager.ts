@@ -36,8 +36,8 @@ class HintManager {
         this.hints = parseInt(savedHints, 10);
       } else {
         // If no saved hints, set to default of 5
-        this.hints = 5;
-        await this.saveHints();
+      this.hints = 5;
+      await this.saveHints();
       }
     } catch (error) {
       console.error('Error loading hints:', error);

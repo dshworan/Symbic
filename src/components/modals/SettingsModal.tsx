@@ -22,6 +22,7 @@ import { showRewardedAd, preloadRewardedAd } from '../../utils/rewardAd';
 type RootStackParamList = {
   Game: {
     refreshHints?: number;
+    refreshAdmin?: number;
   };
   TestInterstitialAd: undefined;
   TestRewardAd: undefined;
@@ -29,7 +30,7 @@ type RootStackParamList = {
   LiveRewardAd: undefined;
 };
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Game'>;
 
 interface SettingsModalProps {
   isVisible: boolean;
@@ -39,7 +40,7 @@ interface SettingsModalProps {
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onReset, score }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const route = useRoute();
   const { soundEnabled, toggleSound } = useAudio();
   const [showAbout, setShowAbout] = useState(false);
@@ -173,10 +174,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
 
   const handleAdminLogout = async () => {
     try {
+      console.log('Removing admin status');
       await AsyncStorage.removeItem('@admin_status');
       setIsAdmin(false);
     } catch (error) {
-      //console.error('Error logging out of admin:', error);
+      console.error('Error logging out of admin:', error);
     }
   };
 

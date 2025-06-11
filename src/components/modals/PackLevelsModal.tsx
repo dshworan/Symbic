@@ -74,7 +74,7 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
     // Ensure the puzzle is loaded
     const puzzle = puzzleManager.getCurrentPuzzle();
     if (!puzzle) {
-      console.error('Failed to load puzzle');
+      //console.error('Failed to load puzzle');
       return;
     }
 
@@ -99,7 +99,7 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
         onClose();
       });
     } catch (error) {
-      console.error('Error showing reward ad:', error);
+      //console.error('Error showing reward ad:', error);
       Alert.alert(
         'Error',
         'Failed to show ad. Please try again later.',
