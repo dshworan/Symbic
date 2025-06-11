@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, Linking } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView, Linking, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 interface AboutModalProps {
   isVisible: boolean;
@@ -9,10 +11,49 @@ interface AboutModalProps {
 }
 
 const AboutModal: React.FC<AboutModalProps> = ({ isVisible, onClose }) => {
+  const navigation = useNavigation();
+  const route = useRoute();
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [clickCount, setClickCount] = useState(0);
+  const [lastClickTime, setLastClickTime] = useState(0);
+  const CLICK_TIMEOUT = 2000; // 2 seconds between clicks
+
+  const handleCopyrightClick = async () => {
+    const now = Date.now();
+    
+    // Reset count if too much time has passed between clicks
+    if (now - lastClickTime > CLICK_TIMEOUT) {
+      setClickCount(1);
+      setLastClickTime(now);
+      return;
+    }
+
+    const newCount = clickCount + 1;
+    setClickCount(newCount);
+    setLastClickTime(now);
+
+    if (newCount >= 3) {
+      try {
+        await AsyncStorage.setItem('@admin_status', 'true');
+        // Close the modal first
+        onClose();
+        // Force a refresh of the settings modal
+        navigation.setParams({ refreshAdmin: Date.now() } as any);
+        // Then show the alert
+        Alert.alert(
+          'Admin Access',
+          'Admin access has been activated.',
+          [{ text: 'OK' }]
+        );
+        setClickCount(0);
+      } catch (error) {
+        console.error('Error setting admin status:', error);
+      }
+    }
+  };
 
   const handleEmailPress = () => {
-    Linking.openURL('mailto:symbic@shworan.com');
+    Linking.openURL('mailto:daveshworan@gmail.com');
   };
 
   const handleLinkedInPress = () => {
@@ -52,9 +93,15 @@ const AboutModal: React.FC<AboutModalProps> = ({ isVisible, onClose }) => {
                 <Text style={styles.paragraph}>
                   Created by: Dave Shworan
                 </Text>
-                <Text style={styles.paragraph}>
-                  © 2024 All Rights Reserved
-                </Text>
+                <View style={styles.footer}>
+                  <TouchableOpacity 
+                    style={styles.footer} 
+                    onPress={handleCopyrightClick}
+                    activeOpacity={1}
+                  >
+                    <Text style={styles.copyright}>© 2025 All Rights Reserved</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
               
               <View style={styles.contentBox}>
@@ -62,7 +109,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isVisible, onClose }) => {
                   From the developer: I had a lot of fun making this game. 
                   I would love to hear your feedback! Email me at{' '} 
                   <Text style={styles.emailLink} onPress={handleEmailPress}>
-                    symbic@shworan.com
+                    daveshworan@gmail.com
                   </Text>
                 </Text>
                 <TouchableOpacity 
@@ -212,6 +259,14 @@ const styles = StyleSheet.create({
     color: '#E0E0E0',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  footer: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  copyright: {
+    color: '#B0B0B0',
+    fontSize: 16,
   },
 });
 

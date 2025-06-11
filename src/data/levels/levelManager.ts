@@ -1113,7 +1113,7 @@ export class LevelManager {
   getCurrentPack(): Pack {
     const pack = this.packs[this.currentPackIndex];
     if (!pack) {
-      console.error('Invalid pack index:', this.currentPackIndex);
+      //console.error('Invalid pack index:', this.currentPackIndex);
       return this.packs[0]; // Fallback to first pack
     }
     return pack;
@@ -1122,12 +1122,12 @@ export class LevelManager {
   getCurrentLevel(): Level {
     const pack = this.packs[this.currentPackIndex];
     if (!pack) {
-      console.error('Invalid pack index:', this.currentPackIndex);
+      //console.error('Invalid pack index:', this.currentPackIndex);
       return this.packs[0].levels[0]; // Fallback to first level of first pack
     }
     const level = pack.levels[this.currentLevelIndex];
     if (!level) {
-      console.error('Invalid level index:', this.currentLevelIndex);
+      //console.error('Invalid level index:', this.currentLevelIndex);
       return pack.levels[0]; // Fallback to first level of current pack
     }
     return level;
@@ -1190,14 +1190,14 @@ export class LevelManager {
     puzzleManager.syncWithLevelManager();
     // Ensure we have valid indices
     if (this.currentPackIndex < 0 || this.currentPackIndex >= this.packs.length) {
-      console.error('Invalid pack index:', this.currentPackIndex);
+      //console.error('Invalid pack index:', this.currentPackIndex);
       this.currentPackIndex = 0;
     }
     if (this.currentLevelIndex < 0 || this.currentLevelIndex >= this.packs[this.currentPackIndex].levels.length) {
-      console.error('Invalid level index:', this.currentLevelIndex);
+      //console.error('Invalid level index:', this.currentLevelIndex);
       this.currentLevelIndex = 0;
     }
-    console.log('Set current pack:', packId, 'pack index:', this.currentPackIndex);
+    //console.log('Set current pack:', packId, 'pack index:', this.currentPackIndex);
   }
 
   public setCurrentLevel(levelId: number): void {
@@ -1205,10 +1205,10 @@ export class LevelManager {
     this.currentLevelIndex = levelId - 1;
     // Ensure we have valid indices
     if (this.currentLevelIndex < 0 || this.currentLevelIndex >= this.packs[this.currentPackIndex].levels.length) {
-      console.error('Invalid level index:', this.currentLevelIndex);
+      //console.error('Invalid level index:', this.currentLevelIndex);
       this.currentLevelIndex = 0;
     }
-    console.log('Set current level:', levelId, 'level index:', this.currentLevelIndex);
+    //console.log('Set current level:', levelId, 'level index:', this.currentLevelIndex);
   }
 }
 

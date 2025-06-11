@@ -5,7 +5,7 @@ import { Svg, Path, Circle } from 'react-native-svg';
 import AboutModal from './AboutModal';
 import ResetConfirmationModal from './ResetConfirmationModal';
 import PuzzlePacksModal from './PuzzlePacksModal';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAudio } from '../../context/AudioContext';
 import { puzzleManager } from '../../utils/puzzleManager';
@@ -35,10 +35,12 @@ interface SettingsModalProps {
   isVisible: boolean;
   onClose: () => void;
   onReset: () => void;
+  score: number;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onReset }) => {
-  const navigation = useNavigation<NavigationProp>();
+const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onReset, score }) => {
+  const navigation = useNavigation();
+  const route = useRoute();
   const { soundEnabled, toggleSound } = useAudio();
   const [showAbout, setShowAbout] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -53,6 +55,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [showHintReward, setShowHintReward] = useState(false);
   const [isSuccessView, setIsSuccessView] = useState(false);
+
+  useEffect(() => {
+    checkAdminStatus();
+  }, [(route.params as any)?.refreshAdmin]);
+
+  const checkAdminStatus = async () => {
+    try {
+      const adminStatus = await AsyncStorage.getItem('@admin_status');
+      setIsAdmin(adminStatus === 'true');
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+    }
+  };
 
   const handleSoundToggle = async () => {
     await toggleSound();
@@ -153,6 +168,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
         'Failed to clear storage. Please try again.',
         [{ text: 'OK' }]
       );
+    }
+  };
+
+  const handleAdminLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('@admin_status');
+      setIsAdmin(false);
+    } catch (error) {
+      //console.error('Error logging out of admin:', error);
     }
   };
 
@@ -283,61 +307,72 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Admin</Text>
-                <View style={styles.adminButtons}>
-                  <TouchableOpacity 
-                    style={styles.adminButton} 
-                    onPress={() => openAdScreen('TestInterstitialAd')}
-                  >
-                    <Text style={styles.adminButtonText}>Test Interstitial</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.adminButton} 
-                    onPress={() => openAdScreen('TestRewardAd')}
-                  >
-                    <Text style={styles.adminButtonText}>Test Reward</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.adminButton} 
-                    onPress={() => openAdScreen('LiveInterstitialAd')}
-                  >
-                    <Text style={styles.adminButtonText}>Live Interstitial</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.adminButton} 
-                    onPress={() => openAdScreen('LiveRewardAd')}
-                  >
-                    <Text style={styles.adminButtonText}>Live Reward</Text>
-                  </TouchableOpacity>
-                  <View style={styles.spacerLine} />
-                  <TouchableOpacity 
-                    style={styles.adminButton}
-                    onPress={() => setShowColorTest(true)}
-                  >
-                    <Text style={styles.adminButtonText}>Color Test</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.adminButton}
-                    onPress={() => setShowShapesAndColorsTest(true)}
-                  >
-                    <Text style={styles.adminButtonText}>Shapes & Colors Test</Text>
-                  </TouchableOpacity>
-                  <View style={styles.spacerLine} />
-                  <TouchableOpacity 
-                    style={[styles.adminButton, styles.dangerButton]}
-                    onPress={() => setShowClearStorageConfirm(true)}
-                  >
-                    <Text style={styles.adminButtonText}>Clear All Storage</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={[styles.adminButton, styles.successButton]}
-                    onPress={() => setShowUnlockAllConfirm(true)}
-                  >
-                    <Text style={styles.adminButtonText}>Unlock All Packs</Text>
-                  </TouchableOpacity>
+              {/* Admin Section */}
+              {isAdmin && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Admin</Text>
+                  <View style={styles.adminButtons}>
+                    
+                    <TouchableOpacity 
+                      style={styles.adminButton}
+                      onPress={() => setShowColorTest(true)}
+                    >
+                      <Text style={styles.adminButtonText}>Color Test</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.adminButton}
+                      onPress={() => setShowShapesAndColorsTest(true)}
+                    >
+                      <Text style={styles.adminButtonText}>Shapes & Colors Test</Text>
+                    </TouchableOpacity>
+                    <View style={styles.spacerLine} />
+                    <TouchableOpacity 
+                      style={[styles.adminButton, styles.dangerButton]}
+                      onPress={() => setShowClearStorageConfirm(true)}
+                    >
+                      <Text style={styles.adminButtonText}>Clear All Storage</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={[styles.adminButton, styles.successButton]}
+                      onPress={() => setShowUnlockAllConfirm(true)}
+                    >
+                      <Text style={styles.adminButtonText}>Unlock All Packs</Text>
+                    </TouchableOpacity>
+                    <View style={styles.spacerLine} />
+                    <TouchableOpacity 
+                      style={styles.adminButtonAds} 
+                      onPress={() => openAdScreen('TestInterstitialAd')}
+                    >
+                      <Text style={styles.adminButtonText}>Test Interstitial</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.adminButtonAds} 
+                      onPress={() => openAdScreen('TestRewardAd')}
+                    >
+                      <Text style={styles.adminButtonText}>Test Reward</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.adminButtonAds} 
+                      onPress={() => openAdScreen('LiveInterstitialAd')}
+                    >
+                      <Text style={styles.adminButtonText}>Live Interstitial</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.adminButtonAds} 
+                      onPress={() => openAdScreen('LiveRewardAd')}
+                    >
+                      <Text style={styles.adminButtonText}>Live Reward</Text>
+                    </TouchableOpacity>
+                    <View style={styles.spacerLine} />
+                    <TouchableOpacity 
+                      style={[styles.adminButton, styles.logoutButton]} 
+                      onPress={handleAdminLogout}
+                    >
+                      <Text style={styles.adminButtonText}>Logout of Admin</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
+              )}
 
             </ScrollView>
           </View>
@@ -579,6 +614,12 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
   },
+  adminButtonAds: {
+    backgroundColor: '#1580c8',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
   adminButtonText: {
     color: '#e0e0e0',
     fontSize: 14,
@@ -734,6 +775,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  logoutButton: {
+    backgroundColor: '#888',
+    marginTop: 10,
   },
 });
 

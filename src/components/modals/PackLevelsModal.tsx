@@ -54,16 +54,16 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
 
   const handlePuzzlePress = (level: LevelInfo, puzzleIndex: number) => {
     if (!packDataManager.isPuzzlePlayable(packId, level.level, puzzleIndex)) {
-      console.log('Puzzle is locked');
+      //console.log('Puzzle is locked');
       return;
     }
 
-    console.log('Starting puzzle game:', { 
-      packId, 
-      level: level.level, 
-      puzzleIndex,
-      gridSize: level.size
-    });
+    //console.log('Starting puzzle game:', { 
+      //packId, 
+      //level: level.level, 
+      //puzzleIndex,
+      //gridSize: level.size
+    //});
 
     // Set the current pack and level (both are 1-based in LevelManager)
     levelManager.setCurrentPack(packId);
