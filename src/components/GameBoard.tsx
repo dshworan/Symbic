@@ -68,7 +68,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [hasLoadedInitialScore, setHasLoadedInitialScore] = useState(false);
   const [successMessage, setSuccessMessage] = useState<{ message: string; backgroundColor: string; borderColor: string } | null>(null);
-  const [failureMessage, setFailureMessage] = useState<string | null>(null);
+  const [failureMessage, setFailureMessage] = useState<{ mainText: string; subText: string } | null>(null);
   const [messageOpacity] = useState(new Animated.Value(0));
   const [failureOpacity] = useState(new Animated.Value(0));
   const [shapeScale] = useState(new Animated.Value(1));
@@ -431,14 +431,17 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
     // Play incorrect sound
     playSound('incorrect');
     
-    setFailureMessage("Sorry, that is not the solution.");
+    setFailureMessage({
+      mainText: "Sorry, that is not the solution.",
+      subText: "Remember you can't have 3 in a row, and each row and column must have the same number of each shape."
+    });
     Animated.sequence([
       Animated.timing(failureOpacity, {
         toValue: 1,
         duration: 200,
         useNativeDriver: true,
       }),
-      Animated.delay(1500),
+      Animated.delay(9500), // duration of the message
       Animated.timing(failureOpacity, {
         toValue: 0,
         duration: 200,
@@ -1538,7 +1541,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
           )}
           {failureMessage && (
             <Animated.View style={[styles.failureMessage, { opacity: failureOpacity }]}>
-              <Text style={styles.failureText}>{failureMessage}</Text>
+              <Text style={styles.failureMainText}>{failureMessage.mainText}</Text>
+              <Text style={styles.failureSubText}>{failureMessage.subText}</Text>
             </Animated.View>
           )}
         </Animated.View>
@@ -1771,19 +1775,27 @@ const styles = StyleSheet.create({
   },
   failureMessage: {
     position: 'absolute',
-    bottom: -75,
+    bottom: -95,
     left: '50%',
-    transform: [{ translateX: -155 }],
-    padding: 15,
-    width: 310,
+    transform: [{ translateX: -150 }],
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    width: 300,
     alignItems: 'center',
     zIndex: 2000,
     backgroundColor: '#1a1a1a',
   },
-  failureText: {
+  failureMainText: {
     color: '#ff5362',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  failureSubText: {
+    color: '#ff5362',
+    fontSize: 14,
+    lineHeight: 16,
+    textAlign: 'center',
   },
   hintMessage: {
     position: 'absolute',
