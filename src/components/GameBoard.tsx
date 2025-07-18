@@ -155,6 +155,53 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
     }
   }, [puzzleManager.getCurrentPuzzleIndex()]);
 
+  // Effect to ensure grid state is always synchronized with puzzle manager
+  useEffect(() => {
+    const puzzle = puzzleManager.getCurrentPuzzle();
+    const currentLevel = levelManager.getCurrentLevel();
+    
+    // Check if the current grid matches the puzzle manager's grid
+    if (puzzle && puzzle.grid && grid.length > 0) {
+      const puzzleGrid = puzzle.grid as CellValue[][];
+      const currentGrid = grid;
+      
+      // Compare grid dimensions
+      if (puzzleGrid.length !== currentGrid.length || 
+          puzzleGrid[0]?.length !== currentGrid[0]?.length) {
+        // Grid dimensions don't match, update the grid
+        setGrid(puzzleGrid);
+        setCurrentGridSize(puzzleGrid.length);
+        setCellSize(calculateCellSize(puzzleGrid.length));
+        setCurrentLevelId(currentLevel.id);
+        setCurrentShapes(currentLevel.shapes);
+        setCurrentPuzzleIndex(puzzleManager.getCurrentPuzzleIndex());
+        setTotalPuzzles(currentLevel.puzzles.length);
+        return;
+      }
+      
+      // Check if the initial cells (non-null values) match
+      let needsUpdate = false;
+      for (let row = 0; row < puzzleGrid.length; row++) {
+        for (let col = 0; col < puzzleGrid[row].length; col++) {
+          if (puzzleGrid[row][col] !== null && currentGrid[row][col] !== puzzleGrid[row][col]) {
+            needsUpdate = true;
+            break;
+          }
+        }
+        if (needsUpdate) break;
+      }
+      
+      if (needsUpdate) {
+        // Update the grid to match the puzzle manager
+        setGrid(puzzleGrid);
+        setCurrentLevelId(currentLevel.id);
+        setCurrentShapes(currentLevel.shapes);
+        setCurrentPuzzleIndex(puzzleManager.getCurrentPuzzleIndex());
+        setTotalPuzzles(currentLevel.puzzles.length);
+      }
+    }
+  }, [grid, currentPuzzleIndex, currentLevelId]);
+
   const calculateCellSize = (gridSize: number) => {
     const maxWidth = Math.min(width, 700);
     const padding = 20; // 10px padding on each side
@@ -1051,6 +1098,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
       return null;
     }
 
+    // Use the current grid state to determine initial cells, not the puzzle manager
     const isInitial = puzzle.grid[row]?.[col] !== null;
     const isHintCell = hint && hint.row === row && hint.col === col;
     const isHintSetCell = hint?.hintCellSets?.some(cell => cell.row === row && cell.col === col);
@@ -1376,6 +1424,62 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
     };
     refreshHints();
   }, [route.params?.refreshHints]);
+
+  // Effect to handle navigation focus and ensure grid synchronization
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      // When the screen comes into focus, ensure grid is synchronized
+      const puzzle = puzzleManager.getCurrentPuzzle();
+      const currentLevel = levelManager.getCurrentLevel();
+      
+      if (puzzle && puzzle.grid) {
+        const puzzleGrid = puzzle.grid as CellValue[][];
+        const currentGrid = grid;
+        
+        // Check if we need to update the grid
+        let needsUpdate = false;
+        
+        // Check dimensions first
+        if (puzzleGrid.length !== currentGrid.length || 
+            (puzzleGrid[0] && currentGrid[0] && puzzleGrid[0].length !== currentGrid[0].length)) {
+          needsUpdate = true;
+        } else {
+          // Check if initial cells match
+          for (let row = 0; row < puzzleGrid.length; row++) {
+            for (let col = 0; col < puzzleGrid[row].length; col++) {
+              if (puzzleGrid[row][col] !== null && currentGrid[row][col] !== puzzleGrid[row][col]) {
+                needsUpdate = true;
+                break;
+              }
+            }
+            if (needsUpdate) break;
+          }
+        }
+        
+        if (needsUpdate) {
+          // Reset game state and update grid
+          setIsSolved(false);
+          setMoveHistory([]);
+          setRedoStack([]);
+          setGrid(puzzleGrid);
+          setCurrentGridSize(puzzleGrid.length);
+          setCellSize(calculateCellSize(puzzleGrid.length));
+          setCurrentLevelId(currentLevel.id);
+          setCurrentShapes(currentLevel.shapes);
+          setCurrentPuzzleIndex(puzzleManager.getCurrentPuzzleIndex());
+          setTotalPuzzles(currentLevel.puzzles.length);
+          
+          // Clear any existing hints
+          if (hint) {
+            setHint(null);
+            hintOpacity.setValue(0);
+          }
+        }
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, grid, hint]);
 
   return (
     <View style={styles.container}>

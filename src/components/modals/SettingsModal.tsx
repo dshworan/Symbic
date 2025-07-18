@@ -5,6 +5,7 @@ import { Svg, Path, Circle } from 'react-native-svg';
 import AboutModal from './AboutModal';
 import ResetConfirmationModal from './ResetConfirmationModal';
 import PuzzlePacksModal from './PuzzlePacksModal';
+import HowToPlayModal from './HowToPlayModal';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAudio } from '../../context/AudioContext';
@@ -46,6 +47,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
   const [showAbout, setShowAbout] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showPuzzlePacks, setShowPuzzlePacks] = useState(false);
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [showColorTest, setShowColorTest] = useState(false);
   const [showShapesAndColorsTest, setShowShapesAndColorsTest] = useState(false);
   const [showClearStorageConfirm, setShowClearStorageConfirm] = useState(false);
@@ -277,6 +279,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
                 </TouchableOpacity>
 
                 <TouchableOpacity 
+                  style={[styles.button, styles.howToPlayButton]}
+                  onPress={() => setShowHowToPlay(true)}
+                >
+                  <View style={styles.buttonContent}>
+                    <View style={styles.buttonIcon}>
+                      <Svg width="24" height="24" viewBox="0 0 32 32">
+                        <Path d="M21.183 8.87c1.113 1.252 1.635 2.957 1.391 4.765-0.417 3.339-2.852 4.522-5.009 4.522-0.104 0-0.174 0-0.174 0v0.835c0 0.765-0.626 1.391-1.391 1.391s-1.391-0.626-1.391-1.391v-1.113c0-1.148 0.487-2.504 2.957-2.504 1.357 0 2.052-0.696 2.226-2.087 0.070-0.452 0.104-1.67-0.73-2.574-0.661-0.73-1.739-1.113-3.2-1.113-3.13 0-3.235 2.052-3.235 2.261 0 0.765-0.626 1.391-1.391 1.391s-1.391-0.626-1.391-1.391c0-1.391 1.078-5.043 6.017-5.043 2.887 0 4.487 1.113 5.322 2.052zM15.896 21.565c-0.452 0-0.904 0.174-1.217 0.522-0.313 0.313-0.522 0.765-0.522 1.217s0.174 0.904 0.522 1.217c0.313 0.313 0.765 0.522 1.217 0.522s0.904-0.174 1.217-0.522c0.313-0.313 0.522-0.765 0.522-1.217s-0.174-0.904-0.522-1.217c-0.313-0.313-0.73-0.522-1.217-0.522zM32 16c0 8.835-7.165 16-16 16s-16-7.165-16-16 7.165-16 16-16 16 7.165 16 16zM29.217 16c0-7.304-5.913-13.217-13.217-13.217s-13.217 5.913-13.217 13.217 5.913 13.217 13.217 13.217 13.217-5.913 13.217-13.217z" fill="#FFFFFF" />
+                      </Svg>
+                    </View>
+                    <Text style={styles.buttonText}>How to Play</Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
                   style={[styles.button, styles.aboutButton]}
                   onPress={() => setShowAbout(true)}
                 >
@@ -410,6 +426,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
           onCloseSettings={onClose}
         />
       )}
+
+      <HowToPlayModal
+        isVisible={showHowToPlay}
+        onClose={() => setShowHowToPlay(false)}
+      />
 
       <Modal
         animationType="fade"
@@ -781,6 +802,9 @@ const styles = StyleSheet.create({
   logoutButton: {
     backgroundColor: '#888',
     marginTop: 10,
+  },
+  howToPlayButton: {
+    backgroundColor: '#1ca99a',
   },
 });
 

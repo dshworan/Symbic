@@ -27,9 +27,7 @@ const Logo: React.FC<{ isAutoplay: boolean; onAutoplayChange: (value: boolean) =
     const checkAdminStatus = async () => {
       try {
         const adminStatus = await AsyncStorage.getItem('@admin_status');
-        console.log('Logo checking admin status:', adminStatus);
         const newAdminStatus = adminStatus === 'true';
-        console.log('Logo setting admin status to:', newAdminStatus);
         setIsAdmin(newAdminStatus);
       } catch (error) {
         console.error('Error checking admin status:', error);
@@ -74,10 +72,10 @@ export const GameScreen: React.FC = () => {
     const checkAdminStatus = async () => {
       try {
         const adminStatus = await AsyncStorage.getItem('@admin_status');
-        console.log('GameScreen checking admin status:', adminStatus);
+        //console.log('GameScreen checking admin status:', adminStatus);
         setIsAdmin(adminStatus === 'true');
       } catch (error) {
-        console.error('Error checking admin status:', error);
+        //console.error('Error checking admin status:', error);
       }
     };
     checkAdminStatus();
