@@ -1425,38 +1425,139 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
     refreshHints();
   }, [route.params?.refreshHints]);
 
+  // Effect to handle puzzle pack selection via route changes
+  useEffect(() => {
+    // When route params change (like returning from puzzle packs), check for puzzle changes
+    const puzzle = puzzleManager.getCurrentPuzzle();
+    const currentLevel = levelManager.getCurrentLevel();
+    
+    if (puzzle && puzzle.grid) {
+      const puzzleGrid = puzzle.grid as CellValue[][];
+      const currentGrid = grid;
+      
+      // Check if we need to update the grid
+      let needsUpdate = false;
+      
+      // Check dimensions first
+      if (puzzleGrid.length !== currentGrid.length || 
+          (puzzleGrid[0] && currentGrid[0] && puzzleGrid[0].length !== currentGrid[0].length)) {
+        needsUpdate = true;
+      } else {
+        // Check if initial cells match
+        for (let row = 0; row < puzzleGrid.length; row++) {
+          for (let col = 0; col < puzzleGrid[row].length; col++) {
+            if (puzzleGrid[row][col] !== null && currentGrid[row][col] !== puzzleGrid[row][col]) {
+              needsUpdate = true;
+              break;
+            }
+          }
+          if (needsUpdate) break;
+        }
+      }
+      
+      if (needsUpdate) {
+        console.log('Route change detected puzzle update');
+        // Reset game state and update grid
+        setIsSolved(false);
+        setMoveHistory([]);
+        setRedoStack([]);
+        setGrid(puzzleGrid);
+        setCurrentGridSize(puzzleGrid.length);
+        setCellSize(calculateCellSize(puzzleGrid.length));
+        setCurrentLevelId(currentLevel.id);
+        setCurrentShapes(currentLevel.shapes);
+        setCurrentPuzzleIndex(puzzleManager.getCurrentPuzzleIndex());
+        setTotalPuzzles(currentLevel.puzzles.length);
+        
+        // Clear any existing hints
+        if (hint) {
+          setHint(null);
+          hintOpacity.setValue(0);
+        }
+      }
+    }
+  }, [route.params]);
+
+
+
+  // Effect to ensure correct puzzle is always loaded
+  useEffect(() => {
+    const puzzle = puzzleManager.getCurrentPuzzle();
+    const currentLevel = levelManager.getCurrentLevel();
+    
+    if (puzzle && puzzle.grid) {
+      const puzzleGrid = puzzle.grid as CellValue[][];
+      
+      // Check for any significant change: grid size, level, puzzle index, or shapes
+      const gridSizeChanged = puzzleGrid.length !== grid.length;
+      const levelChanged = currentLevel.id !== currentLevelId;
+      const puzzleIndexChanged = puzzleManager.getCurrentPuzzleIndex() !== currentPuzzleIndex;
+      const shapesChanged = JSON.stringify(currentLevel.shapes) !== JSON.stringify(currentShapes);
+      
+      if (gridSizeChanged || levelChanged || puzzleIndexChanged || shapesChanged) {
+        
+        console.log('Puzzle change detected:', {
+          expectedGridSize: puzzleGrid.length,
+          currentGridSize: grid.length,
+          expectedLevelId: currentLevel.id,
+          currentLevelId,
+          expectedPuzzleIndex: puzzleManager.getCurrentPuzzleIndex(),
+          currentPuzzleIndex,
+          shapesChanged,
+          gridSizeChanged,
+          levelChanged,
+          puzzleIndexChanged
+        });
+        
+        // Determine if this is a different size transition
+        const isDifferentSize = gridSizeChanged || 
+                               (puzzleGrid[0] && grid[0] && puzzleGrid[0].length !== grid[0].length);
+        
+        if (isDifferentSize) {
+          console.log('Different size detected, using loadNewPuzzle');
+          loadNewPuzzle();
+        } else {
+          console.log('Same size detected, updating grid directly');
+          setIsSolved(false);
+          setMoveHistory([]);
+          setRedoStack([]);
+          setGrid(puzzleGrid);
+          setCurrentGridSize(puzzleGrid.length);
+          setCellSize(calculateCellSize(puzzleGrid.length));
+          setCurrentLevelId(currentLevel.id);
+          setCurrentShapes(currentLevel.shapes);
+          setCurrentPuzzleIndex(puzzleManager.getCurrentPuzzleIndex());
+          setTotalPuzzles(currentLevel.puzzles.length);
+          
+          if (hint) {
+            setHint(null);
+            hintOpacity.setValue(0);
+          }
+        }
+      }
+    }
+  }, [puzzleManager.getCurrentPuzzleIndex(), levelManager.getCurrentLevel().id, levelManager.getCurrentPackNumber()]);
+
   // Effect to handle navigation focus and ensure grid synchronization
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
+      console.log('Navigation focus event triggered');
       // When the screen comes into focus, ensure grid is synchronized
       const puzzle = puzzleManager.getCurrentPuzzle();
       const currentLevel = levelManager.getCurrentLevel();
       
       if (puzzle && puzzle.grid) {
         const puzzleGrid = puzzle.grid as CellValue[][];
-        const currentGrid = grid;
         
-        // Check if we need to update the grid
-        let needsUpdate = false;
+        // Check for any significant change: grid size, level, puzzle index, or shapes
+        const gridSizeChanged = puzzleGrid.length !== grid.length;
+        const levelChanged = currentLevel.id !== currentLevelId;
+        const puzzleIndexChanged = puzzleManager.getCurrentPuzzleIndex() !== currentPuzzleIndex;
+        const shapesChanged = JSON.stringify(currentLevel.shapes) !== JSON.stringify(currentShapes);
         
-        // Check dimensions first
-        if (puzzleGrid.length !== currentGrid.length || 
-            (puzzleGrid[0] && currentGrid[0] && puzzleGrid[0].length !== currentGrid[0].length)) {
-          needsUpdate = true;
-        } else {
-          // Check if initial cells match
-          for (let row = 0; row < puzzleGrid.length; row++) {
-            for (let col = 0; col < puzzleGrid[row].length; col++) {
-              if (puzzleGrid[row][col] !== null && currentGrid[row][col] !== puzzleGrid[row][col]) {
-                needsUpdate = true;
-                break;
-              }
-            }
-            if (needsUpdate) break;
-          }
-        }
-        
-        if (needsUpdate) {
+        if (gridSizeChanged || levelChanged || puzzleIndexChanged || shapesChanged) {
+          
+          console.log('Navigation focus detected puzzle update');
           // Reset game state and update grid
           setIsSolved(false);
           setMoveHistory([]);
@@ -1479,7 +1580,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
     });
 
     return unsubscribe;
-  }, [navigation, grid, hint]);
+  }, [navigation]);
 
   return (
     <View style={styles.container}>

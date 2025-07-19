@@ -98,8 +98,8 @@ export const GameScreen: React.FC = () => {
       if (newLevelId !== currentLevelId) {
         //console.log('Level changed in GameScreen:', newLevelId);
         setCurrentLevelId(newLevelId);
-        // Force GameBoard to remount when level changes
-        setResetKey(prev => prev + 1);
+        // Don't force remount - let GameBoard handle its own transitions
+        // setResetKey(prev => prev + 1);
       }
     };
 
@@ -144,14 +144,16 @@ export const GameScreen: React.FC = () => {
           // Handle level completion
           if (levelManager.nextLevel()) {
             setCurrentLevelId(levelManager.getCurrentLevel().id);
-            setResetKey(prev => prev + 1);
+            // Don't force remount - let GameBoard handle its own transitions
+            // setResetKey(prev => prev + 1);
           }
         }}
         onBack={() => {
           // Handle going back
           if (levelManager.previousLevel()) {
             setCurrentLevelId(levelManager.getCurrentLevel().id);
-            setResetKey(prev => prev + 1);
+            // Don't force remount - let GameBoard handle its own transitions
+            // setResetKey(prev => prev + 1);
           }
         }}
       />
