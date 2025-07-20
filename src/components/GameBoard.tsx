@@ -369,56 +369,39 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
     const isDifferentSize = gridSize !== currentGridSize;
 
     if (isDifferentSize) {
-      // Fade out the entire board
-      Animated.timing(boardOpacity, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start(() => {
-        try {
-          // Calculate new cell size before updating the grid
-          const newCellSize = calculateCellSize(gridSize);
-          setCellSize(newCellSize);
-          
-          // Update grid and size
-          setGrid(puzzle.grid as CellValue[][]);
-          setCurrentGridSize(gridSize);
-          setCurrentLevelId(currentLevel.id);
-          setCurrentShapes(currentLevel.shapes);
-          
-          // Reset shape scale to 0
-          shapeScale.setValue(0);
-          
-          // Fade in the new board
-          Animated.timing(boardOpacity, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }).start(() => {
-            console.log('6. Board faded in, growing in shapes');
-            // After board is visible, grow in the new shapes
-            Animated.timing(shapeScale, {
-              toValue: 1,
-              duration: 300,
-              useNativeDriver: true,
-            }).start(() => {
-              console.log('7. Shapes grown in, updating level');
-              // Update level ID and shapes after shapes are fully grown in
-              setTimeout(() => {
-                setCurrentLevelId(currentLevel.id);
-                setCurrentShapes(currentLevel.shapes);
-                console.log('8. Level update complete');
-              }, 50);
-            });
-          });
-        } catch (error) {
-          console.error('Error during grid transition:', error);
-          // Fallback to safe state
-          setGrid([]);
-          setCurrentGridSize(0);
-          setCurrentLevelId(0);
-        }
-      });
+      try {
+        // Calculate new cell size before updating the grid
+        const newCellSize = calculateCellSize(gridSize);
+        setCellSize(newCellSize);
+        
+        // Update grid and size
+        setGrid(puzzle.grid as CellValue[][]);
+        setCurrentGridSize(gridSize);
+        setCurrentLevelId(currentLevel.id);
+        setCurrentShapes(currentLevel.shapes);
+        
+        // Reset shape scale to 0
+        shapeScale.setValue(0);
+        
+        // Grow in the new shapes
+        Animated.timing(shapeScale, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          // Update level ID and shapes after shapes are fully grown in
+          setTimeout(() => {
+            setCurrentLevelId(currentLevel.id);
+            setCurrentShapes(currentLevel.shapes);
+          }, 50);
+        });
+      } catch (error) {
+        console.error('Error during grid transition:', error);
+        // Fallback to safe state
+        setGrid([]);
+        setCurrentGridSize(0);
+        setCurrentLevelId(0);
+      }
     } else {
       // For same-size grids, only animate the shapes
       Animated.sequence([
@@ -573,13 +556,16 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
         const isDifferentSize = newPuzzle.grid.length !== currentGridSize;
         
         if (isDifferentSize) {
-          // First fade out the board while keeping current shapes
-          Animated.timing(boardOpacity, {
-            toValue: 0,
-            duration: 300,
-            useNativeDriver: true,
-          }).start(() => {
-            // After board is invisible, update all the data
+          // For different grid sizes, first shrink shapes, then switch grid, then grow new shapes
+          Animated.sequence([
+            // First shrink the current shapes
+            Animated.timing(shapeScale, {
+              toValue: 0,
+              duration: 150,
+              useNativeDriver: true,
+            })
+          ]).start(() => {
+            // After shapes are shrunk, update all the data
             setIsSolved(false);
             setMoveHistory([]);
             setRedoStack([]);
@@ -589,26 +575,21 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
             setCurrentGridSize(gridSize);
             setCellSize(newCellSize);
 
-            // Update the grid and shapes first
+            // Update the grid and shapes (no fade out/in)
             setGrid(newPuzzle.grid as CellValue[][]);
             setCurrentShapes(nextShapes);
             
-            // Reset shape scale
-            shapeScale.setValue(0);
-            
-            // Then fade in the new board
-            Animated.timing(boardOpacity, {
+            // Grow in the new shapes
+            Animated.timing(shapeScale, {
               toValue: 1,
               duration: 300,
               useNativeDriver: true,
             }).start(() => {
-              // Set new shapes just before growing them in
-              setCurrentShapes(nextShapes);
-              Animated.timing(shapeScale, {
-                toValue: 1,
-                duration: 300,
-                useNativeDriver: true,
-              }).start();
+              // Update UI state after animation is complete
+              setCurrentLevelId(levelManager.getCurrentLevel().id);
+              setCurrentPuzzleIndex(puzzleManager.getCurrentPuzzleIndex());
+              setTotalPuzzles(levelManager.getCurrentLevel().puzzles.length);
+              setShowWelcome(false);
             });
           });
         } else {
@@ -1496,28 +1477,13 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
       
       if (gridSizeChanged || levelChanged || puzzleIndexChanged || shapesChanged) {
         
-        console.log('Puzzle change detected:', {
-          expectedGridSize: puzzleGrid.length,
-          currentGridSize: grid.length,
-          expectedLevelId: currentLevel.id,
-          currentLevelId,
-          expectedPuzzleIndex: puzzleManager.getCurrentPuzzleIndex(),
-          currentPuzzleIndex,
-          shapesChanged,
-          gridSizeChanged,
-          levelChanged,
-          puzzleIndexChanged
-        });
-        
         // Determine if this is a different size transition
         const isDifferentSize = gridSizeChanged || 
                                (puzzleGrid[0] && grid[0] && puzzleGrid[0].length !== grid[0].length);
         
         if (isDifferentSize) {
-          console.log('Different size detected, using loadNewPuzzle');
           loadNewPuzzle();
         } else {
-          console.log('Same size detected, updating grid directly');
           setIsSolved(false);
           setMoveHistory([]);
           setRedoStack([]);
@@ -1541,7 +1507,6 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
   // Effect to handle navigation focus and ensure grid synchronization
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      console.log('Navigation focus event triggered');
       // When the screen comes into focus, ensure grid is synchronized
       const puzzle = puzzleManager.getCurrentPuzzle();
       const currentLevel = levelManager.getCurrentLevel();
@@ -1557,7 +1522,6 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
         
         if (gridSizeChanged || levelChanged || puzzleIndexChanged || shapesChanged) {
           
-          console.log('Navigation focus detected puzzle update');
           // Reset game state and update grid
           setIsSolved(false);
           setMoveHistory([]);
@@ -1707,50 +1671,60 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
 
         <ProgressDots />
 
-        <Animated.View style={[styles.grid, { opacity: boardOpacity }]}>
-          {!hasStartedGame && showWelcome && (
-            <TouchableOpacity 
-              activeOpacity={0.8}
-              onPress={dismissWelcomeMessage}
-              style={styles.welcomeTouchable}
-            >
-              <Animated.View style={[styles.welcomeMessage, { opacity: welcomeOpacity }]}>
-                <TouchableOpacity 
-                  onPress={dismissWelcomeMessage}
-                  style={styles.welcomeCloseButton}
-                >
-                  <Ionicons name="close" size={20} color="#1a1a1a" />
-                </TouchableOpacity>
-                <Text style={styles.welcomeText}>Click on an empty cell{'\n'}once or twice to insert{'\n'}the proper shape.</Text>
+        <View style={styles.gridContainer}>
+          <Animated.View style={[styles.grid, { opacity: boardOpacity }]}>
+            {!hasStartedGame && showWelcome && (
+              <TouchableOpacity 
+                activeOpacity={0.8}
+                onPress={dismissWelcomeMessage}
+                style={styles.welcomeTouchable}
+              >
+                <Animated.View style={[styles.welcomeMessage, { opacity: welcomeOpacity }]}>
+                  <TouchableOpacity 
+                    onPress={dismissWelcomeMessage}
+                    style={styles.welcomeCloseButton}
+                  >
+                    <Ionicons name="close" size={20} color="#1a1a1a" />
+                  </TouchableOpacity>
+                  <Text style={styles.welcomeText}>Click on an empty cell{'\n'}once or twice to insert{'\n'}the proper shape.</Text>
+                </Animated.View>
+              </TouchableOpacity>
+            )}
+            {grid.map((row, rowIndex) => (
+              <View key={rowIndex} style={styles.row}>
+                {row.map((cell, colIndex) => renderCell(cell, rowIndex, colIndex))}
+              </View>
+            ))}
+            {failureMessage && (
+              <Animated.View style={[styles.failureMessage, { opacity: failureOpacity }]}>
+                <Text style={styles.failureMainText}>{failureMessage.mainText}</Text>
+                <Text style={styles.failureSubText}>{failureMessage.subText}</Text>
               </Animated.View>
-            </TouchableOpacity>
-          )}
-          {grid.map((row, rowIndex) => (
-            <View key={rowIndex} style={styles.row}>
-              {row.map((cell, colIndex) => renderCell(cell, rowIndex, colIndex))}
-            </View>
-          ))}
+            )}
+          </Animated.View>
+          
+          {/* Success message overlay - independent of grid opacity */}
           {successMessage && (
             <Animated.View 
               style={[
-                styles.successMessage, 
-                { 
-                  opacity: messageOpacity,
-                  backgroundColor: successMessage.backgroundColor,
-                  borderColor: successMessage.borderColor
-                }
+                styles.successMessageOverlay, 
+                { opacity: messageOpacity }
               ]}
             >
-              <Text style={styles.successText}>{successMessage.message}</Text>
+              <Animated.View 
+                style={[
+                  styles.successMessage, 
+                  { 
+                    backgroundColor: successMessage.backgroundColor,
+                    borderColor: successMessage.borderColor
+                  }
+                ]}
+              >
+                <Text style={styles.successText}>{successMessage.message}</Text>
+              </Animated.View>
             </Animated.View>
           )}
-          {failureMessage && (
-            <Animated.View style={[styles.failureMessage, { opacity: failureOpacity }]}>
-              <Text style={styles.failureMainText}>{failureMessage.mainText}</Text>
-              <Text style={styles.failureSubText}>{failureMessage.subText}</Text>
-            </Animated.View>
-          )}
-        </Animated.View>
+        </View>
 
         <View style={styles.messageContainer}>
           {levelManager.getCurrentPackNumber() === 1 && (
@@ -1916,7 +1890,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
-    marginBottom: 20,
+    marginBottom: 10,
     position: 'relative',
     borderWidth: 1,
     borderColor: '#404040',
@@ -1959,16 +1933,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   successMessage: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -100 }, { translateY: -50 }],
     padding: 20,
     borderRadius: 10,
     width: 200,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 1000,
     borderWidth: 3,
   },
   successText: {
@@ -2140,5 +2109,20 @@ const styles = StyleSheet.create({
   },
   logoDisabled: {
     color: '#666666',
+  },
+  gridContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  successMessageOverlay: {
+    position: 'absolute',
+    top: -10,
+    left: 0,
+    right: 0,
+    bottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
   },
 }); 

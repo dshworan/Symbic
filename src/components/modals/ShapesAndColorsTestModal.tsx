@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Svg, Path } from 'react-native-svg';
@@ -23,6 +23,28 @@ interface ShapesAndColorsTestModalProps {
 const ShapesAndColorsTestModal: React.FC<ShapesAndColorsTestModalProps> = ({ visible, onClose, onCloseSettings }) => {
   const assetManager = AssetManager.getInstance();
   const navigation = useNavigation<NavigationProp>();
+  
+  // Range-based navigation state - dynamically calculate ranges based on available packs
+  // This automatically adapts when you add more packs to the level manager
+  const totalPacks = levelManager.getTotalPacks();
+  console.log('Total packs available:', totalPacks);
+  
+  // Calculate ranges dynamically - 10 packs per range
+  const packsPerRange = 10;
+  const PACK_RANGES = Array.from(
+    { length: Math.ceil(totalPacks / packsPerRange) },
+    (_, i) => {
+      const start = i * packsPerRange + 1;
+      const end = Math.min((i + 1) * packsPerRange, totalPacks);
+      return {
+        start,
+        end,
+        label: `${start}-${end}`
+      };
+    }
+  );
+  
+  const [selectedRange, setSelectedRange] = useState(PACK_RANGES.length > 0 ? PACK_RANGES[0] : null);
 
   // Helper function to render a shape
   const renderShape = (shape: any) => {
@@ -85,6 +107,12 @@ const ShapesAndColorsTestModal: React.FC<ShapesAndColorsTestModalProps> = ({ vis
     );
   };
 
+  // Calculate which packs to show for the selected range
+  const currentPacks = selectedRange ? Array.from(
+    { length: Math.min(selectedRange.end - selectedRange.start + 1, totalPacks - selectedRange.start + 1) },
+    (_, i) => selectedRange.start - 1 + i // Convert to 0-based index
+  ).filter(packIndex => packIndex < totalPacks) : []; // Ensure we don't exceed available packs
+
   return (
     <Modal
       visible={visible}
@@ -101,11 +129,47 @@ const ShapesAndColorsTestModal: React.FC<ShapesAndColorsTestModalProps> = ({ vis
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.scrollView}>
-            <View style={styles.content}>
-              {Array.from({ length: 10 }, (_, i) => renderPack(i))}
+          {PACK_RANGES.length > 0 && selectedRange && (
+            <>
+              <View style={styles.tabsWrapper}>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.tabsContainer}
+                >
+                  {PACK_RANGES.map((range) => (
+                    <TouchableOpacity
+                      key={range.label}
+                      style={[
+                        styles.tab,
+                        selectedRange.label === range.label && styles.selectedTab
+                      ]}
+                      onPress={() => setSelectedRange(range)}
+                    >
+                      <Text style={[
+                        styles.tabText,
+                        selectedRange.label === range.label && styles.selectedTabText
+                      ]}>
+                        {range.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
+              <ScrollView style={styles.scrollView}>
+                <View style={styles.content}>
+                  {currentPacks.map(packIndex => renderPack(packIndex))}
+                </View>
+              </ScrollView>
+            </>
+          )}
+          
+          {PACK_RANGES.length === 0 && (
+            <View style={styles.noPacksContainer}>
+              <Text style={styles.noPacksText}>No packs available</Text>
             </View>
-          </ScrollView>
+          )}
         </View>
       </View>
     </Modal>
@@ -189,6 +253,46 @@ const styles = StyleSheet.create({
     color: '#888888',
     fontSize: 12,
     marginTop: 2,
+  },
+  tabsWrapper: {
+    backgroundColor: '#1a1a1a',
+    paddingVertical: 10,
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 10,
+  },
+  tab: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    marginHorizontal: 5,
+    borderRadius: 20,
+    backgroundColor: '#292929',
+    minWidth: 70,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectedTab: {
+    backgroundColor: '#4CAF50',
+  },
+  tabText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  selectedTabText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  noPacksContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noPacksText: {
+    color: '#888888',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
 
