@@ -52,7 +52,7 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
     return 'Expert';
   };
 
-  const handlePuzzlePress = (level: LevelInfo, puzzleIndex: number) => {
+  const handlePuzzlePress = async (level: LevelInfo, puzzleIndex: number) => {
     if (!packDataManager.isPuzzlePlayable(packId, level.level, puzzleIndex)) {
       //console.log('Puzzle is locked');
       return;
@@ -64,6 +64,20 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
       //puzzleIndex,
       //gridSize: level.size
     //});
+
+    // Check if this is a level change (not just a puzzle change within the same level)
+    const currentLevel = levelManager.getCurrentLevel();
+    const isLevelChange = level.level !== currentLevel.id;
+    
+    // Show interstitial ad for level changes, except from level 1 to level 2
+    if (isLevelChange && !(currentLevel.id === 1 && level.level === 2)) {
+      try {
+        const { showInterstitialAd } = await import('../../utils/interstitialAd');
+        await showInterstitialAd();
+      } catch (error) {
+        console.error('Error showing interstitial ad:', error);
+      }
+    }
 
     // Set the current pack and level (both are 1-based in LevelManager)
     levelManager.setCurrentPack(packId);

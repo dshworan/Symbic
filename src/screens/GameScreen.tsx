@@ -38,12 +38,12 @@ const Logo: React.FC<{ isAutoplay: boolean; onAutoplayChange: (value: boolean) =
   }); // Remove the dependency array to check on every render
 
   const handleTitlePress = () => {
-    console.log('Logo clicked, admin status:', isAdmin);
+    //console.log('Logo clicked, admin status:', isAdmin);
     if (isAdmin) {
-      console.log('Logo: toggling autoplay');
+      //console.log('Logo: toggling autoplay');
       onAutoplayChange(!isAutoplay);
     } else {
-      console.log('Logo: not in admin mode, ignoring click');
+      //console.log('Logo: not in admin mode, ignoring click');
     }
   };
 

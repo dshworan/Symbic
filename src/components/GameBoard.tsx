@@ -534,7 +534,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
       setHasStartedGame(true);
 
       // Wait 0.5 seconds before starting transition
-      setTimeout(() => {
+      setTimeout(async () => {
         // Play level change sound
         playSound('levelChange');
         
@@ -549,6 +549,19 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
         const nextLevel = levelManager.getCurrentLevel();
         const newPuzzle = puzzleManager.getCurrentPuzzle();
         const nextShapes = nextLevel.shapes; // Store next level shapes
+        
+        // Check if this is a level change (not just a puzzle change within the same level)
+        const isLevelChange = nextLevel.id !== currentLevelInfo.id;
+        
+        // Show interstitial ad for level changes, except from level 1 to level 2 and when in autoplay mode
+        if (isLevelChange && !(currentLevelInfo.id === 1 && nextLevel.id === 2) && !isAutoplay) {
+          try {
+            const { showInterstitialAd } = await import('../utils/interstitialAd');
+            await showInterstitialAd();
+          } catch (error) {
+            console.error('Error showing interstitial ad:', error);
+          }
+        }
         
         // Update current puzzle index
         setCurrentPuzzleIndex(puzzleManager.getCurrentPuzzleIndex());

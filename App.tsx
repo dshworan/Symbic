@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AudioProvider } from './src/context/AudioContext';
 import { adManager } from './src/utils/adManager'; // adjust path if needed
+import { initialize as initializeInterstitialAds } from './src/utils/interstitialAd';
 import { GameScreen } from './src/screens/GameScreen';
 import TestInterstitialAdScreen from './src/screens/TestInterstitialAdScreen';
 import TestRewardAdScreen from './src/screens/TestRewardAdScreen';
@@ -12,13 +13,14 @@ import LiveRewardAdScreen from './src/screens/LiveRewardAdScreen';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
-  // ✅ Initialize AdManager once when app starts
+  // ✅ Initialize AdManager and Interstitial Ads once when app starts
   useEffect(() => {
-    const initAdManager = async () => {
+    const initAds = async () => {
       await adManager.init();
+      await initializeInterstitialAds();
     };
 
-    initAdManager();
+    initAds();
   }, []);
 
   return (

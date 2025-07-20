@@ -48,7 +48,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isVisible, onClose }) => {
   };
 
   const handleEmailPress = () => {
-    Linking.openURL('mailto:daveshworan@gmail.com');
+    Linking.openURL('mailto:symbic@shworan.com');
   };
 
   const handleLinkedInPress = () => {
@@ -104,7 +104,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isVisible, onClose }) => {
                   From the developer: I had a lot of fun making this game. 
                   I would love to hear your feedback! Email me at{' '} 
                   <Text style={styles.emailLink} onPress={handleEmailPress}>
-                    daveshworan@gmail.com
+                    symbic@shworan.com
                   </Text>
                 </Text>
                 <TouchableOpacity 

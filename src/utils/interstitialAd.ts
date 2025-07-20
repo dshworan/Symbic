@@ -1,13 +1,12 @@
 import { Platform, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Check if we're on web platform
 const isWeb = Platform.OS === 'web';
 
 // Import the appropriate module based on platform
-let MobileAds;
-let InterstitialAd;
-let AdEventType;
+let MobileAds: any;
+let InterstitialAd: any;
+let AdEventType: any;
 
 if (isWeb) {
   // Use mock implementation for web
@@ -33,11 +32,11 @@ const IS_TEST_MODE = true; // true=TEST, false=PROD
 const INTERSTITIAL_AD_ID = IS_TEST_MODE
   ? 'ca-app-pub-3940256099942544/1033173712' // Test ad unit ID
   : Platform.OS === 'android'
-    ? 'ca-app-pub-7569267138426237/2000725188'  // Live Android ID
-    : 'ca-app-pub-7569267138426237/2000725188'; // Live iOS ID
+    ? 'ca-app-pub-7569267138426237/2000725188'  // Live Android ID (SYMBIC)
+    : 'ca-app-pub-7569267138426237/2000725188'; // Live iOS ID (SYMBIC)
 
 // Create ad ref
-let interstitialAdRef = null;
+let interstitialAdRef: any = null;
 
 // Initialize AdMob
 const initializeAdMob = async () => {
@@ -58,7 +57,7 @@ const initializeAdMob = async () => {
 // Create interstitial ad instance
 const createInterstitialAd = () => {
   // Skip on web
-  if (isWeb || !InterstitialAd) return;
+  if (isWeb || !InterstitialAd) return null;
 
   try {
     interstitialAdRef = InterstitialAd.createForAdRequest(INTERSTITIAL_AD_ID);
@@ -88,7 +87,7 @@ const preloadInterstitialAd = () => {
     console.log('Interstitial ad preloaded and ready');
   });
   
-  const interstitialErrorUnsubscribe = interstitialAd.addAdEventListener(AdEventType.ERROR, (error) => {
+  const interstitialErrorUnsubscribe = interstitialAd.addAdEventListener(AdEventType.ERROR, (error: any) => {
     console.error('Interstitial ad preload error:', error);
   });
 
@@ -138,33 +137,23 @@ const showInterstitialAd = async () => {
     
     // Show the ad if it's loaded
     if (interstitialAdRef.loaded) {
-      // Add a longer delay before showing to ensure the ad is ready
+      // Add a small delay before showing to ensure the ad is ready
       setTimeout(() => {
-        if (interstitialAdRef.loaded) {
-          interstitialAdRef.show();
-        } else {
-          console.log('Ad was loaded but is no longer available, reloading...');
-          interstitialAdRef.load();
-        }
-      }, 500); // Increased delay to 500ms
+        interstitialAdRef.show();
+      }, 100);
     } else {
       // If not loaded, wait for load before showing
       const unsubscribeLoaded = interstitialAdRef.addAdEventListener(AdEventType.LOADED, () => {
         console.log('Interstitial ad loaded, showing now');
-        // Add a longer delay before showing to ensure the ad is ready
+        // Add a small delay before showing to ensure the ad is ready
         setTimeout(() => {
-          if (interstitialAdRef.loaded) {
-            interstitialAdRef.show();
-          } else {
-            console.log('Ad was loaded but is no longer available, reloading...');
-            interstitialAdRef.load();
-          }
-          unsubscribeLoaded();
-        }, 500); // Increased delay to 500ms
+          interstitialAdRef.show();
+        }, 100);
+        unsubscribeLoaded();
       });
       
       // Set error handler just for this attempt
-      const unsubscribeError = interstitialAdRef.addAdEventListener(AdEventType.ERROR, (error) => {
+      const unsubscribeError = interstitialAdRef.addAdEventListener(AdEventType.ERROR, (error: any) => {
         console.error('Interstitial ad error:', error);
         Alert.alert(
           'Ad Error', 
