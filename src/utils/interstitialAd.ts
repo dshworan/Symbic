@@ -8,23 +8,26 @@ let MobileAds: any;
 let InterstitialAd: any;
 let AdEventType: any;
 
-if (isWeb) {
-  // Use mock implementation for web
-  const MockAdMob = require('./mock-admob');
-  MobileAds = MockAdMob.default;
-  InterstitialAd = MockAdMob.InterstitialAd;
-  AdEventType = MockAdMob.AdEventType;
-} else {
-  // Use real implementation for native
-  try {
-    const NativeAds = require('react-native-google-mobile-ads');
-    MobileAds = NativeAds;
-    InterstitialAd = NativeAds.InterstitialAd;
-    AdEventType = NativeAds.AdEventType;
-  } catch (error) {
-    console.error('Failed to import AdMob:', error);
+// Initialize modules based on platform
+const initializeModules = async () => {
+  if (isWeb) {
+    // Use mock implementation for web
+    const MockAdMob = await import('./mock-admob');
+    MobileAds = MockAdMob.default;
+    InterstitialAd = MockAdMob.default.InterstitialAd;
+    AdEventType = MockAdMob.default.AdEventType;
+  } else {
+    // Use real implementation for native
+    try {
+      const NativeAds = require('react-native-google-mobile-ads');
+      MobileAds = NativeAds;
+      InterstitialAd = NativeAds.InterstitialAd;
+      AdEventType = NativeAds.AdEventType;
+    } catch (error) {
+      console.error('Failed to import AdMob:', error);
+    }
   }
-}
+};
 
 const IS_TEST_MODE = true; // true=TEST, false=PROD
 
@@ -40,12 +43,15 @@ let interstitialAdRef: any = null;
 
 // Initialize AdMob
 const initializeAdMob = async () => {
+  // Initialize modules first
+  await initializeModules();
+  
   // Skip initialization on web
   if (isWeb || !MobileAds) return;
 
   try {
     await MobileAds.default().initialize();
-    console.log('✅ AdMob initialized');
+    //console.log('✅ AdMob initialized');
     
     // Create initial ad instance
     interstitialAdRef = InterstitialAd.createForAdRequest(INTERSTITIAL_AD_ID);

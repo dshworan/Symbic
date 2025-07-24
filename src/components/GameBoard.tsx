@@ -98,27 +98,27 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
   // Initialize the game board only once on mount
   useEffect(() => {
     const initializeGame = async () => {
-      console.log('=== GAMEBOARD INITIALIZATION ===');
+      //console.log('=== GAMEBOARD INITIALIZATION ===');
       
       // Wait for state manager to be initialized
       let attempts = 0;
       while (!stateManager.isStateInitialized() && attempts < 100) {
-        console.log('Waiting for state manager initialization...', attempts);
+        //console.log('Waiting for state manager initialization...', attempts);
         await new Promise(resolve => setTimeout(resolve, 100));
         attempts++;
       }
       
       if (!stateManager.isStateInitialized()) {
-        console.log('State manager not initialized after 10 seconds, proceeding anyway');
+        //console.log('State manager not initialized after 10 seconds, proceeding anyway');
       }
       
       const currentLevel = levelManager.getCurrentLevel();
       const currentPuzzle = puzzleManager.getCurrentPuzzle();
       const currentPuzzleIndex = puzzleManager.getCurrentPuzzleIndex();
       
-      console.log('GameBoard - Current level ID:', currentLevel.id);
-      console.log('GameBoard - Current puzzle index:', currentPuzzleIndex);
-      console.log('GameBoard - Current puzzle grid size:', currentPuzzle.grid.length);
+      //console.log('GameBoard - Current level ID:', currentLevel.id);
+      //console.log('GameBoard - Current puzzle index:', currentPuzzleIndex);
+      //console.log('GameBoard - Current puzzle grid size:', currentPuzzle.grid.length);
       
       setCurrentLevelId(currentLevel.id);
       setCurrentGridSize(currentPuzzle.grid.length);
@@ -130,8 +130,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
       setCurrentPuzzleIndex(currentPuzzleIndex);
       setTotalPuzzles(currentLevel.puzzles.length);
       
-      console.log('GameBoard - Set currentPuzzleIndex to:', currentPuzzleIndex);
-      console.log('=== GAMEBOARD INITIALIZATION COMPLETE ===');
+      //console.log('GameBoard - Set currentPuzzleIndex to:', currentPuzzleIndex);
+      //console.log('=== GAMEBOARD INITIALIZATION COMPLETE ===');
     };
 
     initializeGame();
@@ -686,7 +686,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
   // Add effect to preload reward ad when hints reach 0
   useEffect(() => {
     if (hintCount === 0) {
-      console.log('Preloading reward ad for hints');
+      //console.log('Preloading reward ad for hints');
       preloadRewardedAd();
     }
   }, [hintCount]);
@@ -1319,7 +1319,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
 
   const resetGame = async () => {
     try {
-      console.log('GameBoard - resetting hints and game state');
+      //console.log('GameBoard - resetting hints and game state');
       
       // Reset hints and wait for it to complete
       await hintManager.resetHints();
@@ -1331,7 +1331,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
       const { stateManager } = await import('../utils/stateManager');
       await stateManager.clearGameState();
     } catch (error) {
-      console.error('Error resetting game:', error);
+      //console.error('Error resetting game:', error);
     }
   };
 
@@ -1439,7 +1439,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
       }
       
       if (needsUpdate) {
-        console.log('Route change detected puzzle update');
+        //console.log('Route change detected puzzle update');
         // Reset game state and update grid
         setIsSolved(false);
         setMoveHistory([]);

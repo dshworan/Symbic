@@ -10,25 +10,28 @@ let RewardedAd: any;
 let AdEventType: any;
 let RewardedAdEventType: any;
 
-if (isWeb) {
-  // Use mock implementation for web
-  const MockAdMob = require('../utils/mock-admob');
-  MobileAds = MockAdMob.default;
-  RewardedAd = MockAdMob.RewardedAd;
-  AdEventType = MockAdMob.AdEventType;
-  RewardedAdEventType = MockAdMob.RewardedAdEventType;
-} else {
-  // Use real implementation for native
-  try {
-    const NativeAds = require('react-native-google-mobile-ads');
-    MobileAds = NativeAds;
-    RewardedAd = NativeAds.RewardedAd;
-    AdEventType = NativeAds.AdEventType;
-    RewardedAdEventType = NativeAds.RewardedAdEventType;
-  } catch (error) {
-    console.error('Failed to import AdMob:', error);
+// Initialize modules based on platform
+const initializeModules = async () => {
+  if (isWeb) {
+    // Use mock implementation for web
+    const MockAdMob = await import('../utils/mock-admob');
+    MobileAds = MockAdMob.default;
+    RewardedAd = MockAdMob.default.RewardedAd;
+    AdEventType = MockAdMob.default.AdEventType;
+    RewardedAdEventType = MockAdMob.default.RewardedAdEventType;
+  } else {
+    // Use real implementation for native
+    try {
+      const NativeAds = require('react-native-google-mobile-ads');
+      MobileAds = NativeAds;
+      RewardedAd = NativeAds.RewardedAd;
+      AdEventType = NativeAds.AdEventType;
+      RewardedAdEventType = NativeAds.RewardedAdEventType;
+    } catch (error) {
+      console.error('Failed to import AdMob:', error);
+    }
   }
-}
+};
 
 interface LiveRewardAdScreenProps {
   onBackPress: () => void;
@@ -50,13 +53,16 @@ const LiveRewardAdScreen: React.FC<LiveRewardAdScreenProps> = ({ onBackPress }) 
   
   // Initialize AdMob
   useEffect(() => {
-    // Skip on web
-    if (isWeb || !MobileAds) return;
-
     const initializeAdMob = async () => {
+      // Initialize modules first
+      await initializeModules();
+      
+      // Skip on web
+      if (isWeb || !MobileAds) return;
+
       try {
         await MobileAds.default().initialize();
-        console.log('✅ AdMob initialized in rewarded test screen');
+        //console.log('✅ AdMob initialized in rewarded test screen');
       } catch (error) {
         console.error('AdMob initialization error:', error);
       }

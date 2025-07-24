@@ -65,6 +65,7 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose,
     return (
       <TouchableOpacity 
         style={styles.packHeader}
+        activeOpacity={1}
         onPress={() => setSelectedPack(pack)}
       >
         <View style={styles.completionCountContainer}>
@@ -113,6 +114,7 @@ const PuzzlePacksModal: React.FC<PuzzlePacksModalProps> = ({ isVisible, onClose,
       <TouchableOpacity 
         key={level.level}
         style={styles.levelTile}
+        activeOpacity={1}
         onPress={() => setSelectedPack(pack)}
       >
         {isCompleted && (

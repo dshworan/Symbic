@@ -1262,7 +1262,7 @@ export class LevelManager {
     if (this.currentLevelIndex < 0 || this.currentLevelIndex >= this.packs[this.currentPackIndex].levels.length) {
       this.currentLevelIndex = 0;
     }
-    console.log('Set current pack (no save):', packId, 'pack index:', this.currentPackIndex);
+    //console.log('Set current pack (no save):', packId, 'pack index:', this.currentPackIndex);
   }
 
   public setCurrentLevelWithoutSaving(levelId: number): void {
@@ -1272,7 +1272,7 @@ export class LevelManager {
     if (this.currentLevelIndex < 0 || this.currentLevelIndex >= this.packs[this.currentPackIndex].levels.length) {
       this.currentLevelIndex = 0;
     }
-    console.log('Set current level (no save):', levelId, 'level index:', this.currentLevelIndex);
+    //console.log('Set current level (no save):', levelId, 'level index:', this.currentLevelIndex);
   }
 
   // Save current state to storage via stateManager
@@ -1287,7 +1287,7 @@ export class LevelManager {
           pm.getCurrentPuzzleIndex()
         );
       } catch (error) {
-        console.error('Error saving current level state:', error);
+        //console.error('Error saving current level state:', error);
       }
     }
   }

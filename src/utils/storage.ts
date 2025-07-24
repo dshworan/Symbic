@@ -42,7 +42,7 @@ export const storage = {
       }
       return null;
     } catch (error) {
-      console.error('Error reading current puzzle state:', error);
+      //console.error('Error reading current puzzle state:', error);
       return null;
     }
   },
@@ -52,9 +52,9 @@ export const storage = {
       await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PACK, pack.toString());
       await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_LEVEL, level.toString());
       await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_PUZZLE_INDEX, puzzleIndex.toString());
-      console.log('Saved puzzle state:', { pack, level, puzzleIndex });
+      //console.log('Saved puzzle state:', { pack, level, puzzleIndex });
     } catch (error) {
-      console.error('Error saving current puzzle state:', error);
+      //console.error('Error saving current puzzle state:', error);
     }
   },
 
@@ -65,30 +65,30 @@ export const storage = {
         STORAGE_KEYS.CURRENT_LEVEL,
         STORAGE_KEYS.CURRENT_PUZZLE_INDEX,
       ]);
-      console.log('Cleared puzzle state');
+      //console.log('Cleared puzzle state');
     } catch (error) {
-      console.error('Error clearing current puzzle state:', error);
+      //console.error('Error clearing current puzzle state:', error);
     }
   },
 
   // Test function to verify storage works
   async testStorage(): Promise<void> {
     try {
-      console.log('Testing storage functionality...');
+      //console.log('Testing storage functionality...');
       
       // Test setting and getting puzzle state
       await this.setCurrentPuzzleState(2, 3, 1);
       const savedState = await this.getCurrentPuzzleState();
-      console.log('Retrieved state:', savedState);
+      //console.log('Retrieved state:', savedState);
       
       // Test clearing state
       await this.clearCurrentPuzzleState();
       const clearedState = await this.getCurrentPuzzleState();
-      console.log('After clearing:', clearedState);
+      //console.log('After clearing:', clearedState);
       
-      console.log('Storage test completed successfully');
+      //console.log('Storage test completed successfully');
     } catch (error) {
-      console.error('Storage test failed:', error);
+      //console.error('Storage test failed:', error);
     }
   },
 }; 

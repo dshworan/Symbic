@@ -63,7 +63,7 @@ class AdManager {
       }
 
       await MobileAds.default().initialize();
-      console.log('✅ AdMob initialized');
+      //console.log('✅ AdMob initialized');
       
       // Create initial ad instance
       this.interstitialAdRef = InterstitialAd.createForAdRequest(INTERSTITIAL_AD_ID);

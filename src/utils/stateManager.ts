@@ -30,9 +30,9 @@ class StateManager {
   public async saveGameState(pack: number, level: number, puzzleIndex: number): Promise<void> {
     try {
       await storage.setCurrentPuzzleState(pack, level, puzzleIndex);
-      console.log('StateManager: Saved game state:', { pack, level, puzzleIndex });
+      //console.log('StateManager: Saved game state:', { pack, level, puzzleIndex });
     } catch (error) {
-      console.error('StateManager: Error saving game state:', error);
+      //console.error('StateManager: Error saving game state:', error);
     }
   }
 
@@ -40,11 +40,11 @@ class StateManager {
     try {
       const savedState = await storage.getCurrentPuzzleState();
       if (savedState) {
-        console.log('StateManager: Loaded game state:', savedState);
+        //console.log('StateManager: Loaded game state:', savedState);
       }
       return savedState;
     } catch (error) {
-      console.error('StateManager: Error loading game state:', error);
+      //console.error('StateManager: Error loading game state:', error);
       return null;
     }
   }
@@ -52,9 +52,9 @@ class StateManager {
   public async clearGameState(): Promise<void> {
     try {
       await storage.clearCurrentPuzzleState();
-      console.log('StateManager: Cleared game state');
+      //console.log('StateManager: Cleared game state');
     } catch (error) {
-      console.error('StateManager: Error clearing game state:', error);
+      //console.error('StateManager: Error clearing game state:', error);
     }
   }
 }

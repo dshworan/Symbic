@@ -9,23 +9,26 @@ let MobileAds: any;
 let InterstitialAd: any;
 let AdEventType: any;
 
-if (isWeb) {
-  // Use mock implementation for web
-  const MockAdMob = require('../utils/mock-admob');
-  MobileAds = MockAdMob.default;
-  InterstitialAd = MockAdMob.InterstitialAd;
-  AdEventType = MockAdMob.AdEventType;
-} else {
-  // Use real implementation for native
-  try {
-    const NativeAds = require('react-native-google-mobile-ads');
-    MobileAds = NativeAds;
-    InterstitialAd = NativeAds.InterstitialAd;
-    AdEventType = NativeAds.AdEventType;
-  } catch (error) {
-    console.error('Failed to import AdMob:', error);
+// Initialize modules based on platform
+const initializeModules = async () => {
+  if (isWeb) {
+    // Use mock implementation for web
+    const MockAdMob = await import('../utils/mock-admob');
+    MobileAds = MockAdMob.default;
+    InterstitialAd = MockAdMob.default.InterstitialAd;
+    AdEventType = MockAdMob.default.AdEventType;
+  } else {
+    // Use real implementation for native
+    try {
+      const NativeAds = require('react-native-google-mobile-ads');
+      MobileAds = NativeAds;
+      InterstitialAd = NativeAds.InterstitialAd;
+      AdEventType = NativeAds.AdEventType;
+    } catch (error) {
+      console.error('Failed to import AdMob:', error);
+    }
   }
-}
+};
 
 interface LiveInterstitialAdScreenProps {
   onBackPress: () => void;
@@ -46,13 +49,16 @@ const LiveInterstitialAdScreen: React.FC<LiveInterstitialAdScreenProps> = ({ onB
   
   // Initialize AdMob
   useEffect(() => {
-    // Skip initialization on web
-    if (isWeb || !MobileAds) return;
-
     const initializeAdMob = async () => {
+      // Initialize modules first
+      await initializeModules();
+      
+      // Skip initialization on web
+      if (isWeb || !MobileAds) return;
+
       try {
         await MobileAds.default().initialize();
-        console.log('✅ AdMob initialized in live interstitial test screen');
+        //console.log('✅ AdMob initialized in live interstitial test screen');
       } catch (error) {
         console.error('AdMob initialization error:', error);
       }

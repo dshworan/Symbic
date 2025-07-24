@@ -31,7 +31,7 @@ const TestRewardAdScreen: React.FC<TestRewardAdScreenProps> = ({ onBackPress }) 
     const initializeAdMob = async () => {
       try {
         await MobileAds().initialize();
-        console.log('✅ AdMob initialized in rewarded test screen');
+        //console.log('✅ AdMob initialized in rewarded test screen');
       } catch (error) {
         console.error('AdMob initialization error:', error);
       }

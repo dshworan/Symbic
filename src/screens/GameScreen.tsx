@@ -74,12 +74,12 @@ export const GameScreen: React.FC = () => {
   useEffect(() => {
     const setupGame = async () => {
       try {
-        console.log('=== GAMESCREEN INITIALIZATION START ===');
+        //console.log('=== GAMESCREEN INITIALIZATION START ===');
         await initializeGame();
-        console.log('=== GAMESCREEN INITIALIZATION COMPLETE ===');
+        //console.log('=== GAMESCREEN INITIALIZATION COMPLETE ===');
         setIsGameInitialized(true);
       } catch (error) {
-        console.error('Error during game initialization in GameScreen:', error);
+        //console.error('Error during game initialization in GameScreen:', error);
         setIsGameInitialized(true); // Still set to true to prevent infinite loading
       }
     };

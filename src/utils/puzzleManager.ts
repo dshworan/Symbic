@@ -89,9 +89,9 @@ class PuzzleManager {
 
   // Method for initialization that doesn't save state
   setCurrentPuzzleIndexWithoutSaving(index: number): void {
-    console.log('Setting puzzle index without saving from', this.currentPuzzleIndex, 'to', index);
+    //console.log('Setting puzzle index without saving from', this.currentPuzzleIndex, 'to', index);
     this.currentPuzzleIndex = index;
-    console.log('Set current puzzle index (no save):', index);
+    //console.log('Set current puzzle index (no save):', index);
   }
 
   // Add method to sync with LevelManager
@@ -114,7 +114,7 @@ class PuzzleManager {
           this.currentPuzzleIndex
         );
       } catch (error) {
-        console.error('Error saving current puzzle state:', error);
+        //console.error('Error saving current puzzle state:', error);
       }
     }
   }
