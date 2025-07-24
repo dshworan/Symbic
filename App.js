@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { GameProvider } from './src/context/GameContext';
+
 import Game from './src/components/Game';
 import { initializeGame } from './src/utils/gameInitializer';
 import { loadPuzzle } from './src/utils/puzzleLoader';
@@ -14,6 +14,7 @@ export default function App() {
   useEffect(() => {
     const setupGame = async () => {
       try {
+        console.log('=== APP.JS INITIALIZATION START ===');
         console.log('Starting game initialization...');
         await initializeGame();
         console.log('Game initialized successfully');
@@ -23,6 +24,7 @@ export default function App() {
         const loadedPuzzle = await loadPuzzle();
         console.log('Puzzle loaded:', loadedPuzzle);
         setPuzzle(loadedPuzzle);
+        console.log('=== APP.JS INITIALIZATION COMPLETE ===');
       } catch (err) {
         console.error('Error during game setup:', err);
         setError(err.message);
@@ -31,6 +33,8 @@ export default function App() {
 
     setupGame();
   }, []);
+
+  console.log('App.js render - isInitialized:', isInitialized, 'puzzle:', puzzle ? 'loaded' : 'null');
 
   if (error) {
     return (
@@ -45,17 +49,9 @@ export default function App() {
       <StatusBar style="auto" />
       {!isInitialized ? (
         <Text style={styles.welcomeText}>Welcome to Symbic!</Text>
-      ) : (
-        <GameProvider>
+              ) : (
           <Game puzzle={puzzle} />
-        </GameProvider>
-      )}
-      {/* Debug Panel */}
-      <View style={styles.debugPanel}>
-        <Text style={styles.debugText}>Debug Info:</Text>
-        <Text style={styles.debugText}>Initialized: {isInitialized ? 'Yes' : 'No'}</Text>
-        <Text style={styles.debugText}>Puzzle Loaded: {puzzle ? 'Yes' : 'No'}</Text>
-      </View>
+        )}
     </SafeAreaView>
   );
 }
@@ -63,28 +59,19 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
+    backgroundColor: '#000',
     justifyContent: 'center',
+    alignItems: 'center',
   },
   welcomeText: {
     fontSize: 24,
-    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
   },
   errorText: {
-    color: 'red',
     fontSize: 18,
-  },
-  debugPanel: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: 10,
-    borderRadius: 5,
-  },
-  debugText: {
-    color: 'white',
-    fontSize: 14,
+    color: '#ff4444',
+    textAlign: 'center',
+    padding: 20,
   },
 });

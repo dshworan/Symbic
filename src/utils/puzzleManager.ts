@@ -2,6 +2,7 @@ import { CellValue } from '../types/puzzle';
 import { Puzzle } from '../data/types/levelTypes';
 import { levelManager } from '../data/levels/levelManager';
 import PackDataManager from '../data/packDataManager';
+import { stateManager } from './stateManager';
 
 class PuzzleManager {
   private currentPuzzleIndex: number = 0;
@@ -49,6 +50,7 @@ class PuzzleManager {
     for (let i = 0; i < currentLevel.puzzles.length; i++) {
       if (!packDataManager.isPuzzleCompleted(packId, levelId, i)) {
         this.currentPuzzleIndex = i;
+        this.saveCurrentState();
         return true;
       }
     }
@@ -57,6 +59,7 @@ class PuzzleManager {
     if (levelManager.nextLevel()) {
       // Reset puzzle index for the new level
       this.currentPuzzleIndex = 0;
+      this.saveCurrentState();
       return true;
     }
     
@@ -67,6 +70,7 @@ class PuzzleManager {
   previousPuzzle(): boolean {
     if (this.currentPuzzleIndex > 0) {
       this.currentPuzzleIndex--;
+      this.saveCurrentState();
       return true;
     }
     return false;
@@ -74,11 +78,20 @@ class PuzzleManager {
 
   resetToFirstPuzzle(): void {
     this.currentPuzzleIndex = 0;
+    this.saveCurrentState();
   }
 
   setCurrentPuzzleIndex(index: number): void {
     this.currentPuzzleIndex = index;
+    this.saveCurrentState();
     //console.log('Set current puzzle index:', index);
+  }
+
+  // Method for initialization that doesn't save state
+  setCurrentPuzzleIndexWithoutSaving(index: number): void {
+    console.log('Setting puzzle index without saving from', this.currentPuzzleIndex, 'to', index);
+    this.currentPuzzleIndex = index;
+    console.log('Set current puzzle index (no save):', index);
   }
 
   // Add method to sync with LevelManager
@@ -86,6 +99,23 @@ class PuzzleManager {
     // Only reset puzzle index when level changes, not when pack changes
     if (this.getLevel() !== levelManager.getCurrentLevelNumber()) {
       this.currentPuzzleIndex = 0;
+      this.saveCurrentState();
+    }
+  }
+
+  // Save current state to storage via stateManager
+  private async saveCurrentState(): Promise<void> {
+    // Only save if state is initialized to avoid saving during app startup
+    if (stateManager.isStateInitialized()) {
+      try {
+        await stateManager.saveGameState(
+          levelManager.getCurrentPackNumber(),
+          levelManager.getCurrentLevelNumber(),
+          this.currentPuzzleIndex
+        );
+      } catch (error) {
+        console.error('Error saving current puzzle state:', error);
+      }
     }
   }
 }

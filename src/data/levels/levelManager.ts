@@ -1,6 +1,15 @@
 import { Level, LevelColors, Pack } from '../types/levelTypes';
-import { puzzleManager } from '../../utils/puzzleManager';
 import { AssetManager } from '../assets/assetManager';
+import { stateManager } from '../../utils/stateManager';
+
+// Lazy import to avoid circular dependency
+let puzzleManager: any = null;
+const getPuzzleManager = () => {
+  if (!puzzleManager) {
+    puzzleManager = require('../../utils/puzzleManager').puzzleManager;
+  }
+  return puzzleManager;
+};
 
 // Pack 1
 import { level1Puzzles } from './puzzles/pack1/puzzles_pack_1_level_1';
@@ -1186,8 +1195,9 @@ export class LevelManager {
     this.currentPackIndex = packId - 1;
     // Reset level index when changing packs
     this.currentLevelIndex = 0;
-    // Sync puzzle manager
-    puzzleManager.syncWithLevelManager();
+    // Sync puzzle manager using lazy import
+    const pm = getPuzzleManager();
+    pm.syncWithLevelManager();
     // Ensure we have valid indices
     if (this.currentPackIndex < 0 || this.currentPackIndex >= this.packs.length) {
       //console.error('Invalid pack index:', this.currentPackIndex);
@@ -1198,6 +1208,8 @@ export class LevelManager {
       this.currentLevelIndex = 0;
     }
     //console.log('Set current pack:', packId, 'pack index:', this.currentPackIndex);
+    // Save state after changing pack
+    this.saveCurrentState();
   }
 
   public setCurrentLevel(levelId: number): void {
@@ -1209,7 +1221,53 @@ export class LevelManager {
       this.currentLevelIndex = 0;
     }
     //console.log('Set current level:', levelId, 'level index:', this.currentLevelIndex);
+    // Save state after changing level
+    this.saveCurrentState();
   }
+
+  // Methods for initialization that don't save state
+  public setCurrentPackWithoutSaving(packId: number): void {
+    // Convert to 0-based index
+    this.currentPackIndex = packId - 1;
+    // Reset level index when changing packs
+    this.currentLevelIndex = 0;
+    // Ensure we have valid indices
+    if (this.currentPackIndex < 0 || this.currentPackIndex >= this.packs.length) {
+      this.currentPackIndex = 0;
+    }
+    if (this.currentLevelIndex < 0 || this.currentLevelIndex >= this.packs[this.currentPackIndex].levels.length) {
+      this.currentLevelIndex = 0;
+    }
+    console.log('Set current pack (no save):', packId, 'pack index:', this.currentPackIndex);
+  }
+
+  public setCurrentLevelWithoutSaving(levelId: number): void {
+    // Convert to 0-based index
+    this.currentLevelIndex = levelId - 1;
+    // Ensure we have valid indices
+    if (this.currentLevelIndex < 0 || this.currentLevelIndex >= this.packs[this.currentPackIndex].levels.length) {
+      this.currentLevelIndex = 0;
+    }
+    console.log('Set current level (no save):', levelId, 'level index:', this.currentLevelIndex);
+  }
+
+  // Save current state to storage via stateManager
+  private async saveCurrentState(): Promise<void> {
+    // Only save if state is initialized to avoid saving during app startup
+    if (stateManager.isStateInitialized()) {
+      try {
+        const pm = getPuzzleManager();
+        await stateManager.saveGameState(
+          this.getCurrentPackNumber(),
+          this.getCurrentLevelNumber(),
+          pm.getCurrentPuzzleIndex()
+        );
+      } catch (error) {
+        console.error('Error saving current level state:', error);
+      }
+    }
+  }
+
 }
 
 export const levelManager = LevelManager.getInstance(); 

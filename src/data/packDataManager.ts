@@ -1,5 +1,4 @@
 import packList from './packList';
-import { LevelManager } from './levels/levelManager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface LevelInfo {
@@ -29,12 +28,10 @@ interface PackCompletionData {
 
 export class PackDataManager {
   private static instance: PackDataManager;
-  private levelManager: LevelManager;
   private completionData: { [packId: number]: PackCompletionData } = {};
   private unlockedPacks: Set<number> = new Set();
 
   private constructor() {
-    this.levelManager = LevelManager.getInstance();
     this.loadCompletionData();
   }
 

@@ -26,7 +26,7 @@ const ResetConfirmationModal: React.FC<ResetConfirmationModalProps> = ({ isVisib
           </View>
           
           <Text style={styles.title}>Reset Progress</Text>
-          <Text style={styles.message}>Are you sure you want to reset your progress? This will reset your score to 0 and start the game from the beginning. This action cannot be undone.</Text>
+          <Text style={styles.message}>Are you sure you want to reset your progress? This will start the game from the beginning. This action cannot be undone.</Text>
           
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>

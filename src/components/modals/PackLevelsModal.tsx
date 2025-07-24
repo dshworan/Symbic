@@ -85,6 +85,10 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
     levelManager.setCurrentLevel(level.level);
     puzzleManager.setCurrentPuzzleIndex(puzzleIndex);
 
+    // Save the current state
+    const { stateManager } = await import('../../utils/stateManager');
+    await stateManager.saveGameState(packId, level.level, puzzleIndex);
+
     // Ensure the puzzle is loaded
     const puzzle = puzzleManager.getCurrentPuzzle();
     if (!puzzle) {

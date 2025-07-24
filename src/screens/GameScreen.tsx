@@ -9,6 +9,7 @@ import { levelManager } from '../data/levels/levelManager';
 import PuzzlePacksModal from '../components/modals/PuzzlePacksModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute, RouteProp } from '@react-navigation/native';
+import { initializeGame } from '../utils/gameInitializer';
 
 type RootStackParamList = {
   Game: {
@@ -67,6 +68,24 @@ export const GameScreen: React.FC = () => {
   const [currentLevelId, setCurrentLevelId] = useState(levelManager.getCurrentLevel().id);
   const [showPuzzlePacks, setShowPuzzlePacks] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isGameInitialized, setIsGameInitialized] = useState(false);
+
+  // Initialize the game when the screen mounts
+  useEffect(() => {
+    const setupGame = async () => {
+      try {
+        console.log('=== GAMESCREEN INITIALIZATION START ===');
+        await initializeGame();
+        console.log('=== GAMESCREEN INITIALIZATION COMPLETE ===');
+        setIsGameInitialized(true);
+      } catch (error) {
+        console.error('Error during game initialization in GameScreen:', error);
+        setIsGameInitialized(true); // Still set to true to prevent infinite loading
+      }
+    };
+
+    setupGame();
+  }, []);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -161,7 +180,7 @@ export const GameScreen: React.FC = () => {
         isVisible={isSettingsVisible}
         onClose={() => setIsSettingsVisible(false)}
         onReset={handleReset}
-        score={0}
+
       />
       <PuzzlePacksModal
         isVisible={showPuzzlePacks}

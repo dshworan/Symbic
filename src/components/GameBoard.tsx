@@ -12,6 +12,7 @@ import SettingsModal from './modals/SettingsModal';
 import { pack1Tutorials } from '../data/tutorials/pack1Tutorials';
 import { PackDataManager } from '../data/packDataManager';
 import { hintManager } from '../utils/hintManager';
+import { stateManager } from '../utils/stateManager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showRewardedAd, preloadRewardedAd } from '../utils/rewardAd';
 import HintRewardModal from './modals/HintRewardModal';
@@ -54,7 +55,7 @@ interface GameBoardProps {
   onPackPress?: () => void;
 }
 
-const SCORE_STORAGE_KEY = '@game_score';
+
 
 const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = false, onAutoplayChange, onPackPress }) => {
   const { width } = useWindowDimensions();
@@ -63,10 +64,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
   const route = useRoute<GameScreenRouteProp>();
   const [cellSize, setCellSize] = useState(0);
   const [grid, setGrid] = useState<CellValue[][]>([]);
-  const [score, setScore] = useState(0);
-  const [previousScore, setPreviousScore] = useState(0);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [hasLoadedInitialScore, setHasLoadedInitialScore] = useState(false);
   const [successMessage, setSuccessMessage] = useState<{ message: string; backgroundColor: string; borderColor: string } | null>(null);
   const [failureMessage, setFailureMessage] = useState<{ mainText: string; subText: string } | null>(null);
   const [messageOpacity] = useState(new Animated.Value(0));
@@ -99,9 +97,28 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
 
   // Initialize the game board only once on mount
   useEffect(() => {
-    const initializeGame = () => {
+    const initializeGame = async () => {
+      console.log('=== GAMEBOARD INITIALIZATION ===');
+      
+      // Wait for state manager to be initialized
+      let attempts = 0;
+      while (!stateManager.isStateInitialized() && attempts < 100) {
+        console.log('Waiting for state manager initialization...', attempts);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+      
+      if (!stateManager.isStateInitialized()) {
+        console.log('State manager not initialized after 10 seconds, proceeding anyway');
+      }
+      
       const currentLevel = levelManager.getCurrentLevel();
       const currentPuzzle = puzzleManager.getCurrentPuzzle();
+      const currentPuzzleIndex = puzzleManager.getCurrentPuzzleIndex();
+      
+      console.log('GameBoard - Current level ID:', currentLevel.id);
+      console.log('GameBoard - Current puzzle index:', currentPuzzleIndex);
+      console.log('GameBoard - Current puzzle grid size:', currentPuzzle.grid.length);
       
       setCurrentLevelId(currentLevel.id);
       setCurrentGridSize(currentPuzzle.grid.length);
@@ -110,8 +127,11 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
       setCellSize(calculateCellSize(currentPuzzle.grid.length));
       
       // Set up initial puzzle index and total puzzles
-      setCurrentPuzzleIndex(puzzleManager.getCurrentPuzzleIndex());
+      setCurrentPuzzleIndex(currentPuzzleIndex);
       setTotalPuzzles(currentLevel.puzzles.length);
+      
+      console.log('GameBoard - Set currentPuzzleIndex to:', currentPuzzleIndex);
+      console.log('=== GAMEBOARD INITIALIZATION COMPLETE ===');
     };
 
     initializeGame();
@@ -482,7 +502,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
     });
   };
 
-  const checkCompletion = (newGrid: CellValue[][]) => {
+  const checkCompletion = async (newGrid: CellValue[][]) => {
     const puzzle = puzzleManager.getCurrentPuzzle();
     const solution = puzzle.solution;
 
@@ -528,9 +548,13 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
       const packDataManager = PackDataManager.getInstance();
       packDataManager.completePuzzle(packId, levelId, puzzleIndex);
 
+      // Save current state after completing puzzle
+      const { stateManager } = await import('../utils/stateManager');
+      await stateManager.saveGameState(packId, levelId, puzzleIndex);
+
       // Show success message
       showSuccessMessage(getRandomSuccessMessage());
-      setScore(prev => prev + 1);
+
       setHasStartedGame(true);
 
       // Wait 0.5 seconds before starting transition
@@ -679,7 +703,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
         setRedoStack([]);
         
         // Check for completion
-        checkCompletion(newGrid);
+        void checkCompletion(newGrid);
         
         return newGrid;
       });
@@ -861,7 +885,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
             setRedoStack([]);
             
             // Check for completion
-            checkCompletion(newGrid);
+            void checkCompletion(newGrid);
             
             return newGrid;
           });
@@ -1017,7 +1041,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
 
       setRedoStack([]); // Clear redo stack when new move is made
       newGrid[row][col] = newValue;
-      checkCompletion(newGrid);
+      void checkCompletion(newGrid);
       return newGrid;
     });
   };
@@ -1260,7 +1284,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
                 // Update UI state after animation is complete
                 setCurrentLevelId(levelManager.getCurrentLevel().id);
                 setCurrentPuzzleIndex(nextIndex);
-                setTotalPuzzles(levelManager.getCurrentLevel().puzzles.length);
+                setTotalPuzzles(currentLevel.puzzles.length);
                 setShowWelcome(false);
               });
             });
@@ -1281,68 +1305,23 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
     }).start();
   }, [hint, failureMessage]);
 
-  // Load saved score on component mount
-  useEffect(() => {
-    const loadScore = async () => {
-      try {
-        const savedScore = await AsyncStorage.getItem(SCORE_STORAGE_KEY);
-        if (savedScore !== null) {
-          const initialScore = parseInt(savedScore, 10);
-          setScore(initialScore);
-          setPreviousScore(initialScore);
-          setHasLoadedInitialScore(true);
-          setHasStartedGame(true);
-        }
-      } catch (error) {
-        console.error('Error loading score:', error);
-      }
-    };
-    loadScore();
-  }, []);
 
-  // Save score whenever it changes
-  useEffect(() => {
-    const saveScore = async () => {
-      try {
-        await AsyncStorage.setItem(SCORE_STORAGE_KEY, score.toString());
-      } catch (error) {
-        console.error('Error saving score:', error);
-      }
-    };
-    if (hasStartedGame) {
-      saveScore();
-    }
-  }, [score, hasStartedGame]);
 
-  // Existing score-based ad useEffect
-  useEffect(() => {
-    // Don't show ads until initial score is loaded
-    if (!hasLoadedInitialScore) {
-      return;
-    }
-
-    // Show interstitial ad when score changes to a multiple of 10, but not in autoplay mode
-    if (!isAutoplay && score > 0 && score % 10 === 0 && previousScore !== score) {
-      showInterstitialAd();
-    }
-    // Update previous score after checking
-    setPreviousScore(score);
-  }, [score, hasLoadedInitialScore]);
-
-  const resetScore = async () => {
+  const resetGame = async () => {
     try {
-      console.log('GameBoard - resetting score and hints');
-      // First clear the score
-      await AsyncStorage.removeItem(SCORE_STORAGE_KEY);
-      setScore(0);
+      console.log('GameBoard - resetting hints and game state');
       
-      // Then reset hints and wait for it to complete
+      // Reset hints and wait for it to complete
       await hintManager.resetHints();
       
       // Now set the hint count directly to 5
       setHintCount(5);
+      
+      // Clear the current puzzle state to start from the beginning
+      const { stateManager } = await import('../utils/stateManager');
+      await stateManager.clearGameState();
     } catch (error) {
-      //console.error('Error resetting score:', error);
+      console.error('Error resetting game:', error);
     }
   };
 
@@ -1563,17 +1542,14 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
     <View style={styles.container}>
       <View style={styles.contentContainer}>
         <View style={styles.statsBar}>
-          <TouchableOpacity 
-            style={styles.statItem}
-            onPress={onPackPress}
-          >
-            <Text style={styles.statLabel}>Pack</Text>
-            <View style={styles.statValueContainer}>
-              <Text style={styles.statValue}>{levelManager.getCurrentPackNumber()}</Text>
-            </View>
-          </TouchableOpacity>
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Level</Text>
+            <View style={styles.statValueContainer}>
+              <Text style={styles.statValue}>{levelManager.getCurrentLevelNumber()}</Text>
+            </View>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>Puzzle</Text>
             <TouchableOpacity 
               style={styles.statValueContainer}
               onPress={() => {
@@ -1664,29 +1640,32 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
                       // Update UI state after animation is complete
                       setCurrentLevelId(levelManager.getCurrentLevel().id);
                       setCurrentPuzzleIndex(nextIndex);
-                      setTotalPuzzles(levelManager.getCurrentLevel().puzzles.length);
+                      setTotalPuzzles(currentLevel.puzzles.length);
                       setShowWelcome(false);
                     });
                   });
                 }
               }}
             >
-              <Text style={styles.statValue}>{levelManager.getCurrentLevelNumber()}</Text>
+              <Text style={styles.statValue}>{puzzleManager.getCurrentPuzzleIndex() + 1}/{totalPuzzles}</Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Score</Text>
+          <TouchableOpacity 
+            style={styles.statItem}
+            onPress={onPackPress}
+          >
+            <Text style={styles.statLabel}>Pack</Text>
             <View style={styles.statValueContainer}>
-              <Text style={styles.statValue}>{score}</Text>
+              <Text style={styles.statValue}>{levelManager.getCurrentPackNumber()}</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
 
         <ProgressDots />
 
         <View style={styles.gridContainer}>
           <Animated.View style={[styles.grid, { opacity: boardOpacity }]}>
-            {!hasStartedGame && showWelcome && (
+            {!hasStartedGame && showWelcome && levelManager.getCurrentLevelNumber() === 1 && (
               <TouchableOpacity 
                 activeOpacity={0.8}
                 onPress={dismissWelcomeMessage}
@@ -1844,8 +1823,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
       <SettingsModal
         isVisible={showSettings}
         onClose={() => setShowSettings(false)}
-        onReset={resetScore}
-        score={score}
+        onReset={resetGame}
       />
       <HintRewardModal
         isVisible={showHintReward}
@@ -2127,6 +2105,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 10,
   },
   successMessageOverlay: {
     position: 'absolute',

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { pack1Tutorials } from '../../data/tutorials/pack1Tutorials';
 
 interface HowToPlayModalProps {
   isVisible: boolean;
@@ -9,11 +8,6 @@ interface HowToPlayModalProps {
 }
 
 const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isVisible, onClose }) => {
-  // Combine all tutorial messages into one comprehensive guide
-  const allInstructions = [
-    ...pack1Tutorials.level1,
-    ...pack1Tutorials.level2
-  ];
 
   return (
     <Modal
@@ -39,57 +33,54 @@ const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isVisible, onClose }) =
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Game Rules</Text>
               
-              {allInstructions.map((instruction, index) => (
-                <View key={index} style={styles.instructionItem}>
-                  <Text style={styles.instructionText}>{instruction}</Text>
-                </View>
-              ))}
+              <View style={styles.instructionItem}>
+                <Text style={styles.instructionText}>
+                  <Text style={{ fontWeight: 'bold' }}>Rule 1:</Text> There are always an equal number of each shape in a row or column.
+                </Text>
+              </View>
+              <View style={styles.instructionItem}>
+                <Text style={styles.instructionText}>
+                  <Text style={{ fontWeight: 'bold' }}>Rule 2:</Text> You are not allowed to have 3 in a row horizontally or vertically.
+                </Text>
+              </View>
+              <View style={styles.instructionItem}>
+                <Text style={styles.instructionText}>
+                  <Text style={{ fontWeight: 'bold' }}>Rule 3:</Text> No two rows or columns can be exactly the same.
+                </Text>
+              </View>
+
+              <View style={styles.instructionItem}>
+                <Text style={styles.instructionText}>
+                  You shouldn't have to guess. Use logic to solve the puzzle.
+                </Text>
+              </View>
+              <View style={styles.instructionItem}>
+                <Text style={styles.instructionText}>
+                  Have fun! Master the grid!
+                </Text>
+              </View>
+
             </View>
 
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Tips</Text>
-              <View style={styles.instructionItem}>
-                <Text style={styles.instructionText}>
-                  • Use the hint button when you're stuck - it will show you the next logical move
-                </Text>
-              </View>
-              <View style={styles.instructionItem}>
-                <Text style={styles.instructionText}>
-                  • You can restart a puzzle anytime if you think you've made mistakes
-                </Text>
-              </View>
-              <View style={styles.instructionItem}>
-                <Text style={styles.instructionText}>
-                  • Use the undo/redo buttons to step through your moves
-                </Text>
-              </View>
-              <View style={styles.instructionItem}>
-                <Text style={styles.instructionText}>
-                  • Puzzles get progressively harder as you advance through levels
-                </Text>
-              </View>
-            </View>
+
+              
+
 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Controls</Text>
               <View style={styles.instructionItem}>
                 <Text style={styles.instructionText}>
-                  • Tap empty cells to cycle through shapes (empty → shape 1 → shape 2 → empty)
+                  Tap empty cells to cycle through shapes (shape 1 → shape 2 → empty)
                 </Text>
               </View>
               <View style={styles.instructionItem}>
                 <Text style={styles.instructionText}>
-                  • Use the hint button to get help with the next move
+                  Use hints if you get stuck, you can always get more hints if needed.
                 </Text>
               </View>
               <View style={styles.instructionItem}>
                 <Text style={styles.instructionText}>
-                  • Use undo/redo to navigate through your moves
-                </Text>
-              </View>
-              <View style={styles.instructionItem}>
-                <Text style={styles.instructionText}>
-                  • Use restart to reset the current puzzle
+                You can also restart the puzzle if you think you've made mistakes.
                 </Text>
               </View>
             </View>

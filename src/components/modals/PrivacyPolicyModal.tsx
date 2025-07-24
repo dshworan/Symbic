@@ -32,7 +32,7 @@ const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({ isVisible, onCl
               </Text>
               <Text style={styles.bulletPoint}>• Ad Data: We use Google AdMob to serve in-game ads. AdMob may collect device information, usage data, and app interaction events to personalize ads and measure performance.</Text>
               <Text style={styles.bulletPoint}>• Analytics: We may integrate third-party analytics (e.g., Firebase) in the future to help us understand how users interact with our app. These tools may collect aggregated, anonymous usage data to improve gameplay and performance.</Text>
-              <Text style={styles.bulletPoint}>• Game Progress: Your game progress (like scores and levels) is stored locally on your device. It is not shared or uploaded to our servers.</Text>
+              <Text style={styles.bulletPoint}>• Game Progress: Your game progress (like levels and puzzle completion) is stored locally on your device. It is not shared or uploaded to our servers.</Text>
 
               <Text style={styles.sectionTitle}>Children's Privacy</Text>
               <Text style={styles.text}>

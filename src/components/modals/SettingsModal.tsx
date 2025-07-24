@@ -37,10 +37,9 @@ interface SettingsModalProps {
   isVisible: boolean;
   onClose: () => void;
   onReset: () => void;
-  score: number;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onReset, score }) => {
+const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onReset }) => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute();
   const { soundEnabled, toggleSound } = useAudio();
@@ -126,12 +125,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isVisible, onClose, onRes
     // Reset hints
     await hintManager.resetHints();
     
-    // Reset score in AsyncStorage
-    try {
-      await AsyncStorage.removeItem('@game_score');
-    } catch (error) {
-      console.error('Error resetting score:', error);
-    }
+
     
     // Reset score in parent component
     onReset();
