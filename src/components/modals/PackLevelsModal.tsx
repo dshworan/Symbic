@@ -313,7 +313,7 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
                   onPress={handleUnlockWithAd}
                 >
                   <Text style={styles.unlockButtonText}>Unlock Pack {packId}</Text>
-                  <MaterialIcons name="play-arrow" size={24} color="#ffffff" />
+                  <MaterialIcons name="play-circle-outline" size={32} color="#ffffff" />
                 </TouchableOpacity>
               </Animated.View>
             </View>
@@ -494,8 +494,9 @@ const styles = StyleSheet.create({
   },
   unlockButtonText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
+    marginRight: 5 ,
   },
 });
 

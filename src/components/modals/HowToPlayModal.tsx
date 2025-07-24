@@ -35,17 +35,17 @@ const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isVisible, onClose }) =
               
               <View style={styles.instructionItem}>
                 <Text style={styles.instructionText}>
-                  <Text style={{ fontWeight: 'bold' }}>Rule 1:</Text> There are always an equal number of each shape in a row or column.
+                  <Text style={{ fontWeight: 'bold', color: '#2196F3' }}>Rule 1: </Text> There are always an equal number of each shape in a row or column.
                 </Text>
               </View>
               <View style={styles.instructionItem}>
                 <Text style={styles.instructionText}>
-                  <Text style={{ fontWeight: 'bold' }}>Rule 2:</Text> You are not allowed to have 3 in a row horizontally or vertically.
+                  <Text style={{ fontWeight: 'bold', color: '#4CAF50' }}>Rule 2: </Text> You are not allowed to have 3 in a row horizontally or vertically.
                 </Text>
               </View>
               <View style={styles.instructionItem}>
                 <Text style={styles.instructionText}>
-                  <Text style={{ fontWeight: 'bold' }}>Rule 3:</Text> No two rows or columns can be exactly the same.
+                  <Text style={{ fontWeight: 'bold', color: '#FF9800' }}>Rule 3: </Text> No two rows or columns can be exactly the same.
                 </Text>
               </View>
 

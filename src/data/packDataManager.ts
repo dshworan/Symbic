@@ -83,10 +83,10 @@ export class PackDataManager {
   }
 
   public isPackPlayable(packId: number): boolean {
-    // Packs 1-9 are always playable
-    if (packId >= 1 && packId <= 9) return true;
+    // Packs 1-2 are always playable
+    if (packId >= 1 && packId <= 2) return true;
 
-    // For packs 10-30, check if they're in the unlocked set
+    // For packs 3-30, check if they're in the unlocked set
     return this.unlockedPacks.has(packId);
   }
 
@@ -113,6 +113,68 @@ export class PackDataManager {
 
   public isPuzzleCompleted(packId: number, level: number, puzzleIndex: number): boolean {
     return !!this.completionData[packId]?.[level]?.[puzzleIndex];
+  }
+
+  public isPackCompleted(packId: number): boolean {
+    const packData = packList.find(p => p.pack === packId);
+    if (!packData) {
+      return false;
+    }
+
+    // Check if all levels in the pack are completed
+    for (const levelData of packData.levels) {
+      const level = levelData.level;
+      // Check if all puzzles in this level are completed
+      for (let puzzleIndex = 0; puzzleIndex < levelData.puzzles; puzzleIndex++) {
+        if (!this.isPuzzleCompleted(packId, level, puzzleIndex)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  public getNextIncompleteLevel(packId: number): { level: number; puzzleIndex: number } | null {
+    const packData = packList.find(p => p.pack === packId);
+    if (!packData) {
+      return null;
+    }
+
+    // Find the first incomplete puzzle in the pack
+    for (const levelData of packData.levels) {
+      const level = levelData.level;
+      for (let puzzleIndex = 0; puzzleIndex < levelData.puzzles; puzzleIndex++) {
+        if (!this.isPuzzleCompleted(packId, level, puzzleIndex)) {
+          return { level, puzzleIndex };
+        }
+      }
+    }
+    return null; // All puzzles in the pack are completed
+  }
+
+  public getNextIncompletePack(): number | null {
+    // Find the first pack that has incomplete puzzles
+    for (let packId = 1; packId <= packList.length; packId++) {
+      if (!this.isPackCompleted(packId)) {
+        return packId;
+      }
+    }
+    return null; // All packs are completed
+  }
+
+  public getNextIncompleteLevelInAnyPack(): { packId: number; level: number; puzzleIndex: number } | null {
+    // Find the first incomplete puzzle in any pack
+    for (let packId = 1; packId <= packList.length; packId++) {
+      const nextIncompleteLevel = this.getNextIncompleteLevel(packId);
+      if (nextIncompleteLevel) {
+        return {
+          packId,
+          level: nextIncompleteLevel.level,
+          puzzleIndex: nextIncompleteLevel.puzzleIndex
+        };
+      }
+    }
+    return null; // All puzzles in all packs are completed
   }
 
   public completePuzzle(packId: number, level: number, puzzleIndex: number): void {

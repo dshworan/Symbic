@@ -570,6 +570,16 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
         
         // Get next level info but don't apply it yet
         const nextPuzzle = puzzleManager.nextPuzzle();
+        
+        // If nextPuzzle returns false, it means we can't proceed (all packs complete or next pack locked)
+        if (!nextPuzzle) {
+          // Open the packs modal so player can choose what to unlock/play
+          if (onPackPress) {
+            onPackPress();
+          }
+          return;
+        }
+        
         const nextLevel = levelManager.getCurrentLevel();
         const newPuzzle = puzzleManager.getCurrentPuzzle();
         const nextShapes = nextLevel.shapes; // Store next level shapes
@@ -1665,7 +1675,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
 
         <View style={styles.gridContainer}>
           <Animated.View style={[styles.grid, { opacity: boardOpacity }]}>
-            {!hasStartedGame && showWelcome && levelManager.getCurrentLevelNumber() === 1 && (
+            {!hasStartedGame && showWelcome && levelManager.getCurrentLevelNumber() === 1 && levelManager.getCurrentPackNumber() === 1 && (
               <TouchableOpacity 
                 activeOpacity={0.8}
                 onPress={dismissWelcomeMessage}

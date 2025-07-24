@@ -1,6 +1,7 @@
 import { Level, LevelColors, Pack } from '../types/levelTypes';
 import { AssetManager } from '../assets/assetManager';
 import { stateManager } from '../../utils/stateManager';
+import PackDataManager from '../packDataManager';
 
 // Lazy import to avoid circular dependency
 let puzzleManager: any = null;
@@ -1159,17 +1160,40 @@ export class LevelManager {
   }
 
   nextLevel(): boolean {
-    const currentPack = this.getCurrentPack();
-    if (this.currentLevelIndex < currentPack.levels.length - 1) {
-      this.currentLevelIndex++;
+    const currentPackId = this.getCurrentPackNumber();
+    const packDataManager = PackDataManager.getInstance();
+    
+    // First, check if there are incomplete levels in the current pack
+    const nextIncompleteLevel = packDataManager.getNextIncompleteLevel(currentPackId);
+    
+    if (nextIncompleteLevel) {
+      // There are incomplete levels in the current pack, go to the next incomplete level
+      this.setCurrentLevel(nextIncompleteLevel.level);
+      // Sync puzzle manager to the correct puzzle index
+      const pm = getPuzzleManager();
+      pm.setCurrentPuzzleIndex(nextIncompleteLevel.puzzleIndex);
       return true;
-    } else if (this.currentPackIndex < this.packs.length - 1) {
-      // Move to next pack
-      this.currentPackIndex++;
-      this.currentLevelIndex = 0;
-      return true;
+    } else {
+      // Current pack is complete, find the next incomplete pack
+      const nextIncompletePackInfo = packDataManager.getNextIncompleteLevelInAnyPack();
+      
+      if (nextIncompletePackInfo) {
+        // Check if the next incomplete pack is unlocked
+        if (packDataManager.isPackPlayable(nextIncompletePackInfo.packId)) {
+          // Move to the next incomplete pack and level
+          this.currentPackIndex = nextIncompletePackInfo.packId - 1; // Convert to 0-based index
+          this.currentLevelIndex = nextIncompletePackInfo.level - 1; // Convert to 0-based index
+          // Sync puzzle manager to the correct puzzle index
+          const pm = getPuzzleManager();
+          pm.setCurrentPuzzleIndex(nextIncompletePackInfo.puzzleIndex);
+          return true;
+        } else {
+          // Next incomplete pack is locked, return false to trigger packs modal
+          return false;
+        }
+      }
     }
-    return false;
+    return false; // All packs and levels are completed, or next pack is locked
   }
 
   previousLevel(): boolean {
