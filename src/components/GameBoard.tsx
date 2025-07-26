@@ -19,6 +19,7 @@ import HintRewardModal from './modals/HintRewardModal';
 import { showInterstitialAd, preloadInterstitialAd } from '../utils/interstitialAd';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { getOptimalCellSize, getResponsiveDimensions, getResponsiveFontSize, getResponsiveSpacing } from '../utils/deviceUtils';
 
 type RootStackParamList = {
   Game: {
@@ -57,8 +58,281 @@ interface GameBoardProps {
 
 
 
+// Dynamic styles based on device type
+const getDynamicStyles = () => {
+  const { isTablet, maxContentWidth, buttonSizeMultiplier } = getResponsiveDimensions();
+  
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: '#1a1a1a',
+      paddingHorizontal: isTablet ? 20 : 10,
+      alignItems: 'center',
+    },
+    contentContainer: {
+      width: '100%',
+      maxWidth: maxContentWidth,
+      flex: 1,
+      position: 'relative',
+    },
+    statsBar: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      paddingTop: isTablet ? 10 : 5,
+      paddingBottom: isTablet ? 15 : 10,
+      paddingHorizontal: isTablet ? 20 : 10,
+    },
+    statItem: {
+      alignItems: 'center',
+      minWidth: isTablet ? 120 : 90,
+    },
+    statLabel: {
+      color: '#bbbbbb',
+      fontSize: getResponsiveFontSize(14),
+      marginBottom: isTablet ? 8 : 6,
+    },
+    statValueContainer: {
+      backgroundColor: '#2d2d2d',
+      paddingHorizontal: isTablet ? 20 : 16,
+      paddingVertical: isTablet ? 8 : 6,
+      borderRadius: isTablet ? 8 : 6,
+    },
+    statValue: {
+      color: '#f0f0f0',
+      fontSize: getResponsiveFontSize(20),
+      fontWeight: 'bold',
+    },
+    button: {
+      backgroundColor: '#333',
+      padding: isTablet ? 12 : 10,
+      borderRadius: isTablet ? 8 : 5,
+      flex: 1,
+      alignItems: 'center',
+      gap: isTablet ? 6 : 4,
+      minWidth: isTablet ? 60 : 50,
+    },
+    buttonText: {
+      color: '#e0e0e0',
+      fontSize: getResponsiveFontSize(12),
+    },
+    controlsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: isTablet ? 12 : 10,
+      position: 'absolute',
+      bottom: isTablet ? 40 : 55,
+      left: 0,
+      right: 0,
+      gap: isTablet ? 12 : 10,
+      paddingHorizontal: 0,
+    },
+    title: {
+      color: '#e0e0e0',
+      fontSize: getResponsiveFontSize(20),
+      fontWeight: 'bold',
+    },
+    hintText: {
+      color: '#ffffff',
+      fontSize: getResponsiveFontSize(16),
+      textAlign: 'center',
+    },
+    tutorialText: {
+      color: '#e0e0e0',
+      fontSize: getResponsiveFontSize(16),
+      textAlign: 'center',
+      lineHeight: isTablet ? 26 : 22,
+    },
+    welcomeText: {
+      color: '#1a1a1a',
+      fontSize: getResponsiveFontSize(18),
+      fontWeight: 'bold',
+      textAlign: 'center',
+      lineHeight: isTablet ? 26 : 22,
+      marginTop: 5,
+    },
+    welcomeMessage: {
+      backgroundColor: 'rgba(255, 196, 0, 0.9)',
+      padding: isTablet ? 30 : 25,
+      borderRadius: isTablet ? 12 : 8,
+      borderWidth: 2,
+      borderColor: '#1a1a1a',
+      width: isTablet ? 320 : 260,
+    },
+    successText: {
+      color: '#1a1a1a',
+      fontSize: getResponsiveFontSize(24),
+      fontWeight: 'bold',
+      textAlign: 'center',
+      width: '100%',
+    },
+    successMessage: {
+      padding: isTablet ? 25 : 20,
+      borderRadius: isTablet ? 12 : 10,
+      width: isTablet ? 250 : 200,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 3,
+    },
+    failureMainText: {
+      color: '#ff5362',
+      fontSize: getResponsiveFontSize(15),
+      fontWeight: 'bold',
+      marginBottom: 2,
+    },
+    failureSubText: {
+      color: '#ff5362',
+      fontSize: getResponsiveFontSize(14),
+      lineHeight: isTablet ? 20 : 16,
+      textAlign: 'center',
+    },
+    failureMessage: {
+      position: 'absolute',
+      bottom: isTablet ? -120 : -95,
+      left: '50%',
+      transform: [{ translateX: isTablet ? -180 : -150 }],
+      paddingVertical: isTablet ? 15 : 10,
+      paddingHorizontal: isTablet ? 20 : 15,
+      width: isTablet ? 360 : 300,
+      alignItems: 'center',
+      zIndex: 2000,
+      backgroundColor: '#1a1a1a',
+    },
+    // Additional styles that need to be responsive
+    grid: {
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+      marginTop: isTablet ? 15 : 10,
+      marginBottom: isTablet ? 15 : 10,
+      position: 'relative' as const,
+      borderWidth: 1,
+      borderColor: '#404040',
+      maxWidth: '100%', // Ensure grid doesn't exceed container width
+      flexWrap: 'wrap' as const, // Allow wrapping if needed
+    },
+    row: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+    },
+    cell: {
+      borderWidth: 1,
+      borderColor: '#404040',
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+      backgroundColor: '#252525',
+      aspectRatio: 1,
+    },
+    gridContainer: {
+      position: 'relative' as const,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+      marginTop: isTablet ? 15 : 10,
+      maxWidth: '100%', // Ensure grid doesn't overflow container
+      overflow: 'hidden' as const, // Prevent overflow
+    },
+    welcomeTouchable: {
+      position: 'absolute' as const,
+      top: '50%',
+      left: '50%',
+      transform: [{ translateX: '-50%' }, { translateY: '-50%' }], // Center properly using percentages
+      zIndex: 2,
+      alignItems: 'center' as const, // Center the content within the touchable
+      justifyContent: 'center' as const, // Center the content within the touchable
+      // The issue is that this centers relative to the screen, not the grid
+      // We need to position it relative to the grid container
+    },
+    welcomeCloseButton: {
+      position: 'absolute' as const,
+      top: 4,
+      right: 4
+    },
+    messageContainer: {
+      position: 'relative' as const,
+      marginTop: 0,
+      marginBottom: isTablet ? 15 : 10,
+      zIndex: 1,
+    },
+    tutorialMessage: {
+      padding: isTablet ? 20 : 15,
+      paddingTop: isTablet ? 8 : 5,
+    },
+    hintMessage: {
+      position: 'absolute' as const,
+      top: 0,
+      left: 0,
+      right: 0,
+      alignItems: 'center' as const,
+      paddingTop: isTablet ? 15 : 10,
+      paddingBottom: isTablet ? 20 : 15,
+      paddingHorizontal: isTablet ? 15 : 10,
+      borderRadius: isTablet ? 12 : 10,
+      backgroundColor: '#2d2d2d',
+      borderWidth: 2,
+      borderColor: '#ffd700',
+      zIndex: 1,
+    },
+    clearButton: {
+      marginTop: isTablet ? 15 : 10,
+      backgroundColor: '#ff4444',
+      paddingHorizontal: isTablet ? 25 : 20,
+      paddingVertical: isTablet ? 10 : 8,
+      borderRadius: isTablet ? 8 : 5,
+    },
+    clearButtonText: {
+      color: '#ffffff',
+      fontSize: getResponsiveFontSize(14),
+      fontWeight: 'bold' as const,
+    },
+    hintBadge: {
+      position: 'absolute' as const,
+      top: isTablet ? -8 : -6,
+      right: isTablet ? -8 : -6,
+      backgroundColor: '#4CAF50',
+      borderRadius: isTablet ? 15 : 12,
+      width: isTablet ? 30 : 25,
+      height: isTablet ? 30 : 25,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+      borderWidth: 1,
+      borderColor: '#292929',
+    },
+    hintBadgeText: {
+      color: '#ffffff',
+      fontSize: getResponsiveFontSize(14),
+      fontWeight: 'bold' as const,
+    },
+    progressDotsContainer: {
+      flexDirection: 'row' as const,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+      gap: isTablet ? 10 : 8,
+      paddingTop: isTablet ? 8 : 5,
+      paddingBottom: isTablet ? 15 : 10,
+      width: isTablet ? 120 : 100,
+      alignSelf: 'center' as const,
+    },
+    progressDot: {
+      width: isTablet ? 10 : 8,
+      height: isTablet ? 10 : 8,
+      borderRadius: isTablet ? 5 : 4,
+      backgroundColor: '#404040',
+    },
+    successMessageOverlay: {
+      position: 'absolute' as const,
+      top: isTablet ? -15 : -10,
+      left: 0,
+      right: 0,
+      bottom: isTablet ? 15 : 10,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+      zIndex: 1000,
+    },
+  });
+};
+
 const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = false, onAutoplayChange, onPackPress }) => {
   const { width } = useWindowDimensions();
+  const dynamicStyles = getDynamicStyles();
   const { playSound } = useAudio();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<GameScreenRouteProp>();
@@ -223,21 +497,9 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
   }, [grid, currentPuzzleIndex, currentLevelId]);
 
   const calculateCellSize = (gridSize: number) => {
-    const maxWidth = Math.min(width, 700);
-    const padding = 20; // 10px padding on each side
-    const availableWidth = maxWidth - padding;
-    
-    // Adjust cell size based on grid size
-    let size;
-    if (gridSize <= 6) {
-      size = Math.floor(availableWidth / gridSize);
-    } else if (gridSize <= 8) {
-      size = Math.floor(availableWidth / gridSize);
-    } else {
-      size = Math.floor(availableWidth / gridSize);
-    }
-    
-    return size;
+    const cellSize = getOptimalCellSize(gridSize, width);
+    console.log(`Grid size: ${gridSize}x${gridSize}, Screen width: ${width}, Calculated cell size: ${cellSize}, Total grid width: ${cellSize * gridSize}`);
+    return cellSize;
   };
 
   const resetGrid = () => {
@@ -985,6 +1247,25 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
     });
   };
 
+
+
+  // Calculate welcome message positioning based on actual grid dimensions
+  const getWelcomePosition = () => {
+    const puzzle = puzzleManager.getCurrentPuzzle();
+    const gridSize = puzzle?.grid?.length || 0;
+    const totalGridWidth = cellSize * gridSize;
+    const welcomeWidth = width >= 768 ? 320 : 260;
+    
+    // Calculate the left position to center the welcome message on the grid
+    const leftPosition = (totalGridWidth - welcomeWidth) / 2;
+    
+    return {
+      left: leftPosition,
+      top: '50%' as const,
+      transform: [{ translateY: -50 }], // Use number instead of string
+    };
+  };
+
   const handleCellPress = (row: number, col: number) => {
     // Clear hint when user makes a move
     if (hint) {
@@ -1137,7 +1418,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
         key={`${row}-${col}`}
         activeOpacity={1}
         style={[
-          styles.cell,
+          dynamicStyles.cell,
           {
             width: cellSize,
             height: cellSize,
@@ -1194,7 +1475,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
         <View
           key={i}
           style={[
-            styles.progressDot,
+            dynamicStyles.progressDot,
             {
               backgroundColor: dotColor,
               transform: [{ scale: i === currentPuzzleIndex ? 1.2 : 1 }], // Make current dot slightly larger
@@ -1205,7 +1486,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
     }
     return (
       <TouchableOpacity 
-        style={styles.progressDotsContainer}
+        style={dynamicStyles.progressDotsContainer}
         onPress={() => {
           const currentLevel = levelManager.getCurrentLevel();
           const currentIndex = puzzleManager.getCurrentPuzzleIndex();
@@ -1549,19 +1830,19 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
   }, [navigation]);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.contentContainer}>
-        <View style={styles.statsBar}>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Level</Text>
-            <View style={styles.statValueContainer}>
-              <Text style={styles.statValue}>{levelManager.getCurrentLevelNumber()}</Text>
+    <View style={dynamicStyles.container}>
+      <View style={dynamicStyles.contentContainer}>
+        <View style={dynamicStyles.statsBar}>
+          <View style={dynamicStyles.statItem}>
+            <Text style={dynamicStyles.statLabel}>Level</Text>
+            <View style={dynamicStyles.statValueContainer}>
+              <Text style={dynamicStyles.statValue}>{levelManager.getCurrentLevelNumber()}</Text>
             </View>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Puzzle</Text>
+          <View style={dynamicStyles.statItem}>
+            <Text style={dynamicStyles.statLabel}>Puzzle</Text>
             <TouchableOpacity 
-              style={styles.statValueContainer}
+              style={dynamicStyles.statValueContainer}
               onPress={() => {
                 const currentLevel = levelManager.getCurrentLevel();
                 const currentIndex = puzzleManager.getCurrentPuzzleIndex();
@@ -1657,50 +1938,50 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
                 }
               }}
             >
-              <Text style={styles.statValue}>{puzzleManager.getCurrentPuzzleIndex() + 1}/{totalPuzzles}</Text>
+              <Text style={dynamicStyles.statValue}>{puzzleManager.getCurrentPuzzleIndex() + 1}/{totalPuzzles}</Text>
             </TouchableOpacity>
           </View>
           <TouchableOpacity 
-            style={styles.statItem}
+            style={dynamicStyles.statItem}
             onPress={onPackPress}
           >
-            <Text style={styles.statLabel}>Pack</Text>
-            <View style={styles.statValueContainer}>
-              <Text style={styles.statValue}>{levelManager.getCurrentPackNumber()}</Text>
+            <Text style={dynamicStyles.statLabel}>Pack</Text>
+            <View style={dynamicStyles.statValueContainer}>
+              <Text style={dynamicStyles.statValue}>{levelManager.getCurrentPackNumber()}</Text>
             </View>
           </TouchableOpacity>
         </View>
 
         <ProgressDots />
 
-        <View style={styles.gridContainer}>
-          <Animated.View style={[styles.grid, { opacity: boardOpacity }]}>
+        <View style={dynamicStyles.gridContainer}>
+          <Animated.View style={[dynamicStyles.grid, { opacity: boardOpacity }]}>
             {!hasStartedGame && showWelcome && levelManager.getCurrentLevelNumber() === 1 && levelManager.getCurrentPackNumber() === 1 && (
               <TouchableOpacity 
                 activeOpacity={0.8}
                 onPress={dismissWelcomeMessage}
-                style={styles.welcomeTouchable}
+                style={[dynamicStyles.welcomeTouchable, getWelcomePosition()]}
               >
-                <Animated.View style={[styles.welcomeMessage, { opacity: welcomeOpacity }]}>
+                <Animated.View style={[dynamicStyles.welcomeMessage, { opacity: welcomeOpacity }]}>
                   <TouchableOpacity 
                     onPress={dismissWelcomeMessage}
                     style={styles.welcomeCloseButton}
                   >
                     <Ionicons name="close" size={20} color="#1a1a1a" />
                   </TouchableOpacity>
-                  <Text style={styles.welcomeText}>Click on an empty cell{'\n'}once or twice to insert{'\n'}the proper shape.</Text>
+                  <Text style={dynamicStyles.welcomeText}>Click on an empty cell{'\n'}once or twice to insert{'\n'}the proper shape.</Text>
                 </Animated.View>
               </TouchableOpacity>
             )}
             {grid.map((row, rowIndex) => (
-              <View key={rowIndex} style={styles.row}>
+              <View key={rowIndex} style={dynamicStyles.row}>
                 {row.map((cell, colIndex) => renderCell(cell, rowIndex, colIndex))}
               </View>
             ))}
             {failureMessage && (
-              <Animated.View style={[styles.failureMessage, { opacity: failureOpacity }]}>
-                <Text style={styles.failureMainText}>{failureMessage.mainText}</Text>
-                <Text style={styles.failureSubText}>{failureMessage.subText}</Text>
+              <Animated.View style={[dynamicStyles.failureMessage, { opacity: failureOpacity }]}>
+                <Text style={dynamicStyles.failureMainText}>{failureMessage.mainText}</Text>
+                <Text style={dynamicStyles.failureSubText}>{failureMessage.subText}</Text>
               </Animated.View>
             )}
           </Animated.View>
@@ -1709,37 +1990,37 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
           {successMessage && (
             <Animated.View 
               style={[
-                styles.successMessageOverlay, 
+                dynamicStyles.successMessageOverlay, 
                 { opacity: messageOpacity }
               ]}
             >
               <Animated.View 
                 style={[
-                  styles.successMessage, 
+                  dynamicStyles.successMessage, 
                   { 
                     backgroundColor: successMessage.backgroundColor,
                     borderColor: successMessage.borderColor
                   }
                 ]}
               >
-                <Text style={styles.successText}>{successMessage.message}</Text>
+                <Text style={dynamicStyles.successText}>{successMessage.message}</Text>
               </Animated.View>
             </Animated.View>
           )}
         </View>
 
-        <View style={styles.messageContainer}>
+        <View style={dynamicStyles.messageContainer}>
           {levelManager.getCurrentPackNumber() === 1 && (
-            <Animated.View style={[styles.tutorialMessage, { opacity: tutorialOpacity }]}>
-              <Text style={styles.tutorialText}>
+            <Animated.View style={[dynamicStyles.tutorialMessage, { opacity: tutorialOpacity }]}>
+              <Text style={dynamicStyles.tutorialText}>
                 {pack1Tutorials[`level${levelManager.getCurrentLevelNumber()}`]?.[puzzleManager.getCurrentPuzzleIndex()]}
               </Text>
             </Animated.View>
           )}
 
           {hint && (
-            <Animated.View style={[styles.hintMessage, { opacity: hintOpacity }]}>
-              <Text style={styles.hintText}>
+            <Animated.View style={[dynamicStyles.hintMessage, { opacity: hintOpacity }]}>
+              <Text style={dynamicStyles.hintText}>
                 {hint.message.split(/<svg.*?<\/svg>/).map((part, index, array) => {
                   if (index === array.length - 1) return part;
                   const svgMatch = hint.message.match(/<svg.*?<\/svg>/g);
@@ -1761,7 +2042,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
               </Text>
               {hint.rule === 'error' && (
                 <TouchableOpacity 
-                  style={styles.clearButton}
+                  style={dynamicStyles.clearButton}
                   onPress={() => {
                     // Clear all incorrect cells
                     setGrid(prevGrid => {
@@ -1781,16 +2062,16 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
                     });
                   }}
                 >
-                  <Text style={styles.clearButtonText}>Clear Errors</Text>
+                  <Text style={dynamicStyles.clearButtonText}>Clear Errors</Text>
                 </TouchableOpacity>
               )}
             </Animated.View>
           )}
         </View>
 
-        <View style={styles.controlsContainer}>
+        <View style={dynamicStyles.controlsContainer}>
           <TouchableOpacity 
-            style={styles.button}
+            style={dynamicStyles.button}
             onPress={handleUndo}
             disabled={!moveHistory.length}
           >
@@ -1799,10 +2080,10 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
               size={24} 
               color={moveHistory.length ? "#e0e0e0" : "#666666"} 
             />
-            <Text style={styles.buttonText}>Undo</Text>
+            <Text style={dynamicStyles.buttonText}>Undo</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={styles.button}
+            style={dynamicStyles.button}
             onPress={handleRedo}
             disabled={!redoStack.length}
           >
@@ -1811,18 +2092,18 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
               size={24} 
               color={redoStack.length ? "#e0e0e0" : "#666666"} 
             />
-            <Text style={styles.buttonText}>Redo</Text>
+            <Text style={dynamicStyles.buttonText}>Redo</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={resetGrid}>
+          <TouchableOpacity style={dynamicStyles.button} onPress={resetGrid}>
             <MaterialIcons name="refresh" size={24} color="#e0e0e0" />
-            <Text style={styles.buttonText}>Restart</Text>
+            <Text style={dynamicStyles.buttonText}>Restart</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={handleHint}>
+          <TouchableOpacity style={dynamicStyles.button} onPress={handleHint}>
             <MaterialIcons name="lightbulb-outline" size={24} color="#e0e0e0" />
-            <Text style={styles.buttonText}>Hint</Text>
-            <Animated.View style={[styles.hintBadge, { transform: [{ scale: hintBadgeScale }] }]}>
+            <Text style={dynamicStyles.buttonText}>Hint</Text>
+            <Animated.View style={[dynamicStyles.hintBadge, { transform: [{ scale: hintBadgeScale }] }]}>
               {hintCount > 0 ? (
-                <Text style={styles.hintBadgeText}>{hintCount}</Text>
+                <Text style={dynamicStyles.hintBadgeText}>{hintCount}</Text>
               ) : (
                 <MaterialIcons name="play-arrow" size={20} color="#ffffff" />
               )}

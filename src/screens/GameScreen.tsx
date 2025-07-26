@@ -10,6 +10,7 @@ import PuzzlePacksModal from '../components/modals/PuzzlePacksModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { initializeGame } from '../utils/gameInitializer';
+import { getResponsiveDimensions, getResponsiveFontSize } from '../utils/deviceUtils';
 
 type RootStackParamList = {
   Game: {
@@ -128,8 +129,9 @@ export const GameScreen: React.FC = () => {
   }, [currentLevelId]);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={styles.outerContainer}>
+      <View style={styles.container}>
+        <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity 
             style={styles.difficultyContainer}
@@ -186,59 +188,75 @@ export const GameScreen: React.FC = () => {
         isVisible={showPuzzlePacks}
         onClose={() => setShowPuzzlePacks(false)}
       />
+      </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1a1a1a',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 25,
-    paddingBottom: 5,
-    paddingHorizontal: 15,
-    backgroundColor: '#1a1a1a',
-  },
-  headerLeft: {
-    flex: 1,
-    alignItems: 'flex-start',
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerRight: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#e0e0e0',
-  },
-  titleActive: {
-    color: '#4CAF50',
-  },
-  settingsButton: {
-    padding: 5,
-  },
-  difficultyText: {
-    color: '#e0e0e0',
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  difficultyContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-  },
-});
+// Dynamic styles based on device type
+const getDynamicStyles = () => {
+  const { isTablet, maxContentWidth } = getResponsiveDimensions();
+  
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: '#1a1a1a',
+      maxWidth: maxContentWidth,
+      alignSelf: 'center',
+      width: '100%',
+    },
+    outerContainer: {
+      flex: 1,
+      backgroundColor: '#1a1a1a',
+      alignItems: 'center',
+    },
+    header: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      alignItems: 'center' as const,
+      paddingTop: isTablet ? 35 : 25,
+      paddingBottom: isTablet ? 10 : 5,
+      paddingHorizontal: isTablet ? 25 : 15,
+      backgroundColor: '#1a1a1a',
+    },
+    headerLeft: {
+      flex: 1,
+      alignItems: 'flex-start' as const,
+    },
+    headerCenter: {
+      flex: 1,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+    },
+    headerRight: {
+      flex: 1,
+      alignItems: 'flex-end' as const,
+    },
+    title: {
+      fontSize: getResponsiveFontSize(24),
+      fontWeight: 'bold' as const,
+      color: '#e0e0e0',
+    },
+    titleActive: {
+      color: '#4CAF50',
+    },
+    settingsButton: {
+      padding: isTablet ? 8 : 5,
+    },
+    difficultyText: {
+      color: '#e0e0e0',
+      fontSize: getResponsiveFontSize(13),
+      fontWeight: '500' as const,
+    },
+    difficultyContainer: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: isTablet ? 4 : 2,
+    },
+  });
+};
+
+const styles = getDynamicStyles();
 
 const getDifficultyLabel = (difficulty: number): string => {
   if (difficulty < 3) return 'Easy';

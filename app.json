@@ -22,7 +22,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.shworan.symbic"
+      "package": "com.shworan.symbic",
+      "supportsTablet": true
     },
     "web": {
       "favicon": "./assets/favicon.png"

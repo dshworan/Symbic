@@ -21,7 +21,7 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
     if (moduleName === 'react-native-google-mobile-ads' || 
         moduleName.startsWith('react-native-google-mobile-ads/')) {
       return {
-        filePath: path.resolve(__dirname, './src/utils/mock-admob.js'),
+        filePath: path.resolve(__dirname, './src/utils/mock-admob.ts'),
         type: 'sourceFile',
       };
     }

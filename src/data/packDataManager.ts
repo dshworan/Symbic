@@ -83,10 +83,10 @@ export class PackDataManager {
   }
 
   public isPackPlayable(packId: number): boolean {
-    // Packs 1-2 are always playable
-    if (packId >= 1 && packId <= 2) return true;
+    // Packs 1-3 are always playable
+    if (packId >= 1 && packId <= 3) return true;
 
-    // For packs 3-30, check if they're in the unlocked set
+    // For packs 4-30, check if they're in the unlocked set
     return this.unlockedPacks.has(packId);
   }
 
