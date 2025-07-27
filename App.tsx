@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as NavigationBar from 'expo-navigation-bar';
 import { AudioProvider } from './src/context/AudioContext';
 import { adManager } from './src/utils/adManager'; // adjust path if needed
 import { initialize as initializeInterstitialAds } from './src/utils/interstitialAd';
@@ -51,6 +52,20 @@ export default function App() {
     };
 
     initServices();
+  }, []);
+
+  // Style the navigation bar with dark background and light icons
+  useEffect(() => {
+    const styleNavBar = async () => {
+      try {
+        await NavigationBar.setBackgroundColorAsync('#1E1E1E'); // solid dark background
+        await NavigationBar.setButtonStyleAsync('light');        // white nav icons
+        console.log('🎨 Navigation bar styled with dark background');
+      } catch (error) {
+        console.warn('⚠️ Failed to style navigation bar:', error);
+      }
+    };
+    styleNavBar();
   }, []);
 
   return (
