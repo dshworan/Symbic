@@ -55,7 +55,8 @@ ca-app-pub-7569267138426237/2000725188
 ca-app-pub-3940256099942544/5224354917
 `Ad Unit ID - Reward Ad Production Android`
 ca-app-pub-7569267138426237/6876055022
-
+`Ad Unit ID - Rewarded Interstitial Ad Production Android`
+ca-app-pub-7569267138426237/7716195069
 
 # TRIOS APP ID
 ca-app-pub-7569267138426237~6830607970

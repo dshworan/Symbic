@@ -1,6 +1,7 @@
 import { Platform, Alert } from 'react-native';
 import MockAdMob from './mock-admob';
 import { PackDataManager } from '../data/packDataManager';
+import { trackGameEvent } from './firebase';
 
 // Check if we're on web platform
 const isWeb = Platform.OS === 'web';
@@ -65,8 +66,7 @@ class AdManager {
       await MobileAds.default().initialize();
       //console.log('✅ AdMob initialized');
       
-      // Create initial ad instance
-      this.interstitialAdRef = InterstitialAd.createForAdRequest(INTERSTITIAL_AD_ID);
+      // Don't create ad instance at startup - only when needed
       this.isInitialized = true;
     } catch (error) {
       console.error('❌ Failed to initialize AdMob:', error);
@@ -108,41 +108,59 @@ class AdManager {
       }
 
       return new Promise((resolve) => {
-        const unsubscribeLoaded = interstitial.addAdEventListener(
-          AdEventType.LOADED,
-          () => {
-            console.log('Ad loaded successfully');
-          }
-        );
+        let isAdCompleted = false;
+        let unsubscribeFunctions: (() => void)[] = [];
 
-        const unsubscribeClosed = interstitial.addAdEventListener(
-          AdEventType.CLOSED,
-          () => {
-            console.log('Ad closed');
-            this.packDataManager.unlockPack(packId);
-            resolve(true);
-          }
-        );
+        const handleLoaded = () => {
+          console.log('Ad loaded successfully');
+        };
 
-        const unsubscribeError = interstitial.addAdEventListener(
-          AdEventType.ERROR,
-          (error: any) => {
-            console.error('Ad error:', error);
-            // If ad fails, still unlock the pack for testing
-            this.packDataManager.unlockPack(packId);
-            resolve(true);
-          }
-        );
+        const handleClosed = () => {
+          console.log('Ad closed');
+          isAdCompleted = true;
+          this.packDataManager.unlockPack(packId);
+          trackGameEvent.adCompleted('interstitial');
+          trackGameEvent.packUnlocked(packId);
+          
+          // Clean up listeners
+          unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+          resolve(true);
+        };
+
+        const handleError = (error: any) => {
+          console.error('Ad error:', error);
+          
+          // Track ad failure
+          trackGameEvent.adFailed('interstitial', error?.code || 'unknown');
+          
+          // Don't process if ad was already completed
+          if (isAdCompleted) return;
+          
+          // If ad fails, still unlock the pack for testing
+          this.packDataManager.unlockPack(packId);
+          
+          // Clean up listeners
+          unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+          resolve(true);
+        };
+
+        // Add listeners
+        const unsubscribeLoaded = interstitial.addAdEventListener(AdEventType.LOADED, handleLoaded);
+        const unsubscribeClosed = interstitial.addAdEventListener(AdEventType.CLOSED, handleClosed);
+        const unsubscribeError = interstitial.addAdEventListener(AdEventType.ERROR, handleError);
+        
+        // Store unsubscribe functions for cleanup
+        unsubscribeFunctions = [unsubscribeLoaded, unsubscribeClosed, unsubscribeError];
 
         interstitial.load();
         interstitial.show();
 
         // Cleanup listeners after 30 seconds if ad doesn't show
         setTimeout(() => {
-          unsubscribeLoaded();
-          unsubscribeClosed();
-          unsubscribeError();
-          resolve(false);
+          if (!isAdCompleted) {
+            unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+            resolve(false);
+          }
         }, 30000);
       });
     } catch (error) {
@@ -175,40 +193,60 @@ class AdManager {
       console.log(`Preparing to show interstitial ad with ID: ${INTERSTITIAL_AD_ID}`);
 
       return new Promise((resolve) => {
-        const unsubscribeClosed = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
+        let isAdCompleted = false;
+        let unsubscribeFunctions: (() => void)[] = [];
+
+        const handleClosed = () => {
           console.log('Interstitial ad closed');
+          isAdCompleted = true;
+          trackGameEvent.adCompleted('interstitial');
+          
+          // Clean up listeners
+          unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
           resolve(true);
-        });
+        };
 
-        const unsubscribeError = interstitial.addAdEventListener(AdEventType.ERROR, (error: any) => {
+        const handleError = (error: any) => {
           console.error('Interstitial ad error:', error);
+          
+          // Track ad failure
+          trackGameEvent.adFailed('interstitial', error?.code || 'unknown');
+          
+          // Don't process if ad was already completed
+          if (isAdCompleted) return;
+          
+          // Clean up listeners
+          unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
           resolve(false);
-        });
+        };
 
+        const handleLoaded = () => {
+          console.log('Interstitial ad loaded, showing now');
+          interstitial.show();
+        };
+
+        // Add listeners
+        const unsubscribeClosed = interstitial.addAdEventListener(AdEventType.CLOSED, handleClosed);
+        const unsubscribeError = interstitial.addAdEventListener(AdEventType.ERROR, handleError);
+        
         // Show the ad if it's loaded
         if (interstitial.loaded) {
-          setTimeout(() => {
-            interstitial.show();
-          }, 100);
+          interstitial.show();
         } else {
           // If not loaded, wait for load before showing
-          const unsubscribeLoaded = interstitial.addAdEventListener(AdEventType.LOADED, () => {
-            console.log('Interstitial ad loaded, showing now');
-            setTimeout(() => {
-              interstitial.show();
-            }, 100);
-            unsubscribeLoaded();
-          });
-
+          const unsubscribeLoaded = interstitial.addAdEventListener(AdEventType.LOADED, handleLoaded);
+          unsubscribeFunctions = [unsubscribeLoaded, unsubscribeClosed, unsubscribeError];
+          
           // Try loading the ad
           interstitial.load();
         }
 
         // Cleanup listeners after 30 seconds if ad doesn't show
         setTimeout(() => {
-          unsubscribeClosed();
-          unsubscribeError();
-          resolve(false);
+          if (!isAdCompleted) {
+            unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+            resolve(false);
+          }
         }, 30000);
       });
     } catch (error) {
@@ -217,31 +255,7 @@ class AdManager {
     }
   }
 
-  public preloadInterstitialAd() {
-    if (isWeb || !AdEventType) return;
-    
-    const interstitialAd = this.interstitialAdRef;
-    if (!interstitialAd) return;
-    
-    // Set up event listeners for interstitial ad
-    const interstitialLoadedUnsubscribe = interstitialAd.addAdEventListener(AdEventType.LOADED, () => {
-      console.log('Interstitial ad preloaded and ready');
-    });
-    
-    const interstitialErrorUnsubscribe = interstitialAd.addAdEventListener(AdEventType.ERROR, (error: any) => {
-      console.error('Interstitial ad preload error:', error);
-    });
-
-    // Load the ad
-    console.log('Preloading interstitial ad...');
-    interstitialAd.load();
-    
-    // Return cleanup function
-    return () => {
-      interstitialLoadedUnsubscribe();
-      interstitialErrorUnsubscribe();
-    };
-  }
+  // Removed preloadInterstitialAd method - ads are only preloaded when needed
 }
 
 export const adManager = AdManager.getInstance(); 

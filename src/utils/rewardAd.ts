@@ -1,5 +1,7 @@
 import { Platform, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { showRewardedInterstitialAd, preloadRewardedInterstitialAd } from './rewardedInterstitialAd';
+import { trackGameEvent } from './firebase';
 
 // Check if we're on web platform
 const isWeb = Platform.OS === 'web';
@@ -15,7 +17,7 @@ type RewardCallback = (reward: Reward) => void;
 interface InterstitialAdInstance {
   load: () => void;
   show: () => void;
-  addAdEventListener: (eventType: string, callback: (data?: any) => void) => void;
+  addAdEventListener: (eventType: string, callback: (data?: any) => void) => () => void;
 }
 
 interface AdMobModule {
@@ -27,6 +29,9 @@ interface AdMobModule {
     createForAdRequest: (adUnitId: string) => InterstitialAdInstance;
   };
   RewardedAd: {
+    createForAdRequest: (adUnitId: string) => RewardedAdInstance;
+  };
+  RewardedInterstitialAd: {
     createForAdRequest: (adUnitId: string) => RewardedAdInstance;
   };
   AdEventType: {
@@ -41,7 +46,7 @@ interface AdMobModule {
 }
 
 interface RewardedAdInstance {
-  addAdEventListener: (eventType: string, callback: (data?: any) => void) => void;
+  addAdEventListener: (eventType: string, callback: (data?: any) => void) => () => void;
   load: () => void;
   show: () => void;
 }
@@ -132,7 +137,7 @@ const createRewardedAd = (): RewardedAdInstance | null => {
   }
 };
 
-// Show the rewarded ad
+// Show the rewarded ad with fallback to rewarded interstitial
 const showRewardedAd = async (onRewardEarned?: RewardCallback): Promise<void> => {
   if (isWeb) {
     Alert.alert(
@@ -145,29 +150,39 @@ const showRewardedAd = async (onRewardEarned?: RewardCallback): Promise<void> =>
   
   let retryCount = 0;
   const MAX_RETRIES = 3;
+  let isAdCompleted = false;
+  let unsubscribeFunctions: (() => void)[] = [];
   
   try {
-    // Create a fresh ad instance each time
+    // Create a fresh ad instance each time (like the test screen)
     const ad = createRewardedAd();
     if (!ad) {
-      // console.log('Rewarded ad not available. Grrr...');
-      Alert.alert(
-        'Ad Not Available',
-        'The ad module is not available. Please check if the AdMob package is installed correctly.',
-        [{ text: 'OK', style: 'cancel' }]
-      );
+      //console.log('Rewarded ad not available, trying rewarded interstitial fallback...');
+      // Try rewarded interstitial as fallback
+      const fallbackSuccess = await showRewardedInterstitialAd(onRewardEarned);
+      if (!fallbackSuccess) {
+        Alert.alert(
+          'No Ads Available',
+          'No reward ads are currently available. Please try again later.',
+          [{ text: 'OK', style: 'cancel' }]
+        );
+      }
       return;
     }
     
-    // Add all event listeners first, then load
-    ad.addAdEventListener(RewardedAdEventType!.LOADED, () => {
-      // console.log('Rewarded ad loaded, showing now');
+    // Add all event listeners first, then load (like the test screen)
+    const handleLoaded = () => {
+      //console.log('Rewarded ad loaded, showing now');
       retryCount = 0; // Reset retry count on success
+      trackGameEvent.adShown('rewarded');
       ad.show();
-    });
-    
-    ad.addAdEventListener(RewardedAdEventType!.EARNED_REWARD, (reward: Reward) => {
-      // console.log('User earned reward:', reward);
+    };
+      
+    const handleEarnedReward = (reward: Reward) => {
+      //console.log('User earned reward:', reward);
+      isAdCompleted = true;
+      trackGameEvent.adCompleted('rewarded');
+
       if (onRewardEarned) {
         onRewardEarned(reward);
       }
@@ -176,50 +191,85 @@ const showRewardedAd = async (onRewardEarned?: RewardCallback): Promise<void> =>
         `You earned ${reward.amount} ${reward.type}!`,
         [{ text: 'Claim', style: 'default' }]
       );
-    });
-    
-    ad.addAdEventListener(AdEventType!.CLOSED, () => {
-      // console.log('Rewarded ad closed');
+    };
+      
+    const handleClosed = () => {
+      //console.log('Rewarded ad closed');
+      isAdCompleted = true;
       retryCount = 0; // Reset retry count after successful completion
-    });
-    
-    ad.addAdEventListener(AdEventType!.ERROR, (error: any) => {
+      
+      // Clean up listeners
+      unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+    };
+      
+    const handleError = (error: any) => {
       console.error('Rewarded ad error:', error?.code || error);
+      
+      // Track ad failure
+      trackGameEvent.adFailed('rewarded', error?.code || 'unknown');
+      
+      // Don't retry if ad was already completed
+      if (isAdCompleted) {
+        return;
+      }
       
       const currentRetryCount = retryCount + 1;
       retryCount = currentRetryCount;
       
       if (currentRetryCount < MAX_RETRIES) {
-        // console.log(`Retrying rewarded ad load (attempt ${currentRetryCount + 1}/${MAX_RETRIES})...`);
+        //console.log(`Retrying rewarded ad load (attempt ${currentRetryCount + 1}/${MAX_RETRIES})...`);
         // Shorter delay with each retry
         const retryDelay = 300 * (currentRetryCount + 1);
         setTimeout(() => {
-          // console.log(`Retrying ad load after ${retryDelay}ms delay`);
+          //console.log(`Retrying ad load after ${retryDelay}ms delay`);
           ad.load();
         }, retryDelay);
       } else {
-        Alert.alert(
-          'Ad Error', 
-          `Failed to load rewarded ad after ${MAX_RETRIES} attempts. Error code: ${error?.code || 'unknown'}`,
-          [{ text: 'OK', style: 'cancel' }]
-        );
+        //console.log('Rewarded ad failed after all retries, trying rewarded interstitial fallback...');
+        // Clean up listeners before fallback
+        unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+        
+        // Try rewarded interstitial as fallback
+        showRewardedInterstitialAd(onRewardEarned).then((fallbackSuccess) => {
+          if (!fallbackSuccess) {
+            Alert.alert(
+              'No Ads Available',
+              'No reward ads are currently available. Please try again later.',
+              [{ text: 'OK', style: 'cancel' }]
+            );
+          }
+        });
       }
-    });
+    };
+      
+    // Add listeners (like the test screen)
+    const unsubscribeLoaded = ad.addAdEventListener(RewardedAdEventType!.LOADED, handleLoaded);
+    const unsubscribeReward = ad.addAdEventListener(RewardedAdEventType!.EARNED_REWARD, handleEarnedReward);
+    const unsubscribeClosed = ad.addAdEventListener(AdEventType!.CLOSED, handleClosed);
+    const unsubscribeError = ad.addAdEventListener(AdEventType!.ERROR, handleError);
     
-    // Load the ad after all listeners are set up, with a delay to let SDK settle
-    // console.log('Waiting 50ms before loading rewarded ad...');
-    setTimeout(() => {
-      // console.log('Now loading rewarded ad after delay');
-      ad.load();
-    }, 50); // 50ms buffer
+    // Store unsubscribe functions for cleanup
+    unsubscribeFunctions = [unsubscribeLoaded, unsubscribeReward, unsubscribeClosed, unsubscribeError];
+    
+    // Load ad (like the test screen - no delays)
+    //console.log('Loading rewarded ad...');
+    ad.load();
     
   } catch (error) {
-    console.error('Error setting up rewarded ad:', error);
-    Alert.alert(
-      'Ad Error', 
-      'Failed to set up rewarded ad. Please try again later.',
-      [{ text: 'OK', style: 'cancel' }]
-    );
+    //console.error('Error setting up rewarded ad:', error);
+    
+    // Clean up listeners
+    unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+    
+    // Try rewarded interstitial as fallback
+    const fallbackSuccess = await showRewardedInterstitialAd(onRewardEarned);
+    if (!fallbackSuccess) {
+      Alert.alert(
+        'No Ads Available',
+        'No reward ads are currently available. Please try again later.',
+        [{ text: 'OK', style: 'cancel' }]
+      );
+    }
   }
 };
 

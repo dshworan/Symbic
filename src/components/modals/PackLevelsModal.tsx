@@ -65,18 +65,41 @@ const PackLevelsModal: React.FC<PackLevelsModalProps> = ({ isVisible, onClose, p
       //gridSize: level.size
     //});
 
-    // Check if this is a level change (not just a puzzle change within the same level)
-    const currentLevel = levelManager.getCurrentLevel();
-    const isLevelChange = level.level !== currentLevel.id;
+    // Check if this is a pack change (different pack than currently playing)
+    const currentPack = levelManager.getCurrentPackNumber();
+    const isPackChange = packId !== currentPack;
     
-    // Show interstitial ad for level changes, except from level 1 to level 2
-    if (isLevelChange && !(currentLevel.id === 1 && level.level === 2)) {
+    // Check if this pack was recently unlocked
+    const isRecentlyUnlocked = packDataManager.isRecentlyUnlocked(packId);
+    
+    console.log('🔍 Pack selection check:', {
+      packId,
+      currentPack,
+      isPackChange,
+      isRecentlyUnlocked,
+      shouldShowAd: isPackChange && !isRecentlyUnlocked
+    });
+    
+    // Show interstitial ad for pack changes, except for recently unlocked packs
+    if (isPackChange && !isRecentlyUnlocked) {
+      console.log('🎯 Attempting to show interstitial ad for pack selection...');
       try {
         const { showInterstitialAd } = await import('../../utils/interstitialAd');
         await showInterstitialAd();
+        console.log('✅ Interstitial ad shown successfully for pack selection');
       } catch (error) {
-        console.error('Error showing interstitial ad:', error);
+        console.error('❌ Error showing interstitial ad:', error);
       }
+    } else {
+      console.log('🚫 Interstitial ad not shown for pack selection:', {
+        reason: isRecentlyUnlocked ? 'recently unlocked pack' : 'same pack'
+      });
+    }
+    
+    // Clear the "recently unlocked" flag when user starts playing this pack
+    if (isRecentlyUnlocked) {
+      packDataManager.clearRecentlyUnlocked(packId);
+      console.log(`🎉 User started playing recently unlocked pack ${packId} - cleared recently unlocked flag`);
     }
 
     // Set the current pack and level (both are 1-based in LevelManager)

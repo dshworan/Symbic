@@ -77,7 +77,7 @@ const createInterstitialAd = () => {
 // Initialize everything
 const initialize = async () => {
   await initializeAdMob();
-  await createInterstitialAd();
+  // Don't create ad instance at startup - only when needed
 };
 
 // Preload the interstitial ad
@@ -120,10 +120,10 @@ const showInterstitialAd = async () => {
   }
   
   try {
-    // Create a fresh ad instance
-    interstitialAdRef = InterstitialAd.createForAdRequest(INTERSTITIAL_AD_ID);
+    // Create a fresh ad instance each time (like SYMBIC does)
+    const freshAd = InterstitialAd.createForAdRequest(INTERSTITIAL_AD_ID);
     
-    if (!interstitialAdRef) {
+    if (!freshAd) {
       Alert.alert(
         'Ad Not Available',
         'The ad module is not available. Please check if the AdMob package is installed correctly.',
@@ -135,32 +135,26 @@ const showInterstitialAd = async () => {
     console.log(`Preparing to show interstitial ad with ID: ${INTERSTITIAL_AD_ID}`);
     
     // Set up listeners specifically for this showing instance
-    const unsubscribeClosed = interstitialAdRef.addAdEventListener(AdEventType.CLOSED, () => {
+    const unsubscribeClosed = freshAd.addAdEventListener(AdEventType.CLOSED, () => {
       console.log('Interstitial ad closed');
-      // Preload the next ad
-      interstitialAdRef.load();
+      // Don't preload automatically - only preload when needed
     });
     
     // Show the ad if it's loaded
-    if (interstitialAdRef.loaded) {
-      // Add a small delay before showing to ensure the ad is ready
-      setTimeout(() => {
-        interstitialAdRef.show();
-      }, 100);
+    if (freshAd.loaded) {
+      freshAd.show();
     } else {
       // If not loaded, wait for load before showing
-      const unsubscribeLoaded = interstitialAdRef.addAdEventListener(AdEventType.LOADED, () => {
+      const unsubscribeLoaded = freshAd.addAdEventListener(AdEventType.LOADED, () => {
         console.log('Interstitial ad loaded, showing now');
-        // Add a small delay before showing to ensure the ad is ready
-        setTimeout(() => {
-          interstitialAdRef.show();
-        }, 100);
+        freshAd.show();
         unsubscribeLoaded();
       });
       
       // Set error handler just for this attempt
-      const unsubscribeError = interstitialAdRef.addAdEventListener(AdEventType.ERROR, (error: any) => {
+      const unsubscribeError = freshAd.addAdEventListener(AdEventType.ERROR, (error: unknown) => {
         console.error('Interstitial ad error:', error);
+        
         Alert.alert(
           'Ad Error', 
           'Failed to load interstitial ad.',
@@ -170,16 +164,14 @@ const showInterstitialAd = async () => {
       });
       
       // Try loading the ad
-      interstitialAdRef.load();
+      freshAd.load();
       
-      return () => {
-        unsubscribeLoaded();
-        unsubscribeError();
-        unsubscribeClosed();
-      };
+      // Note: The cleanup functions will be called when the events fire
+      // Don't unsubscribe immediately - let the listeners handle the events
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error showing interstitial ad:', error);
+    
     Alert.alert(
       'Ad Error', 
       'Failed to show interstitial ad.',

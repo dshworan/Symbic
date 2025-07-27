@@ -70,6 +70,36 @@ const mockAdMob: AdMobModule = {
       }
     })
   },
+  RewardedInterstitialAd: {
+    createForAdRequest: (adUnitId: string): RewardedAdInstance => ({
+      load: (): void => {
+        console.log('Mock rewarded interstitial ad load called');
+      },
+      show: (): void => {
+        console.log('Mock rewarded interstitial ad show called');
+      },
+      addAdEventListener: (eventType: string, callback: (data?: any) => void): void => {
+        console.log(`Mock rewarded interstitial ad event listener added for ${eventType}`);
+        // Simulate the event being triggered after a short delay
+        if (eventType === 'loaded') {
+          setTimeout(() => {
+            console.log('Mock rewarded interstitial ad loaded event triggered');
+            callback();
+          }, 100);
+        } else if (eventType === 'rewarded') {
+          setTimeout(() => {
+            console.log('Mock rewarded interstitial ad rewarded event triggered');
+            callback({ amount: 1, type: 'hint' });
+          }, 2000);
+        } else if (eventType === 'closed') {
+          setTimeout(() => {
+            console.log('Mock rewarded interstitial ad closed event triggered');
+            callback();
+          }, 3000);
+        }
+      }
+    })
+  },
   AdEventType: {
     LOADED: 'loaded',
     ERROR: 'error',

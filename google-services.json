@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "715982885855",
+    "project_id": "symbic-55449",
+    "storage_bucket": "symbic-55449.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:715982885855:android:7d40aa41dd65c60df12a6a",
+        "android_client_info": {
+          "package_name": "com.shworan.symbic"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBBLT_iJIvPyUdJS77Z_k72DfpNSEJZRgo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

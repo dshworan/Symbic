@@ -30,6 +30,7 @@ export class PackDataManager {
   private static instance: PackDataManager;
   private completionData: { [packId: number]: PackCompletionData } = {};
   private unlockedPacks: Set<number> = new Set();
+  private recentlyUnlockedPacks: Set<number> = new Set(); // Track recently unlocked packs
 
   private constructor() {
     this.loadCompletionData();
@@ -73,6 +74,9 @@ export class PackDataManager {
     // Add pack to unlocked set
     this.unlockedPacks.add(packId);
     
+    // Add to recently unlocked set (will be cleared after first use)
+    this.recentlyUnlockedPacks.add(packId);
+    
     // Initialize completion data for the pack if it doesn't exist
     if (!this.completionData[packId]) {
       this.completionData[packId] = {};
@@ -80,6 +84,14 @@ export class PackDataManager {
     
     // Save to local storage
     this.saveCompletionData();
+  }
+
+  public isRecentlyUnlocked(packId: number): boolean {
+    return this.recentlyUnlockedPacks.has(packId);
+  }
+
+  public clearRecentlyUnlocked(packId: number): void {
+    this.recentlyUnlockedPacks.delete(packId);
   }
 
   public isPackPlayable(packId: number): boolean {
