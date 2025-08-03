@@ -958,7 +958,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
       }, 500);
     } else if (isFilled) {
       // Only show failure message if all cells are filled and solution is incorrect
-      const timeout = setTimeout(showFailureMessage, 2000);
+      const timeout = setTimeout(showFailureMessage, 2500);
       setFailureTimeout(timeout);
     }
   };
@@ -1296,6 +1296,12 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
       });
     }
 
+    // Clear any pending failure message timeout when user makes a change
+    if (failureTimeout) {
+      clearTimeout(failureTimeout);
+      setFailureTimeout(null);
+    }
+
     // Don't allow cell presses if the board is solved
     if (isSolved) return;
 
@@ -1372,6 +1378,12 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
       });
     }
 
+    // Clear any pending failure message timeout when user makes a change
+    if (failureTimeout) {
+      clearTimeout(failureTimeout);
+      setFailureTimeout(null);
+    }
+
     setGrid(prevGrid => {
       const newGrid = prevGrid.map(row => [...row]);
       const lastMove = moveHistory[moveHistory.length - 1];
@@ -1402,6 +1414,12 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
       }).start(() => {
         setHint(null);
       });
+    }
+
+    // Clear any pending failure message timeout when user makes a change
+    if (failureTimeout) {
+      clearTimeout(failureTimeout);
+      setFailureTimeout(null);
     }
 
     setGrid(prevGrid => {
@@ -2032,10 +2050,29 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
           )}
 
           {failureMessage && (
-            <Animated.View style={[dynamicStyles.failureMessage, { opacity: failureOpacity }]}>
+            <TouchableOpacity 
+              style={[dynamicStyles.failureMessage, { opacity: failureOpacity }]}
+              onPress={() => {
+                // Clear any pending timeout
+                if (failureTimeout) {
+                  clearTimeout(failureTimeout);
+                  setFailureTimeout(null);
+                }
+                
+                // Animate out the failure message
+                Animated.timing(failureOpacity, {
+                  toValue: 0,
+                  duration: 200,
+                  useNativeDriver: true,
+                }).start(() => {
+                  setFailureMessage(null);
+                });
+              }}
+              activeOpacity={0.8}
+            >
               <Text style={dynamicStyles.failureMainText}>{failureMessage.mainText}</Text>
               <Text style={dynamicStyles.failureSubText}>{failureMessage.subText}</Text>
-            </Animated.View>
+            </TouchableOpacity>
           )}
 
           {hint && (
