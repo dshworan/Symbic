@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { Audio } from 'expo-av';
 import { storage } from '../utils/storage';
 
@@ -23,6 +23,7 @@ export const AudioProvider = ({ children }: { children: React.ReactNode }) => {
   const [sounds, setSounds] = useState<Record<string, Audio.Sound>>({});
   const [isLoaded, setIsLoaded] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const soundsRef = useRef<Record<string, Audio.Sound>>({});
 
   useEffect(() => {
     let mounted = true;
@@ -59,6 +60,7 @@ export const AudioProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (mounted) {
           setSounds(loadedSounds);
+          soundsRef.current = loadedSounds; // Store in ref for cleanup
           setIsLoaded(true);
         }
       } catch (error) {
@@ -73,8 +75,8 @@ export const AudioProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => {
       mounted = false;
-      // Unload all sounds
-      Object.values(sounds).forEach(async (sound) => {
+      // Unload all sounds using the ref
+      Object.values(soundsRef.current).forEach(async (sound) => {
         try {
           if (sound) {
             const status = await sound.getStatusAsync();
@@ -91,11 +93,16 @@ export const AudioProvider = ({ children }: { children: React.ReactNode }) => {
 
   const playSound = async (soundName: string) => {
     try {
-      if (!soundEnabled || !isLoaded || !sounds[soundName]) {
+      if (!soundEnabled || !isLoaded) {
         return;
       }
 
-      const sound = sounds[soundName];
+      const sound = soundsRef.current[soundName];
+      if (!sound) {
+        console.log(`${soundName} sound not found`);
+        return;
+      }
+
       const status = await sound.getStatusAsync();
       
       if (!status.isLoaded) {

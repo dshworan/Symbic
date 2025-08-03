@@ -1,52 +1,107 @@
 export const colorSets: [string, string][] = [
   // Color Set 0
-  ['#2196F3', '#FFC107'], // Blue & Yellow
+  ['#2196F3', '#FFC107'], // Blue / Yellow - Circle Diamond
   // Color Set 1
-  ['#169c8f', '#ea226b'], // Deep Teal & Pink
+  ['#169c8f', '#f0387b'], // Teal / Pink - Fish Duck
   // Color Set 2
-  ['#e28e18', '#974ecb'], // Burnt Orange & Indigo
+  ['#ae41fb', '#FFC107'], // Purple / Yellow - Power Lightning
   // Color Set 3
-  ['#FF5722', '#4CAF50'], // Deep Orange & Green
+  ['#ec5527', '#4CAF50'], // Orange / Green - Dump Excavator
   // Color Set 4
-  ['#b931d1', '#03A9F4'], // Purple & Light Blue
+  ['#ae41fb', '#2196F3'], // Purple / Blue - Alien UFO
   // Color Set 5
-  ['#47cf1a', '#FF9800'], // Lime & Orange
+  ['#4CAF50', '#FFC107'], // Green / Yellow - Apple Watermelon
   // Color Set 6
-  ['#a16e5c', '#6bb0d1'], // Brown & Blue Grey
+  ['#915959', '#2196F3'], // Brown / Blue - King Knight
   // Color Set 7
-  ['#F44336', '#8BC34A'], // Red & Light Green
+  ['#FFC107', '#0dc9b4'], // Yellow / Green - Sun Moon
   // Color Set 8
-  ['#e3354f', '#13a872'], // Coral & Mint
+  ['#f0387b', '#ec5527'], // Pink / Orange - Buggy Teddy
    // Color Set 9
-  ['#e47c21', '#2ecc71'], // Orange & Green
+  ['#d53949', '#2196F3'], // Red / Blue - Fire Rain
   // Color Set 10
-  ['#d44444', '#b24edc'], // Maroon & Lavender
+  ['#4CAF50', '#ae41fb'], // Green / Purple - Crown Queen
   // Color Set 11
-  ['#c23e5f', '#2679f3'], // Burgundy & Sapphire
+  ['#2196F3', '#d53949'], // Blue / Red - Club Heart
   // Color Set 12
-  ['#e74c3c', '#3498db'], // Red & Blue
+  ['#ec5527', '#0dc9b4'], // Orange / Teal - Rocket Astro
   // Color Set 13
-  ['#df2e3f', '#1a83f3'], // Ruby & Sky
+  ['#96a2a0', '#2196F3'], // Grey / Blue - Penguin Snow
   // Color Set 14
-  ['#dc2297', '#e1d92c'], // Magenta & Yellow
+  ['#FFC107', '#915959'], // Yellow / Brown - Key Lock
   // Color Set 15
-  ['#915959', '#03A9F4'], // Plum & Light Blue
+  ['#f0387b', '#4CAF50'], // Pink / Green - Tulip Clover
   // Color Set 16
-  ['#0cbb98', '#c93d3d'], // Teal & Maroon
+  ['#ec5527', '#2196F3'], // Orange / Blue - Boat Whale
   // Color Set 17
-  ['#a5a500', '#8b51f3'], // Olive & Purple
+  ['#FFC107', '#ae41fb'], // Yellow / Purple - Scissors Pin
   // Color Set 18
-  ['#35bc3b', '#2193c4'], // Emerald & Cyan
+  ['#4CAF50', '#2196F3'], // Green / Blue - Horse Shield
   // Color Set 19
-  ['#3cb371', '#f02e5e'], // Seafoam & Burgundy
+  ['#ec5527', '#d53949'], // Orange / Red - Cat Dog
   // Color Set 20
-  ['#4ccd4c', '#e63143'], // Lime & Ruby
+  ['#d53949', '#96a2a0'], // Red / Grey - Diamond Spade
   // Color Set 21
-  ['#45b045', '#e28e18'], // Forest & Burnt Orange
+  ['#915959', '#4CAF50'], // Brown / Green - Tent Tree
   // Color Set 22
-  ['#1a85ee', '#e3354f'], // Baby Blue & Coral
+  ['#2196F3', '#FFC107'], // Blue / Yellow - Cupcake Candy
   // Color Set 23
-  ['#537388', '#c71585'],  // Charcoal & Magenta
+  ['#f0387b', '#ec5527'], // Pink / Orange - Bat Cat
   // Color Set 24
-  ['#CDDC39', '#0dc9b4'], // SoftLime & Teal
+  ['#4CAF50', '#ae41fb'], // Green / Purple - Skate IceCream
+  // Color Set 25
+  ['#f23178', '#FFC107'], // Pink / Yellow - Pig Coin
+  // Color Set 26
+  ['#915959', '#0dc9b4'], // Brown / Teal - Snail Butterfly 
+  // Color Set 27
+  ['#4CAF50', '#d53949'], // Green / Red - Plant Flower
+  // Color Set 28
+  ['#96a2a0', '#2196F3'], // Grey / Blue - Briefcase Earth 
+  // Color Set 29
+  ['#FFC107', '#d53949'], // Yellow / Red - Ant Ladybug 
+  // Color Set 30
+  ['#ec5527', '#4CAF50'], // Orange / Green - Skull Poison
+  // Color Set 31
+  ['#ae41fb', '#2196F3'], // Purple / Blue - Truck Car
+  // Color Set 32
+  ['#96a2a0', '#d53949'], // Grey / Red - Bomb Explosion
+  // Color Set 33
+  ['#f23178', '#0dc9b4'], // Pink / Teal - Wand Bunnyhat
+  // Color Set 34
+  ['#FFC107', '#2196F3'], // Yellow / Blue - Broom Wizard
+  // Color Set 35
+  ['#915959', '#ae41fb'], // Brown / Purple - Paper Plane
+  // Color Set 36
+  ['#4CAF50', '#d53949'], // Green / Red - Square Fourstar
+  // Color Set 37
+  ['#ec5527', '#96a2a0'], // Orange / Grey - Pumpkin Ghost
+  // Color Set 38
+  ['#2196F3', '#f0387b'], // Blue / Pink - Plus Crescent
+  // Color Set 39
+  ['#FFC107', '#915959'], // Yellow / Brown - Star Saw
+  // Color Set 40
+  ['#96a2a0', '#FFC107'], // Grey / Yellow - Tooth Sparkle
+  // Color Set 41
+  ['#d53949', '#0dc9b4'], // Red / Teal - Puzzle Dice
+  // Color Set 42
+  ['#2196F3', '#ec5527'], // Blue / Orange - Water Cloud
+  // Color Set 43
+  ['#915959', '#f0387b'], // Brown / Pink - Paw Hand
+  // Color Set 44
+  ['#2196F3', '#FFC107'], // Blue / Yellow - Controller Trophy
+  // Color Set 45
+  ['#4CAF50', '#ae41fb'], // Green / Purple - Triangle Quattre
+  // Color Set 46
+  ['#ec5527', '#0dc9b4'], // Orange / Teal - Mouse Snake
+  // Color Set 47
+  ['#96a2a0', '#d53949'], // Grey / Red - Baseball Hat
+  // Color Set 48
+  ['#f0387b', '#2196F3'], // Pink / Blue - Happy Sad
+  // Color Set 49
+  ['#4CAF50', '#d53949'], // Green / Red - Up Down
+  // Color Set 50
+  ['#0dc9b4', '#FFC107'], // Teal / Yellow - Mouse Mouse
+  // Color Set 51
+  ['#f0387b', '#2196F3'], // Pink / Blue - Cake Hat
+  // the rest will be randomized
 ];
