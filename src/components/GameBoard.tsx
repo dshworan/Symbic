@@ -185,6 +185,14 @@ const getDynamicStyles = () => {
       lineHeight: isTablet ? 20 : 16,
       textAlign: 'center',
     },
+    failureCloseX: {
+      position: 'absolute',
+      top: isTablet ? 0 : -2,
+      right: isTablet ? 8 : 6,
+      color: '#777777',
+      fontSize: getResponsiveFontSize(20),
+      zIndex: 1,
+    },
     failureMessage: {
       position: 'absolute',
       top: -2,
@@ -2070,6 +2078,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
               }}
               activeOpacity={0.8}
             >
+              <Text style={dynamicStyles.failureCloseX}>×</Text>
               <Text style={dynamicStyles.failureMainText}>{failureMessage.mainText}</Text>
               <Text style={dynamicStyles.failureSubText}>{failureMessage.subText}</Text>
             </TouchableOpacity>
