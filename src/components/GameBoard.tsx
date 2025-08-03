@@ -174,28 +174,31 @@ const getDynamicStyles = () => {
       borderWidth: 3,
     },
     failureMainText: {
-      color: '#ff5362',
+      color: '#ffffff',
       fontSize: getResponsiveFontSize(15),
       fontWeight: 'bold',
       marginBottom: 2,
     },
     failureSubText: {
-      color: '#ff5362',
+      color: '#cccccc',
       fontSize: getResponsiveFontSize(14),
       lineHeight: isTablet ? 20 : 16,
       textAlign: 'center',
     },
     failureMessage: {
       position: 'absolute',
-      bottom: isTablet ? -120 : -95,
-      left: '50%',
-      transform: [{ translateX: isTablet ? -180 : -150 }],
-      paddingVertical: isTablet ? 15 : 10,
+      top: -2,
+      left: 0,
+      right: 0,
+      paddingTop: isTablet ? 13 : 8,
+      paddingBottom: isTablet ? 15 : 10,
       paddingHorizontal: isTablet ? 20 : 15,
-      width: isTablet ? 360 : 300,
       alignItems: 'center',
-      zIndex: 2000,
       backgroundColor: '#1a1a1a',
+      borderWidth: 2,
+      borderColor: '#ff5362',
+      borderRadius: isTablet ? 8 : 6,
+      zIndex: 10,
     },
     // Additional styles that need to be responsive
     grid: {
@@ -228,7 +231,6 @@ const getDynamicStyles = () => {
       justifyContent: 'center' as const,
       marginTop: isTablet ? 15 : 10,
       maxWidth: '100%', // Ensure grid doesn't overflow container
-      overflow: 'hidden' as const, // Prevent overflow
     },
     welcomeTouchable: {
       position: 'absolute' as const,
@@ -251,6 +253,7 @@ const getDynamicStyles = () => {
       marginTop: 0,
       marginBottom: isTablet ? 15 : 10,
       zIndex: 1,
+      minHeight: isTablet ? 60 : 50, // Add minimum height to ensure space for absolute positioning
     },
     tutorialMessage: {
       padding: isTablet ? 20 : 15,
@@ -1993,12 +1996,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
                 {row.map((cell, colIndex) => renderCell(cell, rowIndex, colIndex))}
               </View>
             ))}
-            {failureMessage && (
-              <Animated.View style={[dynamicStyles.failureMessage, { opacity: failureOpacity }]}>
-                <Text style={dynamicStyles.failureMainText}>{failureMessage.mainText}</Text>
-                <Text style={dynamicStyles.failureSubText}>{failureMessage.subText}</Text>
-              </Animated.View>
-            )}
+
           </Animated.View>
           
           {/* Success message overlay - independent of grid opacity */}
@@ -2030,6 +2028,13 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
               <Text style={dynamicStyles.tutorialText}>
                 {pack1Tutorials[`level${levelManager.getCurrentLevelNumber()}`]?.[puzzleManager.getCurrentPuzzleIndex()]}
               </Text>
+            </Animated.View>
+          )}
+
+          {failureMessage && (
+            <Animated.View style={[dynamicStyles.failureMessage, { opacity: failureOpacity }]}>
+              <Text style={dynamicStyles.failureMainText}>{failureMessage.mainText}</Text>
+              <Text style={dynamicStyles.failureSubText}>{failureMessage.subText}</Text>
             </Animated.View>
           )}
 
