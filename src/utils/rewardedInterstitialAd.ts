@@ -131,7 +131,7 @@ const showRewardedInterstitialAd = async (onRewardEarned?: (reward: Reward) => v
     });
     
     ad.addAdEventListener(AdEventType.CLOSED, () => {
-      console.log('Rewarded interstitial ad closed');
+      //console.log('Rewarded interstitial ad closed');
       retryCount = 0; // Reset retry count after successful completion
     });
     

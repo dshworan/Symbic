@@ -132,11 +132,11 @@ const showInterstitialAd = async () => {
       return;
     }
     
-    console.log(`Preparing to show interstitial ad with ID: ${INTERSTITIAL_AD_ID}`);
+    //console.log(`Preparing to show interstitial ad with ID: ${INTERSTITIAL_AD_ID}`);
     
     // Set up listeners specifically for this showing instance
     const unsubscribeClosed = freshAd.addAdEventListener(AdEventType.CLOSED, () => {
-      console.log('Interstitial ad closed');
+      //console.log('Interstitial ad closed');
       // Don't preload automatically - only preload when needed
     });
     
@@ -146,14 +146,14 @@ const showInterstitialAd = async () => {
     } else {
       // If not loaded, wait for load before showing
       const unsubscribeLoaded = freshAd.addAdEventListener(AdEventType.LOADED, () => {
-        console.log('Interstitial ad loaded, showing now');
+        //console.log('Interstitial ad loaded, showing now');
         freshAd.show();
         unsubscribeLoaded();
       });
       
       // Set error handler just for this attempt
       const unsubscribeError = freshAd.addAdEventListener(AdEventType.ERROR, (error: unknown) => {
-        console.error('Interstitial ad error:', error);
+        //console.error('Interstitial ad error:', error);
         
         Alert.alert(
           'Ad Error', 

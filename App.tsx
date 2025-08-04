@@ -34,20 +34,20 @@ export default function App() {
     const initServices = async () => {
       try {
         // Initialize Firebase first (but don't block if it fails)
-        console.log('🚀 Initializing Firebase...');
+        //console.log('🚀 Initializing Firebase...');
         await initializeFirebase();
       } catch (error) {
-        console.warn('⚠️ Firebase initialization failed, continuing without analytics:', error);
+        //console.warn('⚠️ Firebase initialization failed, continuing without analytics:', error);
       }
       
       try {
         // Then initialize ads
-        console.log('🚀 Initializing AdManager...');
+        //console.log('🚀 Initializing AdManager...');
         await adManager.init();
-        console.log('🚀 Initializing Interstitial Ads...');
+        //console.log('🚀 Initializing Interstitial Ads...');
         await initializeInterstitialAds();
       } catch (error) {
-        console.error('❌ Failed to initialize ads:', error);
+        //console.error('❌ Failed to initialize ads:', error);
       }
     };
 
@@ -60,9 +60,9 @@ export default function App() {
       try {
         await NavigationBar.setBackgroundColorAsync('#1E1E1E'); // solid dark background
         await NavigationBar.setButtonStyleAsync('light');        // white nav icons
-        console.log('🎨 Navigation bar styled with dark background');
+        //console.log('🎨 Navigation bar styled with dark background');
       } catch (error) {
-        console.warn('⚠️ Failed to style navigation bar:', error);
+        //console.warn('⚠️ Failed to style navigation bar:', error);
       }
     };
     styleNavBar();

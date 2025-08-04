@@ -186,18 +186,18 @@ class AdManager {
       const interstitial = this.createInterstitialAd();
       
       if (!interstitial) {
-        console.error('Failed to create interstitial ad');
+        //console.error('Failed to create interstitial ad');
         return false;
       }
 
-      console.log(`Preparing to show interstitial ad with ID: ${INTERSTITIAL_AD_ID}`);
+      //console.log(`Preparing to show interstitial ad with ID: ${INTERSTITIAL_AD_ID}`);
 
       return new Promise((resolve) => {
         let isAdCompleted = false;
         let unsubscribeFunctions: (() => void)[] = [];
 
         const handleClosed = () => {
-          console.log('Interstitial ad closed');
+          //console.log('Interstitial ad closed');
           isAdCompleted = true;
           trackGameEvent.adCompleted('interstitial');
           
@@ -207,7 +207,7 @@ class AdManager {
         };
 
         const handleError = (error: any) => {
-          console.error('Interstitial ad error:', error);
+          //console.error('Interstitial ad error:', error);
           
           // Track ad failure
           trackGameEvent.adFailed('interstitial', error?.code || 'unknown');
@@ -221,7 +221,7 @@ class AdManager {
         };
 
         const handleLoaded = () => {
-          console.log('Interstitial ad loaded, showing now');
+          //console.log('Interstitial ad loaded, showing now');
           interstitial.show();
         };
 

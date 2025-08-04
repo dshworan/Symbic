@@ -103,5 +103,33 @@ export const colorSets: [string, string][] = [
   ['#0dc9b4', '#FFC107'], // Teal / Yellow - Mouse Mouse
   // Color Set 51
   ['#f0387b', '#2196F3'], // Pink / Blue - Cake Hat
-  // the rest will be randomized
+  // Color Set 52
+  ['#4CAF50', '#FFC107'], // Green / Yellow - Science Warning
+  // Color Set 53
+  ['#ec5527', '#915959'], // Orange / Brown - Bell Trumpet
+  // Color Set 54
+  ['#d53949', '#0dc9b4'], // Red / Teal - Pawn Rook
+  // Color Set 55
+  ['#f0387b', '#2196F3'], // Pink / Blue - House Bed
+  // Color Set 56
+  ['#ec5527', '#FFC107'], // Orange / Yellow - Profile Speech
+  // Color Set 57
+  ['#96a2a0', '#4CAF50'], // Grey / Green - Spell Cauldron
+  // Color Set 58
+  ['#ae41fb', '#0dc9b4'], // Purple / Teal - Diving Mask
+  // Color Set 59
+  ['#f0387b', '#FFC107'], // Pink / Yellow - Med Theatre
+  // Color Set 60
+  ['#4CAF50', '#915959'], // Green / Brown - Image Camera
+  // Color Set 61
+  ['#FFC107', '#96a2a0'], // Yellow / Grey - Spooky Bat
+  // Color Set 62
+  ['#2196F3', '#d53949'], // Blue / Red - Burger Pizza 
+  // Color Set 63
+  ['#f0387b', '#915959'], // Pink / Brown - Martini Coffee 
+  // Color Set 64
+  ['#0dc9b4', '#ec5527'], // Teal / Orange - Mouth Eye 
+  // Color Set 65
+  ['#FFC107', '#ae41fb'], // Yellow / Purple - Heart Cry
+  // Random for the rest 
 ];

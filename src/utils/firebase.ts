@@ -22,9 +22,9 @@ let analytics: any = null;
 
 if (!isWeb) {
   try {
-    const firebase = require('@react-native-firebase/app');
+    const { getApp } = require('@react-native-firebase/app');
     const firebaseAnalytics = require('@react-native-firebase/analytics');
-    analytics = firebaseAnalytics.default();
+    analytics = firebaseAnalytics.default(getApp());
   } catch (error) {
     console.warn('Firebase Analytics not available:', error);
   }
@@ -58,7 +58,7 @@ const realFirebaseTracking: GameEvent = {
         console.warn('Failed to log ad_shown event:', error);
       }
     }
-    console.log(`📊 Ad Shown: ${adType}`);
+    //console.log(`📊 Ad Shown: ${adType}`);
   },
   
   adCompleted: (adType: string) => {
@@ -69,10 +69,10 @@ const realFirebaseTracking: GameEvent = {
           timestamp: Date.now()
         });
       } catch (error) {
-        console.warn('Failed to log ad_completed event:', error);
+        //console.warn('Failed to log ad_completed event:', error);
       }
     }
-    console.log(`📊 Ad Completed: ${adType}`);
+    //console.log(`📊 Ad Completed: ${adType}`);
   },
   
   packUnlocked: (packId: number) => {
@@ -83,10 +83,10 @@ const realFirebaseTracking: GameEvent = {
           timestamp: Date.now()
         });
       } catch (error) {
-        console.warn('Failed to log pack_unlocked event:', error);
+        //console.warn('Failed to log pack_unlocked event:', error);
       }
     }
-    console.log(`📊 Pack Unlocked: ${packId}`);
+    //console.log(`📊 Pack Unlocked: ${packId}`);
   },
   
   hintUsed: (levelId: string) => {
@@ -100,35 +100,30 @@ const realFirebaseTracking: GameEvent = {
         console.warn('Failed to log hint_used event:', error);
       }
     }
-    console.log(`📊 Hint Used: ${levelId}`);
+    //console.log(`📊 Hint Used: ${levelId}`);
   }
 };
 
 // Mock Firebase implementation for web platform
 const mockFirebaseTracking: GameEvent = {
   adFailed: (adType: string, errorCode: string) => {
-    console.log(`📊 [MOCK] Ad Failed: ${adType} - Error: ${errorCode}`);
-    // TODO: Implement web analytics (Google Analytics 4, etc.)
+    //console.log(`📊 [MOCK] Ad Failed: ${adType} - Error: ${errorCode}`);
   },
   
   adShown: (adType: string) => {
-    console.log(`📊 [MOCK] Ad Shown: ${adType}`);
-    // TODO: Implement web analytics (Google Analytics 4, etc.)
+    //console.log(`📊 [MOCK] Ad Shown: ${adType}`);
   },
   
   adCompleted: (adType: string) => {
-    console.log(`📊 [MOCK] Ad Completed: ${adType}`);
-    // TODO: Implement web analytics (Google Analytics 4, etc.)
+    //console.log(`📊 [MOCK] Ad Completed: ${adType}`);
   },
   
   packUnlocked: (packId: number) => {
-    console.log(`📊 [MOCK] Pack Unlocked: ${packId}`);
-    // TODO: Implement web analytics (Google Analytics 4, etc.)
+    //console.log(`📊 [MOCK] Pack Unlocked: ${packId}`);
   },
   
   hintUsed: (levelId: string) => {
-    console.log(`📊 [MOCK] Hint Used: ${levelId}`);
-    // TODO: Implement web analytics (Google Analytics 4, etc.)
+    //console.log(`📊 [MOCK] Hint Used: ${levelId}`);
   }
 };
 
@@ -144,21 +139,21 @@ export const initializeFirebase = async () => {
 
   // In development mode, be more lenient with Firebase initialization
   if (isDevelopment) {
-    console.log('🔧 Development mode detected - Firebase initialization will be optional');
+    //console.log('🔧 Development mode detected - Firebase initialization will be optional');
   }
 
   try {
     if (analytics) {
       // Enable analytics collection
       await analytics.setAnalyticsCollectionEnabled(true);
-      console.log('✅ Firebase Analytics initialized and enabled');
+      //console.log('✅ Firebase Analytics initialized and enabled');
     } else {
-      console.log('⚠️ Firebase Analytics not available - continuing without analytics');
+      //console.log('⚠️ Firebase Analytics not available - continuing without analytics');
     }
   } catch (error) {
-    console.error('❌ Failed to initialize Firebase Analytics:', error);
+    //console.error('❌ Failed to initialize Firebase Analytics:', error);
     if (isDevelopment) {
-      console.log('🔧 Continuing in development mode without Firebase');
+      //console.log('🔧 Continuing in development mode without Firebase');
     }
   }
 };
@@ -170,9 +165,9 @@ export const setUserProperties = async (properties: Record<string, string>) => {
     for (const [key, value] of Object.entries(properties)) {
       await analytics.setUserProperty(key, value);
     }
-    console.log('✅ User properties set:', properties);
+    //console.log('✅ User properties set:', properties);
   } catch (error) {
-    console.error('❌ Failed to set user properties:', error);
+    //console.error('❌ Failed to set user properties:', error);
   }
 };
 
@@ -181,8 +176,8 @@ export const logCustomEvent = async (eventName: string, parameters?: Record<stri
 
   try {
     await analytics.logEvent(eventName, parameters);
-    console.log(`📊 Custom Event: ${eventName}`, parameters);
+    //console.log(`📊 Custom Event: ${eventName}`, parameters);
   } catch (error) {
-    console.error(`❌ Failed to log custom event ${eventName}:`, error);
+    //console.error(`❌ Failed to log custom event ${eventName}:`, error);
   }
 }; 

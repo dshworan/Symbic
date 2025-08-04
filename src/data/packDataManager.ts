@@ -278,9 +278,9 @@ export class PackDataManager {
       // Save the current unlocked packs to preserve them
       await AsyncStorage.setItem('unlockedPacks', JSON.stringify(Array.from(this.unlockedPacks)));
       
-      console.log('Cleared completion data while preserving unlocked packs');
+      //console.log('Cleared completion data while preserving unlocked packs');
     } catch (error) {
-      console.error('Error clearing completion data:', error);
+      //console.error('Error clearing completion data:', error);
     }
   }
 
@@ -294,9 +294,9 @@ export class PackDataManager {
       this.unlockedPacks = new Set();
       await AsyncStorage.removeItem('unlockedPacks');
       
-      console.log('Cleared all storage including unlocked packs');
+      //console.log('Cleared all storage including unlocked packs');
     } catch (error) {
-      console.error('Error clearing all storage:', error);
+      //console.error('Error clearing all storage:', error);
     }
   }
 }

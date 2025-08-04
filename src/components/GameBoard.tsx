@@ -860,29 +860,29 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
         // Check if this is a level change (not just a puzzle change within the same level)
         const isLevelChange = nextLevel.id !== currentLevelInfo.id;
         
-        console.log('🔍 Level change check:', {
-          currentLevelId: currentLevelInfo.id,
-          nextLevelId: nextLevel.id,
-          isLevelChange,
-          isAutoplay,
-          shouldShowAd: isLevelChange && !(currentLevelInfo.id === 1 && nextLevel.id === 2) && !isAutoplay
-        });
+        //console.log('🔍 Level change check:', {
+          //currentLevelId: currentLevelInfo.id,
+          //nextLevelId: nextLevel.id,
+          //isLevelChange,
+          //isAutoplay,
+          //shouldShowAd: isLevelChange && !(currentLevelInfo.id === 1 && nextLevel.id === 2) && !isAutoplay
+        //});
         
         // Show interstitial ad for level changes, except from level 1 to level 2 and when in autoplay mode
         if (isLevelChange && !(currentLevelInfo.id === 1 && nextLevel.id === 2) && !isAutoplay) {
-          console.log('🎯 Attempting to show interstitial ad...');
+          //console.log('🎯 Attempting to show interstitial ad...');
           try {
             const { showInterstitialAd } = await import('../utils/interstitialAd');
             await showInterstitialAd();
-            console.log('✅ Interstitial ad shown successfully');
+            //console.log('✅ Interstitial ad shown successfully');
           } catch (error) {
-            console.error('❌ Error showing interstitial ad:', error);
+            //console.error('❌ Error showing interstitial ad:', error);
           }
         } else {
-          console.log('🚫 Interstitial ad not shown:', {
-            reason: isAutoplay ? 'autoplay mode' : 
-                    (currentLevelInfo.id === 1 && nextLevel.id === 2) ? 'level 1 to 2 transition' : 'no level change'
-          });
+          //console.log('🚫 Interstitial ad not shown:', {
+            //reason: isAutoplay ? 'autoplay mode' : 
+                    //(currentLevelInfo.id === 1 && nextLevel.id === 2) ? 'level 1 to 2 transition' : 'no level change'
+          //});
         }
         
         // Update current puzzle index
