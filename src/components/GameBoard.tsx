@@ -730,8 +730,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
     const currentLevel = levelManager.getCurrentLevel();
     setSuccessMessage({
       message: messageData.message,
-      backgroundColor: currentLevel.shapes[0].fill,
-      borderColor: currentLevel.shapes[1].fill
+      backgroundColor: currentLevel.shapes[0].fill || '#4CAF50',
+      borderColor: currentLevel.shapes[1].fill || '#2E7D32'
     });
     Animated.sequence([
       Animated.timing(messageOpacity, {
@@ -2052,7 +2052,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ onComplete, onBack, isAutoplay = 
           {levelManager.getCurrentPackNumber() === 1 && (
             <Animated.View style={[dynamicStyles.tutorialMessage, { opacity: tutorialOpacity }]}>
               <Text style={dynamicStyles.tutorialText}>
-                {pack1Tutorials[`level${levelManager.getCurrentLevelNumber()}`]?.[puzzleManager.getCurrentPuzzleIndex()]}
+                {pack1Tutorials[`level${levelManager.getCurrentLevelNumber()}` as keyof typeof pack1Tutorials]?.[puzzleManager.getCurrentPuzzleIndex()]}
               </Text>
             </Animated.View>
           )}
