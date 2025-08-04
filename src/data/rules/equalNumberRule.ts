@@ -51,7 +51,7 @@ export class EqualNumberRule extends MoveValidator {
             col: empty[0],
             value: 1,
             rule: 'equalnumber',
-            message: `This row already has the maximum number of <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg>, so this cell must be a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg>.`,
+            message: `This row already has the maximum number of <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg> so this cell must be a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg>`,
             hintCellSets: [
               // Highlight the row
               ...Array.from({ length: size }, (_, i) => ({ row: row, col: i }))
@@ -64,7 +64,7 @@ export class EqualNumberRule extends MoveValidator {
             col: empty[0],
             value: 0,
             rule: 'equalnumber',
-            message: `This row already has the maximum number of <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg>, so this cell must be a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg>.`,
+            message: `This row already has the maximum number of <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg> so this cell must be a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg>`,
             hintCellSets: [
               // Highlight the row
               ...Array.from({ length: size }, (_, i) => ({ row: row, col: i }))
@@ -103,7 +103,7 @@ export class EqualNumberRule extends MoveValidator {
             col: col,
             value: 1,
             rule: 'equalnumber',
-            message: `This column already has the maximum number of <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg>, so this cell must be a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg>.`,
+            message: `This column already has the maximum number of <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg> so this cell must be a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg>`,
             hintCellSets: [
               // Highlight the column
               ...Array.from({ length: size }, (_, i) => ({ row: i, col: col }))
@@ -116,7 +116,7 @@ export class EqualNumberRule extends MoveValidator {
             col: col,
             value: 0,
             rule: 'equalnumber',
-            message: `This column already has the maximum number of <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg>, so this cell must be a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg>.`,
+            message: `This column already has the maximum number of <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[1].path}" fill="${shapes[1].fill}"/></svg> so this cell must be a <svg width="20" height="20" viewBox="0 0 100 100"><path d="${shapes[0].path}" fill="${shapes[0].fill}"/></svg>`,
             hintCellSets: [
               // Highlight the column
               ...Array.from({ length: size }, (_, i) => ({ row: i, col: col }))
